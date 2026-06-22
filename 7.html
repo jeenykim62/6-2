@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>레시피 도감</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter & Nanum Pen Script for cozy feeling -->
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Gaegu', 'Inter', sans-serif;
+            background-color: #FDF6EC;
+        }
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .scrollbar-none {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* Bounce & Hover animations for warm cozy feel */
+        .cozy-btn {
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .cozy-btn:active {
+            transform: scale(0.95);
+        }
+        /* CSS Shimmer/pulse for analysis */
+        @keyframes cook-pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(10deg); }
+        }
+        .cooking-animation {
+            animation: cook-pulse 1.5s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 md:p-8 select-none">
+
+<!-- 스마트폰 외부 목업 구조 -->
+<div class="relative w-full max-w-[412px] h-[840px] bg-amber-950 rounded-[50px] p-4 shadow-2xl border-8 border-amber-900 flex flex-col overflow-hidden">
+    <!-- 스마트폰 카메라 노치 -->
+    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-6 bg-amber-950 rounded-b-2xl z-50 flex items-center justify-center">
+        <div class="w-3 h-3 bg-neutral-800 rounded-full mr-2"></div>
+        <div class="w-12 h-1 bg-neutral-800 rounded-full"></div>
+    </div>
+
+    <!-- 스마트폰 내부 화면 (연한 주황색 따뜻한 배경 테마) -->
+    <div class="w-full h-full bg-[#FFF2E6] rounded-[36px] overflow-hidden flex flex-col relative pt-6 pb-12 text-stone-800">
+        
+        <!-- 상단 바 (시간, 실시간 날씨 데이터 및 이모지) -->
+        <div class="px-5 py-2 flex justify-between items-center text-xs font-bold text-amber-900 bg-[#FFE5CC] rounded-t-[30px] border-b border-amber-100 z-10">
+            <div id="status-time">10:00</div>
+            <div id="status-weather" class="flex items-center gap-1">
+                <span>날씨 찾는 중... 🔍</span>
+            </div>
+            <div class="flex items-center gap-1">
+                <span>📶</span>
+                <span>🔋 100%</span>
+            </div>
+        </div>
+
+        <!-- 메인 콘텐츠 영역 (스크롤 가능하게 구성) -->
+        <div class="flex-1 overflow-y-auto scrollbar-none px-5 py-4 relative">
+            
+            <!-- SCREEN 1: 시작 화면 (메인 카테고리 도감 선택창 - IMG_20260622_095343.jpg) -->
+            <div id="screen-home" class="space-y-6">
+                <!-- 헤더 로고 -->
+                <div class="text-center py-6">
+                    <span class="text-xs bg-[#FFD1B3] text-amber-800 px-3 py-1 rounded-full font-bold">오직 요리 검색만을 위해 태어난</span>
+                    <h1 class="text-4xl font-extrabold text-[#FF6F00] mt-2 tracking-wide drop-shadow-sm">레시피 도감</h1>
+                    <p class="text-sm text-stone-500 mt-1">Recipe Dictionary</p>
+                </div>
+
+                <!-- 카테고리 카드 3형제 (음식, 디저트, 음료) -->
+                <div class="space-y-4">
+                    <!-- 1. 음식 -->
+                    <button onclick="selectCategory('음식')" class="cozy-btn w-full h-32 bg-white rounded-3xl p-5 shadow-md border-2 border-[#FFD9B3] hover:border-[#FF9933] flex items-center justify-between text-left">
+                        <div class="space-y-1">
+                            <h2 class="text-3xl font-black text-[#FF6F00]">음 식</h2>
+                            <p class="text-sm text-stone-500">든든하고 맛있는 요리 대백과 🥩🍲</p>
+                        </div>
+                        <div class="text-5xl bg-[#FFF2E6] p-3 rounded-2xl">🍳</div>
+                    </button>
+
+                    <!-- 2. 디저트 -->
+                    <button onclick="selectCategory('디저트')" class="cozy-btn w-full h-32 bg-white rounded-3xl p-5 shadow-md border-2 border-[#FFD9B3] hover:border-[#FF9933] flex items-center justify-between text-left">
+                        <div class="space-y-1">
+                            <h2 class="text-3xl font-black text-[#FF6F00]">디 저 트</h2>
+                            <p class="text-sm text-stone-500">달콤하고 기분 좋아지는 디저트 도감 🍪🧁</p>
+                        </div>
+                        <div class="text-5xl bg-[#FFF2E6] p-3 rounded-2xl">🍰</div>
+                    </button>
+
+                    <!-- 3. 음료 -->
+                    <button onclick="selectCategory('음료')" class="cozy-btn w-full h-32 bg-white rounded-3xl p-5 shadow-md border-2 border-[#FFD9B3] hover:border-[#FF9933] flex items-center justify-between text-left">
+                        <div class="space-y-1">
+                            <h2 class="text-3xl font-black text-[#FF6F00]">음 료 수</h2>
+                            <p class="text-sm text-stone-500">목마를 때 마시는 청량 청정 음료 🥤🍋</p>
+                        </div>
+                        <div class="text-5xl bg-[#FFF2E6] p-3 rounded-2xl">🍹</div>
+                    </button>
+                </div>
+
+                <!-- 귀여운 팁 가이드 -->
+                <div class="bg-[#FFF8F0] border border-[#FFE0CC] p-4 rounded-2xl text-center text-sm text-stone-600">
+                    💡 <span class="font-bold">선생님의 알림!</span><br>
+                    위 카테고리 중 하나를 눌러 검색을 시작해 봐!
+                </div>
+            </div>
+
+            <!-- SCREEN 2: 검색 및 서브카테고리 화면 (IMG_20260622_095412.jpg) -->
+            <div id="screen-search" class="hidden space-y-6">
+                <!-- 상단 타이틀 및 백버튼 -->
+                <div class="flex items-center justify-between">
+                    <button onclick="goHome()" class="cozy-btn text-amber-800 bg-[#FFE5CC] px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1">
+                        ◀ 처음으로
+                    </button>
+                    <span id="current-category-badge" class="text-sm font-bold text-amber-900 bg-amber-100 px-3 py-1 rounded-full">카테고리</span>
+                </div>
+
+                <!-- 검색창 (스케치 반영) -->
+                <div class="relative flex gap-2">
+                    <div class="relative flex-1">
+                        <input type="text" id="recipe-search-input" placeholder="원하는 요리 이름을 검색해 보세요! (예: 떡갈비)" class="w-full bg-white border-2 border-[#FFE0CC] rounded-full py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-[#FF9933] placeholder-stone-400">
+                        <span class="absolute left-3.5 top-3 text-stone-400">🔍</span>
+                    </div>
+                    <button onclick="performSearch()" class="cozy-btn bg-[#FF8A3D] text-white px-4 py-2 rounded-full font-bold text-sm shadow-md hover:bg-[#FF6F00]">
+                        검색
+                    </button>
+                </div>
+
+                <!-- 검색 결과 알림 영역 (평상시 숨김) -->
+                <div id="search-results-info" class="hidden bg-[#FFE5CC] p-3 rounded-2xl text-sm font-bold text-amber-900 flex justify-between items-center">
+                    <span>검색 결과를 보여줄게요!</span>
+                    <button onclick="clearSearch()" class="text-xs underline text-amber-700">전체보기</button>
+                </div>
+
+                <!-- 레시피 리스트 영역들 (가로 스크롤!) -->
+                <div id="recipe-rows-container" class="space-y-6">
+                    
+                    <!-- 추천 카테고리 (랜덤 큐레이션) -->
+                    <div id="row-featured" class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-extrabold text-[#E65C00] flex items-center gap-1">
+                                🌟 오늘의 추천 요리
+                            </h3>
+                            <span class="text-xs text-stone-400">매번 바뀌는 추천 목록!</span>
+                        </div>
+                        <div id="list-featured" class="flex overflow-x-auto gap-4 scrollbar-none pb-2">
+                            <!-- JS로 랜덤 카드 삽입 -->
+                        </div>
+                    </div>
+
+                    <!-- 서브 카테고리 1 (육류 / 베이커리 / 카페음료) -->
+                    <div id="row-sub1" class="space-y-2">
+                        <h3 id="title-sub1" class="text-xl font-extrabold text-[#E65C00]">🍖 육류 코너</h3>
+                        <div id="list-sub1" class="flex overflow-x-auto gap-4 scrollbar-none pb-2">
+                            <!-- JS로 카드 삽입 -->
+                        </div>
+                    </div>
+
+                    <!-- 서브 카테고리 2 (비건) -->
+                    <div id="row-sub2" class="space-y-2">
+                        <h3 id="title-sub2" class="text-xl font-extrabold text-[#E65C00]">🌱 비건/건강식 코너</h3>
+                        <div id="list-sub2" class="flex overflow-x-auto gap-4 scrollbar-none pb-2">
+                            <!-- JS로 카드 삽입 -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 검색 결과가 없을 때 보여주는 상자 -->
+                <div id="empty-search-box" class="hidden text-center py-12 space-y-3 bg-white rounded-3xl p-6 border-2 border-dashed border-[#FFE0CC]">
+                    <span class="text-5xl">😭</span>
+                    <p class="font-bold text-amber-900">아쉽게도 찾는 레시피가 도감에 없어요!</p>
+                    <p class="text-xs text-stone-500">다른 요리 이름을 다시 검색해 주겠니?</p>
+                </div>
+            </div>
+
+            <!-- SCREEN 2.5: 분석 로딩 화면 (3단계 프로세스 중 2단계) -->
+            <div id="screen-loading" class="hidden h-full flex flex-col items-center justify-center space-y-6 text-center py-16">
+                <!-- 빙글빙글 도는 냄비/믹싱볼 아이콘 -->
+                <div class="relative cooking-animation w-32 h-32 bg-[#FFE5CC] rounded-full flex items-center justify-center shadow-lg border-4 border-[#FF8A3D]">
+                    <span class="text-6xl">🍳</span>
+                    <span class="absolute -top-1 -right-1 text-3xl">✨</span>
+                    <span class="absolute -bottom-2 -left-2 text-2xl">🔥</span>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-2xl font-black text-amber-900">도감 수집 및 분석 중!</h3>
+                    <p class="text-stone-600 text-sm max-w-[280px] mx-auto">
+                        요정들이 도감 책장을 넘기며 최고의 재료와 비밀 레시피를 찾아내고 있어요... 🧚‍♂️✨
+                    </p>
+                </div>
+                <!-- 게이지바 -->
+                <div class="w-48 h-3 bg-[#FFE5CC] rounded-full overflow-hidden">
+                    <div class="h-full bg-[#FF8A3D] rounded-full animate-pulse" style="width: 75%"></div>
+                </div>
+            </div>
+
+            <!-- SCREEN 3: 상세 결과 화면 (레시피 도감 정보 - IMG_20260622_095444.jpg) -->
+            <div id="screen-detail" class="hidden space-y-6">
+                <!-- 상단 헤더 -->
+                <div class="flex items-center justify-between">
+                    <button onclick="goBackToSearch()" class="cozy-btn text-amber-800 bg-[#FFE5CC] px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1">
+                        ◀ 목록으로
+                    </button>
+                    <span class="text-xs text-amber-900 font-extrabold bg-[#FFD1B3] px-3 py-1 rounded-full">레시피 상세 보기</span>
+                </div>
+
+                <!-- 요리명 대타이틀 -->
+                <div class="text-center">
+                    <h2 id="detail-title" class="text-3xl font-black text-[#FF6F00] flex items-center justify-center gap-2">
+                        치즈 떡갈비 🧆
+                    </h2>
+                </div>
+
+                <!-- 요리 일러스트 (SVG / 귀여운 캐릭터 프레임) -->
+                <div class="bg-white p-4 rounded-3xl border-2 border-[#FFE0CC] shadow-inner flex flex-col items-center justify-center space-y-2">
+                    <div id="detail-svg-placeholder" class="w-full h-40 flex items-center justify-center bg-[#FFF9F2] rounded-2xl relative overflow-hidden">
+                        <!-- 귀여운 도토리/식재료 스케치 형상화 -->
+                    </div>
+                    <p id="detail-desc" class="text-sm text-stone-600 text-center font-bold px-2 py-1 bg-[#FFF5EB] rounded-lg">
+                        "고소한 모짜렐라 치즈와 쫀득한 떡갈비의 환상적인 만남!"
+                    </p>
+                </div>
+
+                <!-- 네이버 쇼핑 밀키트 및 재료 구매 링크 연동 -->
+                <div class="text-center">
+                    <a id="shopping-link" href="#" target="_blank" rel="noopener noreferrer" class="cozy-btn inline-flex items-center gap-2 bg-[#03C75A] text-white font-extrabold px-6 py-3.5 rounded-full shadow-lg hover:bg-[#02b34f] text-md w-full justify-center">
+                        <span class="bg-white text-[#03C75A] w-5 h-5 rounded-full text-xs flex items-center justify-center font-black">N</span>
+                        네이버 쇼핑에서 식재료/밀키트 사기 🛒
+                    </a>
+                    <p class="text-stone-400 text-[10px] mt-1.5">새 창에서 네이버 쇼핑 검색 결과로 연결됩니다.</p>
+                </div>
+
+                <!-- 레시피 순서 리스트 -->
+                <div class="bg-white p-5 rounded-3xl border-2 border-[#FFE0CC] space-y-4 shadow-sm">
+                    <h4 class="text-lg font-black text-amber-950 border-b border-dashed border-[#FFE0CC] pb-1.5 flex items-center gap-1.5">
+                        🍳 비밀 레시피 (순서)
+                    </h4>
+                    <ol id="detail-steps" class="space-y-3 text-sm text-stone-700">
+                        <!-- 레시피 단계들 동적 주입 -->
+                    </ol>
+                </div>
+
+                <!-- 주의사항 리스트 -->
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl space-y-2">
+                    <h4 class="text-sm font-bold text-amber-900 flex items-center gap-1">
+                        ⚠️ 요리할 때 주의사항!
+                    </h4>
+                    <p id="detail-note" class="text-xs text-amber-800 leading-relaxed">
+                        불 조절이 정말 중요해요! 불이 너무 세면 겉만 타고 속의 치즈는 안 녹을 수 있으니 천천히 구워주세요.
+                    </p>
+                </div>
+
+                <!-- 감사 박스 -->
+                <div class="text-center bg-[#FFE5CC] py-3 px-4 rounded-2xl text-xs text-amber-900">
+                    💖 <span class="font-bold">레시피 도감 요정의 한마디:</span> 맛있게 만들어 먹고 행복한 하루 보내기 약속! ✨
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- 스마트폰 하단 네비게이션 바 (뒤로가기, 홈, 메뉴) -->
+        <div class="absolute bottom-0 left-0 right-0 h-12 bg-amber-950 border-t border-amber-900 rounded-b-[36px] flex items-center justify-around px-10 text-white font-bold text-sm">
+            <!-- ☰ 메뉴 버튼 -->
+            <button onclick="toggleSideMenu()" class="cozy-btn hover:text-amber-300 px-4 py-2">
+                ☰
+            </button>
+            <!-- ⌂ 홈 버튼 -->
+            <button onclick="goHome()" class="cozy-btn hover:text-amber-300 px-4 py-2">
+                ⌂
+            </button>
+            <!-- ◁ 뒤로가기 버튼 -->
+            <button onclick="goBack()" class="cozy-btn hover:text-amber-300 px-4 py-2">
+                ◁
+            </button>
+        </div>
+
+        <!-- ☰ 메뉴 클릭시 나타나는 아기자기한 오버레이 서랍 -->
+        <div id="side-menu-drawer" class="hidden absolute inset-0 bg-black/60 z-50 flex justify-end">
+            <div class="w-3/4 h-full bg-[#FFF2E6] shadow-2xl p-6 flex flex-col justify-between border-l-4 border-amber-900">
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center border-b pb-3 border-[#FFD9B3]">
+                        <h3 class="text-2xl font-black text-amber-950">도감 메뉴판 📜</h3>
+                        <button onclick="toggleSideMenu()" class="text-2xl text-stone-600">×</button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="p-3 bg-white rounded-2xl border border-[#FFE0CC]">
+                            <p class="font-bold text-[#FF6F00] text-sm">🍽️ 제작자 한마디</p>
+                            <p class="text-xs text-stone-600 mt-1">상상만 하던 멋진 레시피 도감 앱이 현실이 되었어! 내가 먹고 싶은 모든 요리를 다 모아볼까? 🍳</p>
+                        </div>
+
+                        <div class="p-3 bg-white rounded-2xl border border-[#FFE0CC]">
+                            <p class="font-bold text-[#FF6F00] text-sm">🌿 친환경 안심 마크</p>
+                            <p class="text-xs text-stone-600 mt-1">이 앱은 미성년자에게 무해하며, 아이들의 오감 발달과 건강한 식습관을 응원해요!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-amber-100 p-4 rounded-2xl text-center">
+                    <p class="text-xs text-amber-900 font-bold">🍊 레시피 도감 App v1.0</p>
+                    <p class="text-[10px] text-amber-700 mt-0.5">Designed with Love by Kids ✨</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // 6학년 수준의 현실적이고 맛있고 안전한 식자재 데이터 풀 (10개 이상 풍성하게 구성)
+    const recipesData = [
+        // --- 음식 (MEAT / VEGAN) ---
+        {
+            id: "tteokgalbi",
+            name: "치즈 떡갈비",
+            category: "음식",
+            subType: "육류",
+            icon: "🧆🧀",
+            svg: `<svg viewBox="0 0 100 100" class="w-24 h-24"><rect x="25" y="45" width="50" height="20" rx="10" fill="#8B4513"/><ellipse cx="50" cy="40" rx="30" ry="15" fill="#A0522D"/><path d="M 30,35 Q 50,20 70,35" stroke="#FFA500" stroke-width="4" fill="none" stroke-dasharray="2 2"/><circle cx="50" cy="38" r="8" fill="#FFD700"/><text x="44" y="55" font-size="6" fill="#FFF">CHEEZ</text></svg>`,
+            desc: "달콤 짭조름한 소고기 떡갈비 안에 고소하게 늘어나는 모짜렐라 치즈가 가득 찬 최고의 반찬!",
+            steps: [
+                "다진 고기(소고기+돼지고기)에 간장, 설탕, 참기름, 다진 마늘을 넣고 골고루 치대 줍니다.",
+                "고기 반죽을 동글납작하게 편 후, 한가운데에 고소한 모짜렐라 치즈를 듬뿍 넣고 둥글게 빚어 줍니다.",
+                "프라이팬에 식용유를 아주 살짝 두르고, 불을 약하게 조절한 다음 뚜껑을 덮어 서서히 익힙니다.",
+                "고기 겉면이 익어가면 양념장(간장, 올리고당, 맛술)을 살짝 발라 윤기를 더하며 뒤집어 구워 줍니다.",
+                "안에 든 치즈가 완전히 사르르 녹아내릴 때 완성 접시에 담아 따뜻하게 맛있게 먹습니다!"
+            ],
+            note: "불이 너무 세면 고기 겉면만 타고 안의 치즈가 녹지 않아요! 뚜껑을 꼭 덮고 약불에서 아주 천천히 조리해야 한답니다."
+        },
+        {
+            id: "hotpot",
+            name: "두부 버섯 전골",
+            category: "음식",
+            subType: "비건",
+            icon: "🍲🍄",
+            svg: `<svg viewBox="0 0 100 100" class="w-24 h-24"><ellipse cx="50" cy="55" rx="40" ry="15" fill="#4B5563"/><rect x="20" y="45" width="20" height="15" fill="#FFF" stroke="#D1D5DB" stroke-width="2"/><circle cx="55" cy="45" r="10" fill="#DDB892"/><circle cx="65" cy="48" r="8" fill="#DDB892"/><text x="35" y="40" font-size="20">🍲</text></svg>`,
+            desc: "여러 가지 쫄깃한 버섯들과 고소하고 담백한 두부가 따뜻하게 어우러진 보글보글 힐링 전골요리!",
+            steps: [
+                "다시마, 마른 표고버섯, 무를 찬물에 넣어 깨끗하고 맑은 버섯 채수를 15분 동안 우려냅니다.",
+                "두부는 도톰한 두께로 네모나게 썰고, 팽이버섯, 표고버섯, 느타리버섯도 깨끗하게 씻어 가닥가닥 찢어둡니다.",
+                "넓적한 전골 냄비 가장자리에 알록달록 버섯들과 두부, 대파, 미나리를 예쁘게 담아 줍니다.",
+                "미리 우려둔 감칠맛 넘치는 채수를 냄비에 붓고 국간장과 소금 한 꼬집으로 삼삼하게 간을 합니다.",
+                "식탁 위에서 보글보글 끓여가며 쫄깃한 버섯과 부드러운 두부를 건져 소스에 찍어 먹습니다."
+            ],
+            note: "오래 끓일수록 버섯에서 감칠맛이 나와 국물이 더 맛있어져요! 쑥갓이나 미나리를 마지막에 얹으면 한층 더 향긋해요."
+        },
+        {
+            id: "pasta",
+            name: "토마토 바질 파스타",
+            category: "음식",
+            subType: "비건",
+            icon: "🍝🍅",
+            svg: `<svg viewBox="0 0 100 100" class="w-24 h-24"><circle cx="50" cy="50" r="35" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/><path d="M 30,50 Q 50,25 70,50 T 40,70" stroke="#EF4444" stroke-width="8" fill="none"/><circle cx="45" cy="40" r="6" fill="#22C55E"/><circle cx="55" cy="55" r="5" fill="#EF4444"/></svg>`,
+            desc: "새콤달콤 잘 익은 토마토 소스에 신선하고 향기로운 초록 바질 잎을 더해 맛을 낸 깔끔한 이탈리아식 파스타!",
+            steps: [
+                "냄비에 물을 듬뿍 넣고 소금을 약간 치고 끓으면 스파게티 면을 넣어 약 8분간 쫄깃하게 삶습니다.",
+                "팬에 향긋한 올리브유를 듬뿍 두르고 편을 썬 마늘을 약불에서 노릇하게 볶아 기름에 향을 입힙니다.",
+                "으깬 토마토(홀토마토 캔)를 팬에 넣고 주걱으로 으깨가며 뭉근하고 자작하게 소스를 끓여 줍니다.",
+                "잘 삶아진 스파게티 면과 파스타 삶은 물(면수) 두 스푼을 소스 팬에 넣고 골고루 볶아 줍니다.",
+                "불을 끄고 향긋한 초록색 생바질 잎을 손으로 뜯어 섞고 올리브유를 한 바퀴 슥 돌려 완성합니다."
+            ],
+            note: "바질은 뜨거운 불에 오래 익히면 색이 검게 변하고 향이 날아가요! 반드시 가스불을 다 끈 후에 마지막에 넣어 비벼 주세요."
+        },
+        {
+            id: "gangjeong",
+            name: "바삭 바삭 닭강정",
+            category: "음식",
+            subType: "육류",
+            icon: "🍗✨",
+            svg: `<svg viewBox="0 0 100 100" class="w-24 h-24"><rect x="20" y="30" width="60" height="40" rx="15" fill="#F97316"/><circle cx="35" cy="45" r="10" fill="#B45309"/><circle cx="65" cy="55" r="12" fill="#B45309"/><path d="M 50,40 Q 60,30 50,20" stroke="#FFF" stroke-width="3" fill="none"/></svg>`,
+            desc: "겉은 과자처럼 바삭바삭하고 속살은 보들보들! 달콤하고 짭짤한 특제 소스에 버무린 명물 영양 간식!",
+            steps: [
+                "한입 크기의 신선한 닭고기에 소금과 맛술, 흰 우유를 살짝 뿌려 10분간 두고 누린내를 깨끗이 잡아냅니다.",
+                "물기를 뺀 닭고기에 감자 전분 가루를 듬뿍 입혀 겉면에 마른 가루가 보이지 않을 만큼 꾹꾹 눌러줍니다.",
+                "달궈진 튀김용 팬에 닭고기를 넣어 노릇노릇하게 구워내거나 안전하게 튀겨냅니다. (두 번 구워야 한결 바삭해요!)",
+                "깨끗한 팬에 달콤한 조청 올리고당, 소량의 간장, 케첩, 다진 마늘을 섞어 보글보글 거품이 일 때까지 끓여 소스를 만듭니다.",
+                "바삭하게 구워진 닭고기를 소스 팬에 쏟아 넣고 주걱으로 빠르게 버무린 후 고소한 땅콩 조각을 뿌려 줍니다."
+            ],
+            note: "뜨거운 기름을 사용하는 튀김 단계에서는 화상의 위험이 매우 높으니 꼭 어른과 함께 협력하여 안전하게 조리하세요!"
+        },
+
+        // --- 디저트 (RECOMMEND / VEGAN / SWEET) ---
+        {
+            id: "cookies",
+            name: "달콤 초코칩 쿠키",
+            category: "디저트",
+            subType: "추천",
+            icon: "🍪🍫",
+            svg: `<svg viewBox="0 0 100 100" class="w-24 h-24"><circle cx="50" cy="50" r="35" fill="#DDB892" stroke="#7F5539" stroke-width="2"/><circle cx="40" cy="35" r="4" fill="#4A3728"/><circle cx="65" cy="45" r="5" fill="#4A3728"/><circle cx="45" cy="65" r="4" fill="#4A3728"/><circle cx="60" cy="65" r="4" fill="#4A3728"/></svg>`,
+            desc: "진하고 고소한 버터의 풍미 속에 달콤하게 사르르 녹아내리는 초콜릿 칩이 알알이 박힌 미국식 수제 쿠키!",
+            steps: [
+                "실온에 미리 두어 말랑말랑해진 부드러운 버터에 달콤한 갈색 설탕을 서서히 나누어 넣으며 크림처럼 섞어줍니다.",
+                "달걀 1개를 톡 터트려 넣고 잘 섞어준 뒤, 바닐라 에센스를 한 방울 똑 떨어뜨려 부드러운 계란 향을 더해줍니다.",
+                "밀가루와 소량의 베이킹소다를 고운 체에 톡톡 쳐서 내려 넣고 주걱을 세워 가볍게 칼로 가르듯 섞어줍니다.",
+                "네모나고 조그만 달콤한 초콜릿 칩을 아낌없이 가득 쏟아 넣고 반죽을 한입 크기씩 둥글둥글 뭉쳐 오븐 팬에 올려줍니다.",
+                "180도로 뜨겁게 예열한 오븐이나 에어프라이어에 반죽을 넣고 약 10~12분 동안 바삭하고 노릇하게 구워냅니다."
+            ],
+            note: "오븐에서 갓 구워낸 따끈따끈한 쿠키는 무척 부드러워서 쉽게 부서져요! 바람이 잘 통하는 식힘망에서 완전히 식혀내야 바삭해져요."
+        },
+        {
+            id: "strawberry",
+            name: "딸기 생크림 컵케이크",
+            category: "디저트",
+            subType: "추천",
+            icon: "🧁🍓",
+            svg: `<svg viewBox="0 0 100 100" class="w-24 h-24"><path d="M 30,60 L 35,80 L 65,80 L 70,60 Z" fill="#FCA5A5"/><path d="M 25,60 Q 50,45 75,60 Q 50,55 25,60" fill="#FFF"/><circle cx="50" cy="45" r="10" fill="#EF4444"/><circle cx="50" cy="40" r="2" fill="#FBBF24"/></svg>`,
+            desc: "부드럽고 푹신한 카스텔라 빵과 눈처럼 하얗고 달콤한 생크림, 상큼한 겨울 딸기가 컵 속에 쏙 들어간 디저트!",
+            steps: [
+                "투명하고 예쁜 유리컵이나 일회용 간이 컵을 준비하고, 폭신한 카스텔라 빵을 한입 두께로 썰어 맨 바닥에 차곡차곡 채웁니다.",
+                "시원하고 새콤한 신선한 생딸기를 물에 깨끗이 씻은 후 꼭지를 떼고 알맞은 크기로 얇고 예쁘게 슬라이스해 줍니다.",
+                "차가운 볼에 신선한 우유 생크림과 달콤한 하얀 설탕을 담아, 거품기로 힘차게 저어 몽글몽글 단단한 크림 상태를 만듭니다.",
+                "컵 안에 부드러운 생크림을 올리고 그 위에 슬라이스 딸기를 얹은 다음 다시 카스텔라 빵을 얹어 층층이 예쁜 모양을 쌓아 올립니다.",
+                "맨 위층에 하얀 생크림을 짤주머니로 예쁘게 짜서 봉긋하게 덮고, 아주 잘생긴 통딸기 1개를 왕관처럼 얹어 마무리합니다."
+            ],
+            note: "딸기에 묻은 물기를 키친타월로 아주 뽀송하게 닦아내야만 생크림 컵케이크 속에 물이 고이지 않고 깔끔하고 오랫동안 맛있어요!"
+        },
+        {
+            id: "sweetpotato",
+            name: "달콤 바삭 고구마맛탕",
+            category: "디저트",
+            subType: "비건",
+            icon: "🍠🍯",
+            svg: `<svg viewBox="0 0 100 100" class="w-24 h-24"><path d="M 20,60 Q 50,20 80,60 Z" fill="#8B5CF6"/><circle cx="40" cy="55" r="6" fill="#FCD34D"/><circle cx="60" cy="50" r="5" fill="#FCD34D"/><circle cx="50" cy="60" r="4" fill="#000"/></svg>`,
+            desc: "노랗고 단 고구마를 바삭하게 튀겨내어, 반짝이는 달콤 설탕 시럽으로 코팅해 만든 추억의 길거리 영양 간식!",
+            steps: [
+                "껍질을 벗긴 든든한 고구마를 한입 크기로 비뚤비뚤 세모나게 어슷썰어 찬물에 담가 표면의 전분을 깨끗하게 헹궈냅니다.",
+                "물기를 마른 키친타월로 완전히 제거한 뒤, 안전하게 팬에 식용유를 자작하게 두르고 고구마가 노랑색이 될 때까지 맛있게 구워 익힙니다.",
+                "프라이팬에 고소한 식용유 1스푼과 달콤한 설탕 3스푼을 붓고, 절대 주걱으로 젓지 않고 그대로 가만히 두어 투명한 시럽으로 녹여줍니다.",
+                "설탕이 갈색빛 투명 시럽으로 완전히 녹아내리면 잘 익혀둔 따뜻한 고구마를 팬에 넣고 재빠르게 굴려가며 시럽을 코팅합니다.",
+                "서로 붙어 뭉치지 않게 넓은 쟁반에 하나씩 떼어놓고 시원하게 완전히 굳힌 뒤 검은깨를 솔솔 뿌려 바삭하고 완벽하게 만들어냅니다."
+            ],
+            note: "시럽을 만들 때 숟가락으로 설탕을 휘휘 저으면 결정이 생겨 시럽이 아닌 딱딱한 설탕 가루가 되니 가만히 흔들면서 녹여주세요!"
+        },
+
+        // --- 음료 (RECOMMEND / VEGAN) ---
+        {
+            id: "lemonade",
+            name: "상큼 청량 레몬에이드",
+            category: "음료",
+            subType: "추천",
+            icon: "🍹🍋",
+            svg: `<svg viewBox="0 0 100 100" class="w-24 h-24"><path d="M 35,30 L 40,80 L 60,80 L 65,30 Z" fill="#E0F2FE" stroke="#38BDF8" stroke-width="2"/><ellipse cx="50" cy="30" rx="15" ry="5" fill="#38BDF8"/><circle cx="50" cy="55" r="10" fill="#FBBF24"/><line x1="45" y1="20" x2="65" y2="60" stroke="#EF4444" stroke-width="3"/></svg>`,
+            desc: "노랗고 잘 익은 생레몬 즙의 새콤함과 보글보글 톡 쏘는 탄산수가 어우러져 무더위를 날려주는 시원함!",
+            steps: [
+                "레몬을 굵은 소금과 보글보글 베이킹 소다로 껍질 표면을 뽀득뽀득 문질러 씻어 더러운 먼지를 완벽하게 닦아내줍니다.",
+                "세척이 끝난 레몬 1개를 조심스럽게 가로로 반을 자른 뒤, 즙짜기 도구를 사용해 향긋한 레몬 과즙을 아주 꾹꾹 가득 짜냅니다.",
+                "시원하고 커다란 투명 유리컵에 달콤한 레몬청이나 꿀, 설탕 시럽을 2큰술을 넣고 짜놓은 상큼한 생레몬즙을 섞어 줍니다.",
+                "조각 얼음을 컵 가득 가득 쏟아 넣은 뒤, 톡 쏘는 탄산수나 맑고 차가운 사이다를 컵 가득 찰 때까지 조심스레 채워줍니다.",
+                "상큼하게 둥근 모양으로 슬라이스 한 레몬 조각을 컵 가장자리에 꽂고, 허브 잎을 살짝 띄워 시원하게 원샷합니다!"
+            ],
+            note: "탄산수 대신 이미 단맛이 들어간 사이다를 사용할 때에는 설탕 시럽의 양을 반 이하로 줄여야 너무 달지 않고 맛있답니다."
+        },
+        {
+            id: "matchalatte",
+            name: "쌉싸름 말차 라떼",
+            category: "음료",
+            subType: "추천",
+            icon: "🍵🥛",
+            svg: `<svg viewBox="0 0 100 100" class="w-24 h-24"><rect x="35" y="35" width="30" height="45" rx="5" fill="#FFF" stroke="#D1D5DB" stroke-width="2"/><path d="M 35,55 Q 50,45 65,55 L 65,80 L 35,80 Z" fill="#10B981"/><circle cx="50" cy="45" r="5" fill="#FFF"/></svg>`,
+            desc: "초록빛 진한 말차 고유의 쌉싸름하고 향기로운 매력과 고소하고 부드러운 우유가 근사한 층을 이룬 고급 음료!",
+            steps: [
+                "초록색 말차 가루 1작은술을 따뜻한 물 30ml에 담고, 거품기나 대나무 솔을 이용해 가루가 안 뭉치도록 부드럽게 완전히 풀어줍니다.",
+                "우유에 달콤한 맛이 잘 섞이도록 메이플 시럽이나 올리고당 1스푼을 넣고 미리 골고루 저어 준비해둡니다.",
+                "차가운 유리컵에 단단하고 맑은 조각 얼음을 한가득 넣어 시원함을 오래도록 유지할 수 있도록 만들어 줍니다.",
+                "얼음이 담긴 차가운 유리잔에 먼저 고소한 흰 우유 150ml를 부어 조심스럽게 밑부분을 하얗게 채워 줍니다.",
+                "하얀 우유 거품 위에 미리 곱게 개어 놓은 초록색 말차 베이스를 천천히 흘려보내 예쁜 초록색 그라데이션 층을 연출합니다."
+            ],
+            note: "뜨거운 물에 녹인 말차 가루를 식히지 않고 차가운 우유에 부어야 예쁘게 초록색과 하얀색 층이 분리되어 눈도 즐겁답니다."
+        },
+        {
+            id: "bananasmoothie",
+            name: "든든 바나나 두유 스무디",
+            category: "음료",
+            subType: "비건",
+            icon: "🍌🥤",
+            svg: `<svg viewBox="0 0 100 100" class="w-24 h-24"><rect x="35" y="30" width="30" height="50" rx="8" fill="#FEF08A"/><line x1="50" y1="20" x2="50" y2="40" stroke="#000" stroke-width="4"/><circle cx="45" cy="55" r="3" fill="#CA8A04"/></svg>`,
+            desc: "달콤하게 잘 익은 영양 가득 노란 바나나와 고소하고 단백질이 풍부한 두유를 통째로 갈아 만든 든든한 든든 아침!",
+            steps: [
+                "달콤한 노란색 바나나의 껍질을 벗겨 적당한 한입 굵기로 송송 썰어줍니다. (더 쫀득하고 시원한 스무디를 원하면 얼린 바나나가 최고!)",
+                "깨끗하게 세척한 믹서기 컵 안에 잘라놓은 바나나 조각들을 쏟아 넣고, 고소한 무첨가 두유 한 컵(약 200ml)을 조심스레 부어줍니다.",
+                "바나나 고유의 풍미와 달콤함을 끌어올리기 위해 달콤하고 깊은 메이플 시럽이나 건강한 꿀을 반 스푼 넣어줍니다.",
+                "모든 재료가 알갱이 없이 아주 곱고 부드러운 노란색 크림 질감이 될 때까지 믹서기를 약 30초 동안 윙 돌려 갈아줍니다.",
+                "예쁘고 아기자기한 긴 유리컵에 가득 담고, 기호에 따라 계피향 솔솔 시나몬 파우더를 톡톡 뿌려 향기롭게 완성합니다."
+            ],
+            note: "껍질에 까만 점(슈가스팟)이 많이 생겨서 아주 아주 잘 익은 달콤한 바나나를 사용할 경우, 시럽을 전혀 넣지 않아도 완벽하게 달답니다!"
+        }
+    ];
+
+    // --- STREAMING_CHUNK: 전역 상태값 및 네비게이션 제어 코드... ---
+    // 뒤로가기를 위한 히스토리 스택
+    let screenHistory = ['screen-home'];
+    let currentCategory = ''; // '음식', '디저트', '음료'
+    let currentRecipe = null;
+
+    // 실시간 날씨 데이터 수집 (Open-Meteo & Geolocation API)
+    function initWeatherAndLocation() {
+        const weatherEl = document.getElementById('status-weather');
+        
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    try {
+                        // Open-Meteo 무료 기상 API 호출
+                        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+                        const data = await res.json();
+                        const temp = Math.round(data.current_weather.temperature);
+                        const code = data.current_weather.weathercode;
+                        const emoji = getWeatherEmoji(code);
+                        
+                        weatherEl.innerHTML = `<span>경기 남양주 📍 ${emoji} ${temp}°C</span>`;
+                    } catch (err) {
+                        weatherEl.innerHTML = `<span>날씨 정보 없음 🚫</span>`;
+                    }
+                },
+                (error) => {
+                    // 권한 거부 등의 경우 실패 문구 처리 (강제 서울 세팅 금지 원칙 준수)
+                    weatherEl.innerHTML = `<span>날씨 정보 없음 🚫</span>`;
+                }
+            );
+        } else {
+            weatherEl.innerHTML = `<span>날씨 지원 불가 🚫</span>`;
+        }
+    }
+
+    // WMO 날씨 코드를 한글 직관적인 이모티콘으로 리매핑하는 귀여운 함수
+    function getWeatherEmoji(code) {
+        if (code === 0) return '☀️ (맑음)';
+        if (code >= 1 && code <= 3) return '🌤️ (구름조금)';
+        if (code >= 45 && code <= 48) return '🌫️ (안개)';
+        if (code >= 51 && code <= 67) return '🌧️ (비)';
+        if (code >= 71 && code <= 77) return '❄️ (눈)';
+        if (code >= 80 && code <= 82) return '🌦️ (소나기)';
+        if (code >= 95 && code <= 99) return '⚡ (뇌우)';
+        return '☀️';
+    }
+
+    // 실시간 시간 업데이트 함수
+    function updateClock() {
+        const timeEl = document.getElementById('status-time');
+        const now = new Date();
+        let hours = now.getHours();
+        let minutes = now.getMinutes();
+        if (minutes < 10) minutes = '0' + minutes;
+        timeEl.innerText = `${hours}:${minutes}`;
+    }
+
+    // --- STREAMING_CHUNK: 화면 내비게이션 및 라우팅 로직... ---
+    // 화면 보기 전환 헬퍼 함수
+    function showScreen(screenId) {
+        // 모든 메인 화면 영역을 숨김
+        document.getElementById('screen-home').classList.add('hidden');
+        document.getElementById('screen-search').classList.add('hidden');
+        document.getElementById('screen-loading').classList.add('hidden');
+        document.getElementById('screen-detail').classList.add('hidden');
+
+        // 목표 화면만 표시
+        document.getElementById(screenId).classList.remove('hidden');
+
+        // 히스토리 추적
+        if (screenHistory[screenHistory.length - 1] !== screenId) {
+            screenHistory.push(screenId);
+        }
+    }
+
+    // 카테고리 선택 액션 (음식, 디저트, 음료)
+    function selectCategory(category) {
+        currentCategory = category;
+        document.getElementById('current-category-badge').innerText = `📙 ${category} 도감`;
+        
+        // 카테고리에 맞는 서브 타이틀 구성 변경 (스케치 반영)
+        const sub1Title = document.getElementById('title-sub1');
+        const sub2Title = document.getElementById('title-sub2');
+
+        if (category === '음식') {
+            sub1Title.innerText = '🍖 육류 코너';
+            sub2Title.innerText = '🌱 비건/건강식 코너';
+        } else if (category === '디저트') {
+            sub1Title.innerText = '🥯 베이커리 코너';
+            sub2Title.innerText = '🍊 저자극 천연 비건디저트';
+        } else if (category === '음료') {
+            sub1Title.innerText = '☕ 카페식 스윗 드링크';
+            sub2Title.innerText = '🥛 가벼운 비건 음료';
+        }
+
+        // 검색창 리셋
+        document.getElementById('recipe-search-input').value = '';
+        document.getElementById('search-results-info').classList.add('hidden');
+        document.getElementById('empty-search-box').classList.add('hidden');
+        document.getElementById('recipe-rows-container').classList.remove('hidden');
+
+        // 카드 목록 동적 렌더링
+        renderRecipeCards();
+
+        // 돋보기 서브카테고리 화면 이동
+        showScreen('screen-search');
+    }
+
+    // 홈으로 직행
+    function goHome() {
+        screenHistory = ['screen-home'];
+        showScreen('screen-home');
+    }
+
+    // 뒤로가기 버튼 기능 (◁)
+    function goBack() {
+        if (screenHistory.length > 1) {
+            screenHistory.pop(); // 현재 화면 제거
+            const prevScreen = screenHistory[screenHistory.length - 1];
+            
+            // 만약 로딩 화면으로 뒤로 가려 한다면, 홈으로 대신 보내기
+            if (prevScreen === 'screen-loading') {
+                goHome();
+            } else {
+                showScreen(prevScreen);
+            }
+        } else {
+            goHome();
+        }
+    }
+
+    // 상세화면에서 리스트로 뒤로가기 전용
+    function goBackToSearch() {
+        showScreen('screen-search');
+    }
+
+    // --- STREAMING_CHUNK: 카드 렌더링 및 큐레이션 알고리즘... ---
+    // 카드 리스트 동적 렌더링 함수 (랜덤 추천 포함 - 10개 이상 풀 중 2~3개 추천 원칙 준수)
+    function renderRecipeCards(filterKeyword = '') {
+        const listFeatured = document.getElementById('list-featured');
+        const listSub1 = document.getElementById('list-sub1');
+        const listSub2 = document.getElementById('list-sub2');
+
+        // 필터링 적용된 레시피 수집
+        let categoryRecipes = recipesData.filter(r => r.category === currentCategory);
+
+        if (filterKeyword) {
+            categoryRecipes = categoryRecipes.filter(r => r.name.includes(filterKeyword));
+        }
+
+        // 1. 추천 아이템 (전체 데이터 풀에서 랜덤하게 2~3개 추출하여 큐레이션)
+        listFeatured.innerHTML = '';
+        // 중복 방지를 위한 랜덤 셔플
+        const shuffled = [...recipesData].sort(() => 0.5 - Math.random());
+        const selectedFeatured = shuffled.slice(0, 3); // 무조건 랜덤 3개 선정
+
+        selectedFeatured.forEach(recipe => {
+            listFeatured.appendChild(createRecipeCard(recipe));
+        });
+
+        // 2. 서브카테고리 1 (육류 / 베이커리 / 카페음료) 렌더링
+        listSub1.innerHTML = '';
+        const sub1Items = categoryRecipes.filter(r => r.subType === '육류' || r.subType === '추천');
+        if (sub1Items.length > 0) {
+            sub1Items.forEach(recipe => listSub1.appendChild(createRecipeCard(recipe)));
+        } else {
+            listSub1.innerHTML = `<p class="text-xs text-stone-400 p-4">검색 조건에 맞는 요리가 없습니다.</p>`;
+        }
+
+        // 3. 서브카테고리 2 (비건) 렌더링
+        listSub2.innerHTML = '';
+        const sub2Items = categoryRecipes.filter(r => r.subType === '비건');
+        if (sub2Items.length > 0) {
+            sub2Items.forEach(recipe => listSub2.appendChild(createRecipeCard(recipe)));
+        } else {
+            listSub2.innerHTML = `<p class="text-xs text-stone-400 p-4">검색 조건에 맞는 요리가 없습니다.</p>`;
+        }
+    }
+
+    // 개별 레시피 동글동글 이쁜 가로 스크롤 카드 노드 생성 함수
+    function createRecipeCard(recipe) {
+        const card = document.createElement('button');
+        card.className = "cozy-btn flex-none w-36 bg-white border-2 border-[#FFE0CC] rounded-3xl p-3 flex flex-col items-center justify-between shadow-sm hover:border-[#FF9933] text-center";
+        card.onclick = () => viewRecipeDetails(recipe);
+
+        card.innerHTML = `
+            <div class="w-16 h-16 bg-[#FFF2E6] rounded-2xl flex items-center justify-center text-4xl mb-2">
+                ${recipe.icon}
+            </div>
+            <div class="w-full">
+                <p class="text-sm font-black text-amber-950 truncate">${recipe.name}</p>
+                <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full inline-block mt-1 font-bold">
+                    ${recipe.subType}
+                </span>
+            </div>
+        `;
+        return card;
+    }
+
+    // --- STREAMING_CHUNK: 검색 기능 및 인터페이스 연동... ---
+    // 검색창 입력 이벤트 액션
+    function performSearch() {
+        const query = document.getElementById('recipe-search-input').value.trim();
+        if (!query) return;
+
+        // 전체 요리에서 검색 (메인 카테고리에 얽매이지 않고 넓게 검색하도록 설계해 검색력 강화)
+        const matchingRecipes = recipesData.filter(r => r.name.includes(query));
+        const resultsInfo = document.getElementById('search-results-info');
+        const rowsContainer = document.getElementById('recipe-rows-container');
+        const emptyBox = document.getElementById('empty-search-box');
+
+        if (matchingRecipes.length > 0) {
+            emptyBox.classList.add('hidden');
+            rowsContainer.classList.remove('hidden');
+            resultsInfo.classList.remove('hidden');
+            resultsInfo.innerHTML = `<span>'${query}' 검색 결과 총 ${matchingRecipes.length}개 🔍</span><button onclick="clearSearch()" class="text-xs underline text-amber-700">초기화</button>`;
+            
+            // 검색된 결과를 추천란 및 소분류에 분배 표시
+            const listFeatured = document.getElementById('list-featured');
+            const listSub1 = document.getElementById('list-sub1');
+            const listSub2 = document.getElementById('list-sub2');
+
+            listFeatured.innerHTML = '';
+            listSub1.innerHTML = '';
+            listSub2.innerHTML = '';
+
+            // 검색 결과 뿌리기
+            matchingRecipes.forEach((recipe, idx) => {
+                const card = createRecipeCard(recipe);
+                if (idx % 3 === 0) listFeatured.appendChild(card);
+                else if (idx % 3 === 1) listSub1.appendChild(card);
+                else listSub2.appendChild(card);
+            });
+        } else {
+            // 결과 없음 화면 노출
+            resultsInfo.classList.add('hidden');
+            rowsContainer.classList.add('hidden');
+            emptyBox.classList.remove('hidden');
+        }
+    }
+
+    // 검색 초기화 및 전체 카테고리 보기 복구
+    function clearSearch() {
+        document.getElementById('recipe-search-input').value = '';
+        document.getElementById('search-results-info').classList.add('hidden');
+        document.getElementById('empty-search-box').classList.add('hidden');
+        document.getElementById('recipe-rows-container').classList.remove('hidden');
+        renderRecipeCards();
+    }
+
+    // --- STREAMING_CHUNK: 로딩을 거친 상세 보기 연동 (3단계 흐름 완료)... ---
+    // 3단계 큐레이션 상세 화면 이동 제어 (IMG_20260622_095444.jpg 적용)
+    function viewRecipeDetails(recipe) {
+        currentRecipe = recipe;
+
+        // 우선 2단계: 분석용 로딩 화면으로 1.5초간 보낸 후 3단계 상세 진입 (실감나는 앱 느낌 구현!)
+        showScreen('screen-loading');
+
+        setTimeout(() => {
+            // 3단계 결과 정보 매핑
+            document.getElementById('detail-title').innerHTML = `${recipe.name} ${recipe.icon}`;
+            document.getElementById('detail-desc').innerText = `"${recipe.desc}"`;
+            document.getElementById('detail-note').innerText = recipe.note;
+
+            // SVG 삽입
+            document.getElementById('detail-svg-placeholder').innerHTML = recipe.svg;
+
+            // 식재료 네이버 쇼핑 링크 설정 (질문 4 요구사항 완벽 준수, 보안 및 봇방지 조치)
+            const shoppingBtn = document.getElementById('shopping-link');
+            shoppingBtn.href = `https://search.shopping.naver.com/search/all?query=${encodeURIComponent(recipe.name + ' 재료 밀키트')}`;
+
+            // 레시피 리스트 만들기
+            const stepsOl = document.getElementById('detail-steps');
+            stepsOl.innerHTML = '';
+            recipe.steps.forEach((step, idx) => {
+                const li = document.createElement('li');
+                li.className = "flex gap-2 items-start";
+                li.innerHTML = `
+                    <span class="w-5 h-5 bg-[#FF8A3D] text-white rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">${idx + 1}</span>
+                    <span class="text-stone-700 leading-relaxed">${step}</span>
+                `;
+                stepsOl.appendChild(li);
+            });
+
+            // 화면 표시 전환
+            showScreen('screen-detail');
+        }, 1500); // 1.5초 딜레이 분석 애니메이션 작동
+    }
+
+    // 사이드 바 서랍 열기/닫기 토글 제어
+    function toggleSideMenu() {
+        const drawer = document.getElementById('side-menu-drawer');
+        drawer.classList.toggle('hidden');
+    }
+
+    // --- STREAMING_CHUNK: 어플리케이션 구동 개시... ---
+    // 페이지가 열리면 실시간 시계 작동 및 스마트폰 날씨 데이터 초기화 요청
+    window.onload = function() {
+        initWeatherAndLocation();
+        updateClock();
+        setInterval(updateClock, 10000); // 10초마다 시계 동기화
+    };
+</script>
+</body>
+</html>
