@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>저메추 - 저녁 메뉴 추천 앱</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* 스크롤바 숨기기 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* 폰트 스타일 정의 */
+    @import url('https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic:wght@400;700&display=swap');
+    .font-jua {
+      font-family: 'Jua', sans-serif;
+    }
+    .font-nanum {
+      font-family: 'Nanum Gothic', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-amber-50 min-h-screen flex items-center justify-center p-4 font-nanum">
+
+  <!-- 스마트폰 기기 프레임 -->
+  <div class="w-full max-w-[390px] h-[780px] bg-white rounded-[45px] shadow-2xl border-[8px] border-slate-800 relative flex flex-col overflow-hidden select-none">
+    
+    <!-- 스마트폰 상단 노치/스피커 & 상태바 -->
+    <div class="absolute top-0 inset-x-0 h-7 bg-slate-900 flex justify-between items-center px-6 text-[11px] text-white z-50">
+      <div id="status-time">10:11</div>
+      <div class="w-20 h-4 bg-black rounded-b-xl absolute left-1/2 -translate-x-1/2 top-0"></div>
+      <div class="flex items-center gap-1">
+        <span id="status-date" class="mr-1">06.22</span>
+        <i class="fa-solid : wifi"></i>
+        <i class="fa-solid fa-signal"></i>
+        <i class="fa-solid fa-battery-three-quarters"></i>
+      </div>
+    </div>
+
+    <!-- 앱 메인 컨텐츠 영역 -->
+    <div class="flex-1 pt-7 pb-12 flex flex-col bg-gradient-to-b from-orange-50 to-amber-100 overflow-y-auto no-scrollbar">
+      
+      <!-- 상단 로고 & 정보 바 -->
+      <header class="p-4 flex flex-col items-center bg-white/70 backdrop-blur-sm shadow-sm border-b border-orange-100">
+        <div class="flex items-center gap-2">
+          <!-- 피자 로고 SVG (아이가 그린 로고 반영) -->
+          <svg class="w-10 h-10 drop-shadow-md animate-bounce" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 15L85 75C85 75 70 85 50 85C30 85 15 75 15 75L50 15Z" fill="#FBBF24" stroke="#D97706" stroke-width="4" stroke-linejoin="round"/>
+            <path d="M15 75C30 85 50 85 50 85C50 85 50 78 50 75C50 72 45 68 40 68C35 68 30 75 15 75Z" fill="#EF4444"/>
+            <!-- 치즈 흐르는 효과 -->
+            <path d="M35 55C35 55 40 65 42 75M50 45C50 45 55 58 52 78M65 58C65 58 60 68 62 72" stroke="#F59E0B" stroke-width="6" stroke-linecap="round"/>
+            <!-- 페퍼로니 -->
+            <circle cx="38" cy="45" r="7" fill="#EF4444"/>
+            <circle cx="62" cy="55" r="6" fill="#EF4444"/>
+            <circle cx="50" cy="32" r="5" fill="#EF4444"/>
+            <!-- 눈과 입 -->
+            <circle cx="43" cy="55" r="2.5" fill="#000000"/>
+            <circle cx="57" cy="55" r="2.5" fill="#000000"/>
+            <path d="M48 60Q50 62 52 60" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+            <!-- 반짝이 -->
+            <path d="M18 30L22 34M22 30L18 34" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>
+            <path d="M78 30L82 34M82 30L78 34" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span class="text-2xl font-jua text-orange-600 tracking-wider">저메추</span>
+        </div>
+        
+        <!-- 실시간 날씨 및 위치 정보 표시 영역 -->
+        <div class="mt-2 w-full flex justify-between items-center bg-orange-100/60 rounded-full px-4 py-1 text-xs text-orange-800">
+          <div class="flex items-center gap-1 font-semibold">
+            <i class="fa-solid fa-location-dot text-red-500"></i>
+            <span id="location-text">위치 파악 중...</span>
+          </div>
+          <div class="flex items-center gap-1.5 font-semibold">
+            <span id="weather-emoji">⏳</span>
+            <span id="weather-temp">--°C</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- 상단 탭 메뉴 (룰렛 | 메뉴 리스트 | 칼로리 사전) -->
+      <nav class="flex border-b border-orange-200 bg-white">
+        <button onclick="switchTab('roulette')" id="tab-roulette" class="flex-1 py-3 text-center text-sm font-jua border-b-4 border-orange-500 text-orange-600 transition-all">
+          <i class="fa-solid fa-spinner mr-1"></i>룰렛 돌리기
+        </button>
+        <button onclick="switchTab('menuList')" id="tab-menuList" class="flex-1 py-3 text-center text-sm font-jua border-b-4 border-transparent text-gray-500 transition-all">
+          <i class="fa-solid fa-utensils mr-1"></i>추천 메뉴판
+        </button>
+        <button onclick="switchTab('calories')" id="tab-calories" class="flex-1 py-3 text-center text-sm font-jua border-b-4 border-transparent text-gray-500 transition-all">
+          <i class="fa-solid fa-fire mr-1"></i>칼로리 사전
+        </button>
+      </nav>
+
+      <!-- 화면 컨테이너 -->
+      <main class="flex-1 p-4 flex flex-col justify-between">
+        
+        <!-- 1. 룰렛 탭 화면 -->
+        <div id="view-roulette" class="flex-grow flex flex-col justify-between items-center gap-4">
+          
+          <!-- 계절/상황 선택 (여름 선택 등) -->
+          <div class="w-full bg-white/80 p-3 rounded-2xl shadow-sm border border-orange-100 text-center">
+            <span class="text-xs text-orange-500 font-bold uppercase tracking-wider block mb-1">상황 맞춤 필터</span>
+            <div class="flex justify-center gap-2">
+              <button onclick="setSeason('summer')" id="btn-season-summer" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-orange-500 text-white shadow-sm">
+                🌞 여름 메뉴 (선택)
+              </button>
+              <button onclick="setSeason('winter')" id="btn-season-winter" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-gray-200 text-gray-700 hover:bg-orange-100">
+                ❄️ 겨울 메뉴
+              </button>
+            </div>
+          </div>
+
+          <!-- 룰렛 보드판 -->
+          <div class="relative w-[260px] h-[260px] flex items-center justify-center my-2">
+            <!-- 룰렛 화살표 포인터 -->
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-30 filter drop-shadow">
+              <div class="w-6 h-8 bg-red-600 rounded-b-full relative flex items-center justify-center">
+                <div class="w-2 h-2 bg-white rounded-full"></div>
+                <!-- 삼각형 아래부분 -->
+                <div class="absolute bottom-[-10px] left-0 right-0 h-0 w-0 border-t-[10px] border-t-red-600 border-x-[12px] border-x-transparent"></div>
+              </div>
+            </div>
+            
+            <!-- 실제 룰렛 캔버스 -->
+            <canvas id="roulette-canvas" width="250" height="250" class="rounded-full border-4 border-amber-500 shadow-lg transform transition-transform duration-[4000ms] ease-out"></canvas>
+            
+            <!-- 중앙 고정 핀 -->
+            <div class="absolute w-8 h-8 bg-amber-500 border-4 border-white rounded-full z-20 shadow flex items-center justify-center">
+              <div class="w-2 h-2 bg-amber-800 rounded-full"></div>
+            </div>
+          </div>
+
+          <!-- 돌리기 버튼 (아이가 디자인한 파란색 테두리 느낌 반영) -->
+          <div class="w-full text-center pb-2">
+            <button onclick="spinRoulette()" id="btn-spin" class="w-[180px] py-3.5 bg-sky-500 hover:bg-sky-600 text-white font-jua text-xl rounded-2xl shadow-md border-4 border-sky-300 hover:border-sky-400 transform active:scale-95 transition-all tracking-wider animate-pulse">
+              🎰 돌 리 기
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. 추천 메뉴판 탭 화면 -->
+        <div id="view-menuList" class="hidden flex-grow flex flex-col gap-3">
+          <div class="text-center bg-white/70 p-3 rounded-2xl border border-orange-100">
+            <h3 class="font-jua text-orange-600 text-base">✨ 상황별 추천 메뉴판 ✨</h3>
+            <p class="text-xs text-gray-500 mt-1">원하는 요리를 클릭하면 네이버 지도로 바로 연결돼요!</p>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-2.5 overflow-y-auto max-h-[400px] pr-1 no-scrollbar" id="menu-cards-container">
+            <!-- 카드들 동적 삽입 -->
+          </div>
+        </div>
+
+        <!-- 3. 칼로리 사전 탭 화면 -->
+        <div id="view-calories" class="hidden flex-grow flex flex-col gap-3">
+          <div class="bg-white/70 p-3 rounded-2xl border border-orange-100 flex justify-between items-center">
+            <div>
+              <h3 class="font-jua text-amber-700 text-base">🔥 칼로리 사전</h3>
+              <p class="text-xs text-gray-500">오늘 먹을 음식들의 칼로리를 계산해 보세요!</p>
+            </div>
+            <button onclick="resetCalorieCalc()" class="bg-red-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
+              초기화
+            </button>
+          </div>
+
+          <!-- 칼로리 계산기 계산대 -->
+          <div class="bg-amber-900/95 text-amber-100 p-3 rounded-2xl shadow-inner font-mono text-sm flex justify-between items-center">
+            <span>나의 저녁 예상 칼로리:</span>
+            <span class="text-xl font-bold text-amber-400" id="calc-total-display">0 kcal</span>
+          </div>
+
+          <div class="flex-1 overflow-y-auto max-h-[300px] space-y-2 pr-1 no-scrollbar" id="calorie-list-container">
+            <!-- 칼로리 리스트 동적 삽입 -->
+          </div>
+        </div>
+
+        <!-- [모달 화면] 2단계: 데이터 분석 로딩 화면 -->
+        <div id="modal-loading" class="hidden absolute inset-0 bg-orange-950/90 z-40 flex flex-col items-center justify-center p-6 text-center">
+          <!-- 로딩 스피너 및 귀여운 푸드 아이콘들 -->
+          <div class="relative w-32 h-32 mb-6">
+            <div class="absolute inset-0 rounded-full border-4 border-dashed border-orange-400 animate-spin"></div>
+            <div class="absolute inset-3 rounded-full border-4 border-amber-300 animate-pulse flex items-center justify-center">
+              <span class="text-4xl animate-bounce">🍳</span>
+            </div>
+            <span class="absolute -top-1 left-2 text-2xl animate-ping">🍕</span>
+            <span class="absolute -bottom-1 right-2 text-2xl">🍜</span>
+          </div>
+          <h2 class="text-xl font-jua text-amber-300 mb-2">실시간 데이터 분석 중!</h2>
+          <p class="text-sm text-orange-200 animate-pulse" id="loading-tip">위치 정보를 바탕으로 날씨를 파악하고 있어요...</p>
+          <div class="w-48 bg-orange-900 h-2 rounded-full mt-4 overflow-hidden">
+            <div class="bg-amber-400 h-full w-0 rounded-full transition-all duration-[3000ms] ease-out" id="loading-progress"></div>
+          </div>
+        </div>
+
+        <!-- [모달 화면] 3단계: 결과 화면 -->
+        <div id="modal-result" class="hidden absolute inset-0 bg-white/95 z-40 flex flex-col justify-between p-6">
+          <div class="flex-1 flex flex-col items-center justify-center gap-4">
+            
+            <div class="text-center">
+              <span class="px-3 py-1 bg-orange-100 text-orange-600 text-xs font-bold rounded-full">오늘 저녁 강력 추천!</span>
+              <h2 class="text-3xl font-jua text-orange-600 mt-2" id="result-menu-name">마라탕</h2>
+              <p class="text-sm text-gray-500 font-semibold mt-1" id="result-menu-calories">🔥 약 600 kcal</p>
+            </div>
+
+            <!-- 결과 이미지용 귀여운 이모지 박스 -->
+            <div class="w-32 h-32 bg-amber-100 rounded-full border-4 border-amber-300 flex items-center justify-center text-6xl shadow-inner" id="result-menu-emoji">
+              🍜
+            </div>
+
+            <!-- 날씨/상황 맞춤 분석 추천 이유 피드백 -->
+            <div class="bg-orange-50/80 border border-orange-100 p-4 rounded-2xl w-full text-center">
+              <p class="text-sm text-gray-700 leading-relaxed font-semibold text-orange-950" id="result-recommend-reason">
+                "현재 날씨는 선선하고 좋은 날이네요! 오늘 저녁은 매콤한 마라탕으로 에너지를 충전해보는 건 어떨까요? 맛있게 드세요!"
+              </p>
+            </div>
+
+            <!-- 네이버 지도 바로가기 버튼 -->
+            <a id="btn-naver-map" href="#" target="_blank" rel="noopener noreferrer" class="w-full py-3.5 bg-green-500 hover:bg-green-600 text-white text-center font-jua text-lg rounded-2xl shadow-md border-b-4 border-green-700 transform active:scale-95 transition-all flex items-center justify-center gap-2">
+              <i class="fa-solid fa-map-location-dot"></i>네이버 지도로 맛집 찾기
+            </a>
+          </div>
+
+          <!-- 닫기 / 다른 추천 받기 -->
+          <div class="flex gap-2 mt-4">
+            <button onclick="closeResultModal()" class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-jua rounded-xl text-sm transition-all">
+              돌아가기
+            </button>
+            <button onclick="spinRoulette()" class="flex-[1.5] py-3 bg-orange-500 hover:bg-orange-600 text-white font-jua rounded-xl text-sm shadow transition-all">
+              한번 더 돌리기 🎰
+            </button>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- 스마트폰 하단 네비게이션 바 -->
+    <div class="absolute bottom-0 inset-x-0 h-12 bg-slate-900 border-t border-slate-800 flex justify-around items-center text-white text-sm z-50">
+      <button onclick="alertMenu()" class="w-12 h-10 flex flex-col items-center justify-center active:text-orange-400 transition-colors">
+        <i class="fa-solid fa-bars text-lg"></i>
+        <span class="text-[9px] mt-0.5">메뉴</span>
+      </button>
+      <button onclick="goHome()" class="w-12 h-10 flex flex-col items-center justify-center active:text-orange-400 transition-colors">
+        <i class="fa-solid fa-house text-lg"></i>
+        <span class="text-[9px] mt-0.5">홈</span>
+      </button>
+      <button onclick="goBack()" class="w-12 h-10 flex flex-col items-center justify-center active:text-orange-400 transition-colors">
+        <i class="fa-solid fa-chevron-left text-lg"></i>
+        <span class="text-[9px] mt-0.5">뒤로가기</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- 사이드 안내 모달 (메뉴 버튼 클릭 시 표출) -->
+  <div id="side-menu-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-80 rounded-3xl p-6 shadow-2xl border border-orange-100 flex flex-col gap-4">
+      <h3 class="font-jua text-xl text-orange-600 flex items-center gap-2">
+        <span class="text-2xl">🍕</span> 저메추 정보
+      </h3>
+      <div class="text-sm text-gray-600 space-y-2">
+        <p><strong>제작자:</strong> 최고의 상상력을 가진 학생 개발자</p>
+        <p><strong>만든 이유:</strong> 사람들이 저녁 메뉴 고민을 많이 하기 때문에!</p>
+        <p><strong>활용 기능:</strong> 위치, 시간, 날씨, 계절별 실시간 맞춤 음식 추천 기능</p>
+      </div>
+      <button onclick="closeSideMenu()" class="mt-2 w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-jua rounded-xl">
+        닫기
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // 1. 전체 저녁 식사 데이터베이스 (10개 이상, 칼로리 및 이모지 동봉, 위생적으로 안전한 6학년 눈높이 품목)
+    const foodDatabase = [
+      { name: "마라탕", emoji: "🍜", calories: 600, season: "winter", weather: "rainy", reason: "얼큰하고 뜨끈한 국물로 오늘 하루 피로를 싹 풀어줄 마라탕은 어떨까요? 따뜻하게 가득 채워봐요!" },
+      { name: "마라샹궈", emoji: "🥘", calories: 700, season: "winter", weather: "cloudy", reason: "매콤한 불맛이 가득해서 스트레스가 한 번에 확 날아가는 환상적인 마라샹궈를 강력하게 추천해요!" },
+      { name: "돈까스", emoji: "🍛", calories: 650, season: "summer", weather: "clear", reason: "바삭바삭하고 고소해서 남녀노소 누구나 좋아하는 겉바속촉의 대명사 돈까스를 오늘 한 끼로 즐겨보세요!" },
+      { name: "햄버거", emoji: "🍔", calories: 550, season: "summer", weather: "clear", reason: "신선한 야채와 촉촉한 패티의 조화! 간편하면서도 영양이 가득 찬 수제 버거 세트 어때요?" },
+      { name: "샐러드", emoji: "🥗", calories: 250, season: "summer", weather: "clear", reason: "오늘 저녁은 가볍고 신선하게! 내 몸을 맑고 깨끗하게 씻어내 줄 상큼한 연어/치킨 샐러드를 추천해요!" },
+      { name: "피자", emoji: "🍕", calories: 750, season: "summer", weather: "cloudy", reason: "치즈가 쭈욱 늘어나는 행복! 친구들과, 혹은 가족들과 오붓하게 나눠 먹을 맛있는 피자가 딱이에요!" },
+      { name: "냉면", emoji: "🍜", calories: 450, season: "summer", weather: "clear", reason: "가슴속까지 시원해지는 살얼음 동동 육수! 더위를 싹 날려줄 시원하고 매콤새콤한 냉면이 오늘 최고의 선택!" },
+      { name: "치킨", emoji: "🍗", calories: 800, season: "summer", weather: "clear", reason: "바삭하고 달콤 짭조름한 국민 치킨! 오늘 하루 수고한 나에게 주는 최고의 선물로 치킨 파티 어때요?" },
+      { name: "삼겹살", emoji: "🥩", calories: 850, season: "winter", weather: "clear", reason: "지글지글 불판 위에 노릇노릇 구워지는 영롱한 삼겹살로 오늘 든든하고 행복하게 배를 채워봐요!" },
+      { name: "부대찌개", emoji: "🍲", calories: 700, season: "winter", weather: "rainy", reason: "햄과 소시지가 듬뿍 들어간 보글보글 매콤한 부대찌개 국물에 라면 사리 넣어서 먹으면 꿀맛 보장!" },
+      { name: "초밥", emoji: "🍣", calories: 400, season: "summer", weather: "clear", reason: "신선함이 가득 느껴지는 깔끔하고 정갈한 모둠 초밥으로 품격 있는 저녁 식사를 누려보세요!" },
+      { name: "떡볶이", emoji: "🌶️", calories: 500, season: "winter", weather: "cloudy", reason: "매콤달콤 쫄깃쫄깃한 밀떡과 바삭한 튀김의 환상적인 콜라보! 오늘 저녁은 분식이 완전 당기네요!" }
+    ];
+
+    // 현재 상태 관리 변수들
+    let currentSeason = "summer"; // 기본 선택은 여름 메뉴
+    let currentTab = "roulette";
+    let isSpinning = false;
+    let selectedFoods = []; // 룰렛에 들어갈 8개 음식 목록
+    let historyStack = ["roulette"]; // 뒤로가기용 히스토리 저장
+    let customCalorieList = {}; // 칼로리 계산기 선택 기록
+
+    // 날씨/위치 상태 기본값
+    let locationName = "위치 파악 불가";
+    let weatherEmoji = "☀️";
+    let weatherTemp = "24°C";
+    let weatherState = "clear"; // clear, rainy, cloudy
+
+    // 2. 초기 기기 내 날짜/시간 동적 설정
+    function updateDeviceTime() {
+      const now = new Date();
+      
+      // 상태바 시간
+      let hours = now.getHours();
+      let minutes = now.getMinutes().toString().padStart(2, '0');
+      document.getElementById('status-time').innerText = `${hours}:${minutes}`;
+      
+      // 상태바 날짜
+      let month = (now.getMonth() + 1).toString().padStart(2, '0');
+      let date = now.getDate().toString().padStart(2, '0');
+      document.getElementById('status-date').innerText = `${month}.${date}`;
+    }
+    setInterval(updateDeviceTime, 1000);
+    updateDeviceTime();
+
+    // 3. 실시간 위치 & 날씨 데이터 연동 (Open-Meteo & Nominatim 역지오코딩 API 활용)
+    function fetchRealtimeWeatherAndLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            
+            try {
+              // 1) 위도, 경도 기반 주소 변환 (OpenStreetMap Nominatim API - 무료 주소 변환)
+              const geoResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`, {
+                headers: { "Accept-Language": "ko" }
+              });
+              const geoData = await geoResponse.json();
+              
+              // 시/군/구 파싱
+              const addr = geoData.address;
+              locationName = addr.city || addr.town || addr.borough || addr.village || addr.province || "우리동네";
+              if (locationName.length > 8) {
+                locationName = locationName.substring(0, 8) + "..";
+              }
+              document.getElementById('location-text').innerText = locationName;
+
+              // 2) Open-Meteo API로 날씨 상태 가져오기
+              const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+              const weatherData = await weatherResponse.json();
+              const temp = Math.round(weatherData.current_weather.temperature);
+              const weatherCode = weatherData.current_weather.weathercode;
+
+              // 날씨 코드에 맞춰 이모지 및 상태 맵핑
+              // 0: 맑음, 1-3: 구름조금, 51-67: 비/이슬비, 71-86: 눈, 95-99: 번개
+              if (weatherCode === 0) {
+                weatherEmoji = "☀️";
+                weatherState = "clear";
+              } else if (weatherCode >= 1 && weatherCode <= 3) {
+                weatherEmoji = "☁️";
+                weatherState = "cloudy";
+              } else if ((weatherCode >= 51 && weatherCode <= 67) || (weatherCode >= 80 && weatherCode <= 82)) {
+                weatherEmoji = "☔";
+                weatherState = "rainy";
+              } else {
+                weatherEmoji = "⛅";
+                weatherState = "clear";
+              }
+
+              weatherTemp = `${temp}°C`;
+              
+              document.getElementById('weather-emoji').innerText = weatherEmoji;
+              document.getElementById('weather-temp').innerText = weatherTemp;
+            } catch (error) {
+              console.error("날씨 정보 파싱 실패", error);
+              setFallbackWeather();
+            }
+          },
+          (error) => {
+            console.warn("위치 정보 접근 권한 거부됨", error);
+            setFallbackWeather();
+          }
+        );
+      } else {
+        setFallbackWeather();
+      }
+    }
+
+    // 위치 획득 거부되거나 실패했을 때 예외 처리 로직 (자동 차단 대비 가이드 준수)
+    function setFallbackWeather() {
+      document.getElementById('location-text').innerText = "날씨 정보 없음";
+      document.getElementById('weather-emoji').innerText = "🌈";
+      document.getElementById('weather-temp').innerText = "기온 미확인";
+      weatherState = "clear"; 
+    }
+
+    // 4. 화면 로딩 시 기본 세팅 및 데이터 로드
+    window.onload = function() {
+      fetchRealtimeWeatherAndLocation();
+      updateFilteredFoodPool();
+      renderMenuList();
+      renderCalorieList();
+      drawRoulette();
+    };
+
+    // 5. 조건에 맞춰 룰렛 아이템 필터링 (Math.random으로 8개 선정하여 룰렛 완성)
+    function updateFilteredFoodPool() {
+      // 10개 이상의 전체 풀 중에서 현재 선택된 계절(여름/겨울)에 맞게 1차 분류
+      let seasonFiltered = foodDatabase.filter(item => item.season === currentSeason);
+      
+      // 만약 분류된 수량이 8개 미만이라면 전체에서 추가 채우기
+      if (seasonFiltered.length < 8) {
+        const remaining = foodDatabase.filter(item => item.season !== currentSeason);
+        seasonFiltered = [...seasonFiltered, ...remaining];
+      }
+
+      // 무작위로 섞기
+      const shuffled = [...seasonFiltered].sort(() => 0.5 - Math.random());
+      
+      // 딱 8개만 룰렛 판으로 확정
+      selectedFoods = shuffled.slice(0, 8);
+      drawRoulette();
+    }
+
+    // 6. 룰렛 그리기 로직 (HTML5 Canvas 사용)
+    const canvas = document.getElementById("roulette-canvas");
+    const ctx = canvas.getContext("2d");
+    let currentAngle = 0; // 현재 룰렛 각도
+
+    function drawRoulette() {
+      const numSlices = selectedFoods.length;
+      if (numSlices === 0) return;
+      
+      const sliceAngle = (2 * Math.PI) / numSlices;
+      const colors = ["#FEE2E2", "#FEF3C7", "#D1FAE5", "#DBEAFE", "#F3E8FF", "#FCE7F3", "#E0F2FE", "#ECFDF5"];
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < numSlices; i++) {
+        const angle = i * sliceAngle;
+        
+        // 부채꼴 그리기
+        ctx.beginPath();
+        ctx.moveTo(125, 125);
+        ctx.arc(125, 125, 120, angle, angle + sliceAngle);
+        ctx.closePath();
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        ctx.strokeStyle = "#F59E0B";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 텍스트 회전하여 그리기
+        ctx.save();
+        ctx.translate(125, 125);
+        ctx.rotate(angle + sliceAngle / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#374151";
+        
+        // 아이들의 폰트 크기 조절
+        ctx.font = "bold 13px 'Nanum Gothic'";
+        
+        // 아이콘과 텍스트 같이 출력
+        const displayText = `${selectedFoods[i].emoji} ${selectedFoods[i].name}`;
+        ctx.fillText(displayText, 105, 5);
+        ctx.restore();
+      }
+    }
+
+    // 7. 계절 체인지 스위칭 이벤트
+    function setSeason(season) {
+      if (isSpinning) return;
+      currentSeason = season;
+      
+      const summerBtn = document.getElementById('btn-season-summer');
+      const winterBtn = document.getElementById('btn-season-winter');
+
+      if (season === 'summer') {
+        summerBtn.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-orange-500 text-white shadow-sm";
+        winterBtn.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-gray-200 text-gray-700 hover:bg-orange-100";
+      } else {
+        winterBtn.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-orange-500 text-white shadow-sm";
+        summerBtn.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-gray-200 text-gray-700 hover:bg-orange-100";
+      }
+
+      // 데이터 섞고 새로 그리기
+      updateFilteredFoodPool();
+    }
+
+    // 8. 룰렛 회전 애니메이션 동작 (2단계 로딩과 3단계 결과를 이어주는 가교)
+    function spinRoulette() {
+      if (isSpinning) return;
+      isSpinning = true;
+
+      // 먼저 결과창 닫기
+      document.getElementById('modal-result').classList.add('hidden');
+
+      // 무작위 속도와 회전 횟수 설정 (최소 5바퀴 이상)
+      const numSlices = selectedFoods.length;
+      const extraSpinDegrees = Math.floor(Math.random() * 360);
+      const totalSpinDegrees = (360 * 5) + extraSpinDegrees; 
+
+      const canvasEl = document.getElementById('roulette-canvas');
+      canvasEl.style.transform = `rotate(${totalSpinDegrees}deg)`;
+
+      // 룰렛이 한창 도는 도중(약 2초 뒤), 2단계: 데이터 분석 로딩 띄우기
+      setTimeout(() => {
+        showLoadingModal();
+      }, 2000);
+
+      // 4초 후 최종 정지하고 결과 출력
+      setTimeout(() => {
+        isSpinning = false;
+        
+        // 룰렛 각도 원상복귀 (애니메이션 끄고 각도 맞추기)
+        canvasEl.style.transition = 'none';
+        const finalDegree = totalSpinDegrees % 360;
+        canvasEl.style.transform = `rotate(${finalDegree}deg)`;
+        
+        // 어떤 아이템에 당첨되었는지 인덱스 계산
+        // 화살표가 위(270도 방향)에 있으므로 해당 수식으로 매핑
+        const normalizedAngle = (360 - (finalDegree - 90)) % 360;
+        const sliceSize = 360 / numSlices;
+        let winningIndex = Math.floor(normalizedAngle / sliceSize);
+        if (winningIndex < 0) winningIndex = 0;
+        if (winningIndex >= numSlices) winningIndex = numSlices - 1;
+
+        const winFood = selectedFoods[winningIndex];
+
+        // 대기후 결과창 보여주기
+        hideLoadingModal();
+        showResultModal(winFood);
+
+        // 다음 돌리기를 위해 회전효과 초기화
+        setTimeout(() => {
+          canvasEl.style.transition = 'transform 4000ms ease-out';
+        }, 50);
+
+      }, 4500);
+    }
+
+    // 9. 2단계 로딩 모달 제어
+    const loadingTips = [
+      "기상청에서 실시간 기온과 비 소식을 확인하고 있어요...",
+      "오늘의 요일과 계절적 취향을 분석하고 있습니다...",
+      "가장 신선하고 알맞은 추천 칼로리 요소를 대입하고 있어요...",
+      "친구들의 입맛을 저격할 최고의 요리를 큐레이팅 중!"
+    ];
+
+    function showLoadingModal() {
+      const modal = document.getElementById('modal-loading');
+      modal.classList.remove('hidden');
+      
+      const progress = document.getElementById('loading-progress');
+      progress.style.width = '0%';
+      setTimeout(() => {
+        progress.style.width = '100%';
+      }, 100);
+
+      // 랜덤한 문구 뿌리기
+      const randTip = loadingTips[Math.floor(Math.random() * loadingTips.length)];
+      document.getElementById('loading-tip').innerText = randTip;
+    }
+
+    function hideLoadingModal() {
+      document.getElementById('modal-loading').classList.add('hidden');
+    }
+
+    // 10. 3단계 결과 화면 출력 모달 제어 (날씨 정보 연계 추천 이유 작성)
+    function showResultModal(foodItem) {
+      document.getElementById('result-menu-name').innerText = foodItem.name;
+      document.getElementById('result-menu-calories').innerText = `🔥 약 ${foodItem.calories} kcal`;
+      document.getElementById('result-menu-emoji').innerText = foodItem.emoji;
+
+      // 추천 사유 실시간 맞춤 동적 생성
+      let weatherComment = "오늘은 선선해서 기분 좋은 저녁이네요!";
+      if (weatherState === 'rainy') {
+        weatherComment = "마침 비나 눈이 내려 뜨끈하고 얼큰한 게 당기는 날씨예요!";
+      } else if (weatherState === 'cloudy') {
+        weatherComment = "하늘이 조금 흐린 날이라 아늑하고 기분 좋아지는 맛이 딱이에요!";
+      } else if (parseInt(weatherTemp) >= 28) {
+        weatherComment = "더위로 살짝 지칠 수 있는 뜨거운 여름 날씨예요!";
+      }
+
+      const hours = new Date().getHours();
+      let timeComment = "이른 저녁 시간, 가볍고 힘나게!";
+      if (hours >= 19) {
+        timeComment = "출출함이 깊어지는 야심 찬 시간, 나를 위한 근사한 보상으로!";
+      }
+
+      const finalReason = `"${weatherComment} ${timeComment} 영양가 높고 든든한 [${foodItem.name}]은 어떠세요? 친구가 최고로 대접받는 행복한 저녁 시간을 보내길 바라요! 🧡"`;
+      document.getElementById('result-recommend-reason').innerText = finalReason;
+
+      // 네이버 지도로 즉시 가기 버튼 링크 주입 (새 창 열기 수칙 및 보안  noreferrer 준수)
+      const naverMapBtn = document.getElementById('btn-naver-map');
+      naverMapBtn.href = `https://map.naver.com/v5/search/${encodeURIComponent(foodItem.name)}`;
+
+      // 결과 화면 보이기
+      document.getElementById('modal-result').classList.remove('hidden');
+      pushHistory('result');
+    }
+
+    function closeResultModal() {
+      document.getElementById('modal-result').classList.add('hidden');
+    }
+
+    // 11. 추천 메뉴판 리스트 동적 렌더링
+    function renderMenuList() {
+      const container = document.getElementById('menu-cards-container');
+      container.innerHTML = '';
+
+      foodDatabase.forEach(item => {
+        const card = document.createElement('div');
+        card.className = "bg-white p-3 rounded-2xl shadow-sm border border-orange-100 flex flex-col justify-between items-center text-center cursor-pointer transform hover:scale-105 active:scale-95 transition-all";
+        card.onclick = () => {
+          window.open(`https://map.naver.com/v5/search/${encodeURIComponent(item.name)}`, '_blank', 'noopener,noreferrer');
+        };
+
+        card.innerHTML = `
+          <div class="text-3xl mb-1">${item.emoji}</div>
+          <div class="font-jua text-sm text-gray-800">${item.name}</div>
+          <div class="text-[10px] text-gray-400 font-semibold mt-0.5">약 ${item.calories} kcal</div>
+          <span class="mt-2 text-[9px] px-2 py-0.5 bg-orange-100 text-orange-600 rounded-full font-bold">
+            ${item.season === 'summer' ? '🌞 여름추천' : '❄️ 겨울추천'}
+          </span>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // 12. 칼로리 사전 리스트 & 계산 대시보드 구현
+    function renderCalorieList() {
+      const container = document.getElementById('calorie-list-container');
+      container.innerHTML = '';
+
+      foodDatabase.forEach(item => {
+        const itemRow = document.createElement('div');
+        itemRow.className = "bg-white p-3 rounded-xl border border-orange-100 flex justify-between items-center shadow-sm";
+        
+        itemRow.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">${item.emoji}</span>
+            <div>
+              <div class="font-jua text-sm text-gray-800">${item.name}</div>
+              <div class="text-[11px] text-gray-400">${item.calories} kcal</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="changeCalorieItem('${item.name}', ${item.calories}, -1)" class="w-7 h-7 rounded-full bg-gray-100 text-gray-700 font-bold text-sm flex items-center justify-center border hover:bg-gray-200 active:scale-90">-</button>
+            <span id="qty-${item.name}" class="text-sm font-bold text-gray-700 w-4 text-center">0</span>
+            <button onclick="changeCalorieItem('${item.name}', ${item.calories}, 1)" class="w-7 h-7 rounded-full bg-orange-500 text-white font-bold text-sm flex items-center justify-center hover:bg-orange-600 active:scale-90">+</button>
+          </div>
+        `;
+        container.appendChild(itemRow);
+      });
+    }
+
+    function changeCalorieItem(name, calories, delta) {
+      if (!customCalorieList[name]) {
+        customCalorieList[name] = { qty: 0, calories: calories };
+      }
+
+      customCalorieList[name].qty += delta;
+      if (customCalorieList[name].qty < 0) {
+        customCalorieList[name].qty = 0;
+      }
+
+      // UI 업데이트
+      document.getElementById(`qty-${name}`).innerText = customCalorieList[name].qty;
+      calculateTotalCalories();
+    }
+
+    function calculateTotalCalories() {
+      let total = 0;
+      for (const key in customCalorieList) {
+        total += customCalorieList[key].qty * customCalorieList[key].calories;
+      }
+      document.getElementById('calc-total-display').innerText = `${total} kcal`;
+    }
+
+    function resetCalorieCalc() {
+      customCalorieList = {};
+      foodDatabase.forEach(item => {
+        const el = document.getElementById(`qty-${item.name}`);
+        if (el) el.innerText = "0";
+      });
+      document.getElementById('calc-total-display').innerText = "0 kcal";
+    }
+
+    // 13. 탭 간 이동 제어 로직
+    function switchTab(tabId) {
+      currentTab = tabId;
+      pushHistory(tabId);
+
+      // 전체 탭 히든 처리
+      document.getElementById('view-roulette').classList.add('hidden');
+      document.getElementById('view-menuList').classList.add('hidden');
+      document.getElementById('view-calories').classList.add('hidden');
+
+      // 활성화된 탭 보여주기
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+
+      // 탭 버튼 스타일 갱신
+      const tabs = ['roulette', 'menuList', 'calories'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        if (t === tabId) {
+          btn.className = "flex-1 py-3 text-center text-sm font-jua border-b-4 border-orange-500 text-orange-600 transition-all";
+        } else {
+          btn.className = "flex-1 py-3 text-center text-sm font-jua border-b-4 border-transparent text-gray-500 transition-all";
+        }
+      });
+    }
+
+    // 14. 스마트폰 하단 가상 홈/백/메뉴 물리 키 바인딩 구현
+    function pushHistory(page) {
+      if (historyStack[historyStack.length - 1] !== page) {
+        historyStack.push(page);
+      }
+    }
+
+    function goHome() {
+      // 결과창 닫기
+      closeResultModal();
+      // 첫 페이지 룰렛으로 전환
+      switchTab('roulette');
+    }
+
+    function goBack() {
+      if (document.getElementById('modal-result').classList.contains('hidden') === false) {
+        closeResultModal();
+        return;
+      }
+
+      if (historyStack.length > 1) {
+        historyStack.pop(); // 현재 페이지 아웃
+        const prevPage = historyStack[historyStack.length - 1];
+        
+        if (prevPage === 'result') {
+          // 혹시 결과창이 히스토리에 잡혔다면 메인 룰렛으로 귀환
+          switchTab('roulette');
+        } else {
+          switchTab(prevPage);
+        }
+      }
+    }
+
+    function alertMenu() {
+      document.getElementById('side-menu-modal').classList.remove('hidden');
+    }
+
+    function closeSideMenu() {
+      document.getElementById('side-menu-modal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>

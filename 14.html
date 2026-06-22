@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이거 한번 읽어 볼래?</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons for beautiful navigation and buttons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Nanum+Gothic:wght@400;700;800&display=swap');
+    
+    body {
+      font-family: 'Gowun Dodum', 'Nanum Gothic', sans-serif;
+      background-color: #f0fdf4; /* 연한 초록색 배경 */
+    }
+
+    /* 스크롤바 숨기기 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* 책 펼쳐지는 로딩 애니메이션 */
+    @keyframes flipBook {
+      0% { transform: rotateY(0deg); }
+      50% { transform: rotateY(-180deg); }
+      100% { transform: rotateY(0deg); }
+    }
+    .book-flip {
+      animation: flipBook 2s infinite ease-in-out;
+      transform-origin: left center;
+    }
+
+    /* 알림창 애니메이션 */
+    @keyframes slideUp {
+      from { transform: translateY(100px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-slideup {
+      animation: slideUp 0.3s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+  <!-- 스마트폰 UI 컨테이너 (실제 스마트폰 크기로 디테일하게 제작) -->
+  <div class="relative w-[390px] h-[844px] bg-white rounded-[50px] shadow-2xl border-[12px] border-slate-800 flex flex-col overflow-hidden select-none">
+    
+    <!-- 스마트폰 상단 스피커 및 전면 카메라 노치 -->
+    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-7 bg-slate-800 rounded-b-2xl z-50 flex items-center justify-center">
+      <div class="w-12 h-1 bg-slate-700 rounded-full mb-1"></div>
+    </div>
+
+    <!-- 스마트폰 상단 상태바 (실시간 시간 및 날씨 자동 연동) -->
+    <div class="bg-emerald-700 text-white pt-8 px-6 pb-2 flex justify-between items-center text-xs font-semibold z-40 shrink-0">
+      <!-- 실시간 시간 -->
+      <div id="status-time">12:00</div>
+      <!-- 실시간 날씨 및 위치 정보 표시 영역 -->
+      <div id="status-weather" class="flex items-center gap-1">
+        <span>📍 위치 검색 중...</span>
+      </div>
+    </div>
+
+    <!-- 메인 앱 콘텐츠 영역 (내부 독립 스크롤) -->
+    <div class="flex-1 overflow-y-auto no-scrollbar bg-emerald-50/40 flex flex-col pb-16">
+      
+      <!-- [1단계: 조건 입력 화면] -->
+      <div id="stage-1" class="flex-1 flex flex-col p-6">
+        
+        <!-- 네가 그린 스케치(IMG_20260622_095139.jpg)의 책 모양 로고 박스 마크를 그대로 구현 -->
+        <div class="flex flex-col items-center my-6">
+          <div class="w-24 h-24 border-4 border-emerald-700 rounded-3xl bg-white flex items-center justify-center shadow-md p-2 mb-3">
+            <!-- 직접 그린 귀여운 책 드로잉을 재현한 초록색 책 SVG 아이콘 -->
+            <svg class="w-16 h-16 text-emerald-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+          </div>
+          <h1 class="text-2xl font-black text-emerald-800 text-center tracking-tight">이거 한번 읽어 볼래?</h1>
+          <p class="text-emerald-600 text-[11px] font-bold mt-1">나에게 꼭 맞는 한국십진분류법 추천 도서</p>
+        </div>
+
+        <!-- 설문 입력 양식 카드 -->
+        <div class="bg-white p-5 rounded-none border-2 border-emerald-600 shadow-sm flex-1 flex flex-col justify-between">
+          
+          <div class="space-y-4">
+            <!-- 나이 입력 -->
+            <div>
+              <label class="block text-sm font-bold text-emerald-800 mb-1.5"><i class="fa-solid fa-cake-candles mr-1"></i> 몇 학년(몇 살)인가요?</label>
+              <select id="input-age" class="w-full bg-emerald-50 border-2 border-emerald-600 text-emerald-900 py-2 px-3 focus:outline-none font-bold text-sm">
+                <option value="13">초등학교 6학년 (13세)</option>
+                <option value="8">초등학교 저학년 (8~10세)</option>
+                <option value="11">초등학교 중학년 (11~12세)</option>
+                <option value="14">중학생 이상 (14세~)</option>
+              </select>
+            </div>
+
+            <!-- 성별 입력 -->
+            <div>
+              <label class="block text-sm font-bold text-emerald-800 mb-1.5"><i class="fa-solid fa-user-astronaut mr-1"></i> 성별이 무엇인가요?</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" onclick="selectGender('남성')" id="btn-gender-male" class="gender-btn py-2 border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold text-sm focus:outline-none active:scale-95 transition-all">남성</button>
+                <button type="button" onclick="selectGender('여성')" id="btn-gender-female" class="gender-btn py-2 border-2 border-emerald-600 bg-emerald-50 text-emerald-800 font-bold text-sm focus:outline-none active:scale-95 transition-all">여성</button>
+                <button type="button" onclick="selectGender('선택안함')" id="btn-gender-none" class="gender-btn py-2 border-2 border-emerald-600 bg-emerald-600 text-white font-bold text-sm focus:outline-none active:scale-95 transition-all">모두</button>
+              </div>
+            </div>
+
+            <!-- 한국 십진 분류법 (KDC) 선택 -->
+            <div>
+              <label class="block text-sm font-bold text-emerald-800 mb-1.5"><i class="fa-solid fa-magnifying-glass-chart mr-1"></i> 어떤 분야의 책을 읽고 싶나요?</label>
+              <div class="grid grid-cols-2 gap-2 max-h-[170px] overflow-y-auto pr-1 border border-dashed border-emerald-300 p-2 bg-emerald-50/30">
+                <button type="button" onclick="selectKdc('000')" class="kdc-btn py-1.5 px-2 border border-emerald-600 bg-white text-emerald-800 font-bold text-xs text-left truncate active:scale-95 transition-all" data-kdc="000">📚 000 총류 (코딩/백과)</button>
+                <button type="button" onclick="selectKdc('100')" class="kdc-btn py-1.5 px-2 border border-emerald-600 bg-white text-emerald-800 font-bold text-xs text-left truncate active:scale-95 transition-all" data-kdc="100">🧠 100 철학 (생각/심리)</button>
+                <button type="button" onclick="selectKdc('200')" class="kdc-btn py-1.5 px-2 border border-emerald-600 bg-white text-emerald-800 font-bold text-xs text-left truncate active:scale-95 transition-all" data-kdc="200">⛪ 200 종교 (신화/문화)</button>
+                <button type="button" onclick="selectKdc('300')" class="kdc-btn py-1.5 px-2 border border-emerald-600 bg-white text-emerald-800 font-bold text-xs text-left truncate active:scale-95 transition-all" data-kdc="300">⚖️ 300 사회과학 (경제/법)</button>
+                <button type="button" onclick="selectKdc('400')" class="kdc-btn py-1.5 px-2 border border-emerald-600 bg-white text-emerald-800 font-bold text-xs text-left truncate active:scale-95 transition-all" data-kdc="400">🔬 400 자연과학 (생물/우주)</button>
+                <button type="button" onclick="selectKdc('500')" class="kdc-btn py-1.5 px-2 border border-emerald-600 bg-white text-emerald-800 font-bold text-xs text-left truncate active:scale-95 transition-all" data-kdc="500">⚙️ 500 기술과학 (발명/의학)</button>
+                <button type="button" onclick="selectKdc('600')" class="kdc-btn py-1.5 px-2 border border-emerald-600 bg-white text-emerald-800 font-bold text-xs text-left truncate active:scale-95 transition-all" data-kdc="600">🎨 600 예술 (미술/음악)</button>
+                <button type="button" onclick="selectKdc('700')" class="kdc-btn py-1.5 px-2 border border-emerald-600 bg-white text-emerald-800 font-bold text-xs text-left truncate active:scale-95 transition-all" data-kdc="700">🗣️ 700 언어 (말글/속담)</button>
+                <button type="button" onclick="selectKdc('800')" class="kdc-btn py-1.5 px-2 border border-emerald-600 bg-emerald-600 text-white font-bold text-xs text-left truncate active:scale-95 transition-all" data-kdc="800">📖 800 문학 (소설/시)</button>
+                <button type="button" onclick="selectKdc('900')" class="kdc-btn py-1.5 px-2 border border-emerald-600 bg-white text-emerald-800 font-bold text-xs text-left truncate active:scale-95 transition-all" data-kdc="900">🧭 900 역사 (위인/지리)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 깔끔한 초록색에 책 그림이 있는 네모난 버튼 디자인 적용 -->
+          <button type="button" onclick="startAnalysis()" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 px-4 font-black text-base flex items-center justify-center gap-2 border-2 border-emerald-800 shadow-md active:scale-95 transition-all rounded-none">
+            <i class="fa-solid fa-book-open"></i>
+            추천 도서 큐레이션 시작!
+          </button>
+        </div>
+
+      </div>
+
+      <!-- [2단계: 데이터 분석 로딩 화면] -->
+      <div id="stage-2" class="hidden flex-1 flex flex-col items-center justify-center p-6 text-center">
+        <!-- 책 모양 애니메이션 -->
+        <div class="w-24 h-24 mb-6 flex items-center justify-center relative">
+          <svg class="w-20 h-20 text-emerald-600 book-flip" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+          </svg>
+        </div>
+        <h2 class="text-xl font-black text-emerald-800 mb-2">오늘의 책을 찾고 있어...</h2>
+        <div class="space-y-2 mt-4 text-emerald-600 text-sm font-bold">
+          <p id="loading-txt-1" class="opacity-100 transition-opacity duration-300">🔍 입력한 정보들을 똑똑하게 분석하고 있어요...</p>
+          <p id="loading-txt-2" class="opacity-0 transition-opacity duration-300">📚 한국십진분류법(KDC) 빅데이터 매칭 중...</p>
+          <p id="loading-txt-3" class="opacity-0 transition-opacity duration-300">✨ 어울리는 도서 목록을 예쁘게 고르고 있어요!</p>
+        </div>
+        <div class="w-full bg-emerald-100 h-2 mt-8 border border-emerald-600">
+          <div id="loading-bar" class="bg-emerald-600 h-full w-0 transition-all duration-300"></div>
+        </div>
+      </div>
+
+      <!-- [3단계: 랜덤 추천 결과 출력 화면] -->
+      <div id="stage-3" class="hidden flex-1 flex flex-col p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-black text-emerald-900"><i class="fa-solid fa-gift mr-1 text-emerald-600"></i> 너를 위한 행운의 책!</h2>
+          <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 font-bold border border-emerald-600" id="result-kdc-tag">문학 코너</span>
+        </div>
+
+        <!-- 실시간 날씨 및 시간 맞춤형 다정한 인사말 카드 -->
+        <div class="bg-emerald-50 border-2 border-emerald-600 p-3 mb-4 text-xs text-emerald-800 font-bold leading-relaxed shadow-sm" id="recommendation-greeting">
+          <!-- 스크립트로 날씨 정보를 읽어와 동적으로 멋진 문구 자동 생성 -->
+        </div>
+
+        <!-- 추천 책 리스트 영역 -->
+        <div id="recommended-books-container" class="space-y-4">
+          <!-- 책 정보 카드가 동적으로 여기에 들어옵니다 -->
+        </div>
+
+        <!-- 다시 추천받기 네모난 초록색 버튼 -->
+        <button type="button" onclick="goToStage(1)" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 px-4 font-black text-base flex items-center justify-center gap-2 border-2 border-emerald-800 shadow-md active:scale-95 transition-all rounded-none">
+          <i class="fa-solid fa-rotate-left"></i> 처음부터 다시 고르기
+        </button>
+      </div>
+
+    </div>
+
+    <!-- 스마트폰 하단 물리식 내비게이션 바 [ ☰ (메뉴) | ⌂ (홈) | ◁ (뒤로가기) ] -->
+    <div class="absolute bottom-0 left-0 right-0 h-14 bg-emerald-900 border-t-2 border-emerald-800 text-emerald-200 flex justify-around items-center text-lg z-50">
+      <button type="button" onclick="toggleMenuModal()" class="flex-1 h-full flex flex-col items-center justify-center hover:bg-emerald-800 active:text-white transition-all">
+        <i class="fa-solid fa-bars"></i>
+        <span class="text-[9px] mt-0.5 font-bold">메뉴</span>
+      </button>
+      <button type="button" onclick="goHome()" class="flex-1 h-full flex flex-col items-center justify-center hover:bg-emerald-800 active:text-white transition-all">
+        <i class="fa-solid fa-house"></i>
+        <span class="text-[9px] mt-0.5 font-bold">홈</span>
+      </button>
+      <button type="button" onclick="goBack()" class="flex-1 h-full flex flex-col items-center justify-center hover:bg-emerald-800 active:text-white transition-all">
+        <i class="fa-solid fa-chevron-left text-sm"></i>
+        <span class="text-[9px] mt-0.5 font-bold">뒤로가기</span>
+      </button>
+    </div>
+
+    <!-- 메뉴(☰) 모달 안내창 -->
+    <div id="menu-modal" class="absolute inset-0 bg-black/60 z-50 hidden flex items-end justify-center">
+      <div class="w-full bg-white border-t-4 border-emerald-700 p-6 rounded-t-[30px] shadow-2xl transition-all transform translate-y-full duration-300" id="menu-modal-content">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-base font-black text-emerald-800"><i class="fa-solid fa-circle-info mr-1"></i> 어플 안내 및 한국십진분류법</h3>
+          <button type="button" onclick="toggleMenuModal()" class="text-emerald-900 hover:text-red-500 text-xl font-black p-1">&times;</button>
+        </div>
+        <div class="space-y-3 text-xs text-slate-700 leading-relaxed font-bold">
+          <div class="p-3 bg-emerald-50 border border-emerald-300">
+            <p class="text-emerald-900 font-extrabold mb-1">💡 어플 이름: 이거 한번 읽어 볼래?</p>
+            <p class="font-semibold">6학년 기획자가 제작한 맞춤형 도서 큐레이션 앱입니다. 나이, 성별, 그리고 KDC 주제 코드를 조합하여 똑똑하고 안전한 책만 추천합니다!</p>
+          </div>
+          <div>
+            <p class="text-emerald-900 font-extrabold mb-1">📂 한국십진분류법(KDC)이 뭐예요?</p>
+            <p class="font-semibold text-slate-500">모든 세상의 지식을 000부터 900까지 총 10가지 번호로 정돈해 둔 도서관의 비밀 지도와 같은 분류법이랍니다.</p>
+          </div>
+          <p class="text-[10px] text-slate-400 text-center mt-4">제작자: 6학년 앱 디자이너 & AI 파트너 💚</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 커스텀 알림 토스트 (alert 차단용 안전한 메시지 팝업) -->
+    <div id="toast-message" class="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-slate-900/90 text-white text-xs px-4 py-2.5 rounded-full z-50 hidden font-bold flex items-center gap-1.5 shadow-lg max-w-[80%] text-center">
+      <i class="fa-solid fa-circle-exclamation text-amber-400"></i>
+      <span id="toast-text">메시지 내용</span>
+    </div>
+
+  </div>
+
+  <script>
+    // 상태 및 데이터 설정
+    let selectedGender = '선택안함';
+    let selectedKdc = '800'; // 기본값: 문학
+    let currentStage = 1;
+    let weatherData = { city: "대한민국", emoji: "☀️", temp: "22" };
+
+    // 각 KDC 항목당 6학년 및 미성년자에게 유익하고 안전한 10개 이상의 도서 데이터베이스 구축
+    const booksDatabase = {
+      "000": [
+        { title: "생각을 정리하는 마인드맵", author: "토니 부잔", desc: "생각을 무한대로 넓혀주고 기억력을 극대화해 주는 멋진 두뇌 도감!" },
+        { title: "어린이를 위한 컴퓨터와 코딩 백과", author: "어스본 편집부", desc: "매일 쓰는 스마트폰과 인터넷에 담겨있는 신비한 원리들!" },
+        { title: "가짜 뉴스를 구별하는 똑똑한 방법", author: "손영혜", desc: "정보의 바다 속에서 거짓과 진실을 구별해내는 강력한 눈을 기르자!" },
+        { title: "초등학생을 위한 메이플 코딩 워리어", author: "송도수", desc: "어려운 코딩 개념을 흥미진진한 모험 만화로 신나게 배울 수 있어!" },
+        { title: "백과사전으로 찾는 우주와 세상", author: "학습백과 연구소", desc: "호기심 많고 궁금한 게 많은 친구들을 위한 모든 세상 정보창고!" },
+        { title: "인공지능과 미래 사회", author: "김상균", desc: "AI 비서와 자율주행차까지, 한눈에 미리 가보는 미래 과학 세상." },
+        { title: "나의 첫 데이터 코딩 책", author: "안소민", desc: "컴퓨터 사고력을 쉽고 유쾌하게 가르쳐주는 친절한 가이드북이야." },
+        { title: "도서관에 간 외계인", author: "정창훈", desc: "도서관의 분류법과 역사를 너무나 재미있게 풀어낸 신비 가득 이야기!" },
+        { title: "알수록 신기한 백과사전 퀴즈왕", author: "퀴즈연구회", desc: "친구들과 함께 풀며 지식을 왕창 키워주는 흥미진진 백과 퀴즈책!" },
+        { title: "메타버스로 떠나는 여행", author: "미래교실", desc: "새로운 온라인 가상 세계를 이해하고 안전하게 즐기는 꿀팁 대방출!" }
+      ],
+      "100": [
+        { title: "철학하는 어린이", author: "오스카 브르니피에", desc: "살아가며 맞닥뜨리는 수많은 복잡한 생각들에 스스로 답해보는 시간!" },
+        { title: "어린이를 위한 미움받을 용기", author: "기시미 이치로", desc: "진짜 내 마음을 들여다보고 친구 관계에서 솔직해질 수 있는 진정한 용기!" },
+        { title: "마음의 힘을 길러주는 감정 공부", author: "박성우", desc: "화나고 속상한 여러 가지 마음들을 예쁜 말로 표현하는 비법을 가르쳐줘." },
+        { title: "소크라테스에게 물어봐!", author: "장 루이 푸리에", desc: "역사상 가장 위대한 철학자 소크라테스와 동네 산책하듯 생각하기!" },
+        { title: "내 마음인데 나도 모르겠어", author: "감정코칭연구소", desc: "하루에도 몇 번씩 오락가락하는 내 마음에 따뜻한 해답을 주는 책." },
+        { title: "초등 고민 타파 수업", author: "초등상담소", desc: "공부, 친구, 성적 등 초등학생들이 가장 걱정하는 100가지 솔루션!" },
+        { title: "나를 사랑하는 힘, 자존감", author: "황상민", desc: "남의 시선에 흔들리지 않고 스스로를 아끼며 성장하는 단단한 힘." },
+        { title: "우정에도 연습이 필요해", author: "친구관계연구소", desc: "단짝 친구와 다퉜을 때 먼저 화해하고 더 끈끈해지는 친절한 연습장." },
+        { title: "하버드 초등 감정 조절법", author: "하버드 교육연구원", desc: "공부에 지쳤을 때 마인드 컨트롤하는 특별한 두뇌 마사지 기술!" },
+        { title: "생각의 문을 여는 질문 사전", author: "생각발전소", desc: "매일 한 장씩 스스로에게 질문하며 철학적 사고력을 기르는 멋진 도감." }
+      ],
+      "200": [
+        { title: "그림으로 보는 그리스 로마 신화", author: "토마스 불핀치", desc: "하늘의 별자리 and 문화 속에 고스란히 숨어있는 올림포스 신들의 흥미로운 모험!" },
+        { title: "세계 종교와 문화 이야기", author: "김종서", desc: "서로 다른 문화를 가진 지구촌 사람들을 더 넓은 시선으로 이해하는 교양 지식!" },
+        { title: "북유럽 신화 대모험", author: "토르 앤솔로지", desc: "영화 어벤져스에 나오는 토르와 로키의 진짜 고향 이야기 속으로!" },
+        { title: "이야기로 듣는 건국 신화", author: "정해왕", desc: "우리 단군 할아버지부터 알에서 태어난 혁거세까지 흥미진진한 건국사!" },
+        { title: "인류 역사와 신비의 사원들", author: "어스본 편집부", desc: "세계 최고의 건축 유산들 뒤에 숨은 환상적인 종교 이야기!" },
+        { title: "도깨비와 함께하는 전통 신앙", author: "우리민속회", desc: "우리 조상들이 옛날부터 사랑했던 장승, 솟대, 도깨비 이야기." },
+        { title: "이집트 신화와 미라의 비밀", author: "고대사연구소", desc: "피라미드와 스핑크스 속에 숨겨진 고대 신들의 비밀 편지!" },
+        { title: "아름다운 인도 신화 라마야나", author: "동양학회", desc: "원숭이 신 하누만과 함께 우주의 평화를 위해 싸우는 용감한 모험담!" },
+        { title: "성경으로 배우는 명작 미술", author: "미술관연구원", desc: "르네상스 명화 속에 그려진 이야기들을 한눈에 쉽게 쏙쏙 풀어냈어." },
+        { title: "세계 속의 축제와 그 기원", author: "세계문화포럼", desc: "핼러윈, 카니발, 추석 등 각국 축제들이 시작된 유래를 찾아보자!" }
+      ],
+      "300": [
+        { title: "열두 살에 부자가 된 키라", author: "보도 섀퍼", desc: "돈을 올바르게 모으고 불리고 투자하는 마법을 배우는 최고의 어린이 경제 가이드!" },
+        { title: "어린이를 위한 세금과 사회 복지", author: "국세청", desc: "우리 집 앞 도서관과 공원은 대체 어떻게 지어졌을까? 공공 사회 배우기!" },
+        { title: "법이 없으면 세상은 어떻게 될까?", author: "박일환", desc: "학교 규칙부터 헌법까지 법이 우리를 어떻게 지키는지 신나게 알려줄게!" },
+        { title: "어린이 경제학자의 특별 교실", author: "경제공부방", desc: "장난감 가격은 누가 정할까? 시장과 가격의 원리를 쏙쏙 파헤친 책!" },
+        { title: "정치란 무엇이고 왜 필요할까?", author: "에릭 하벤", desc: "많은 사람이 한자리에 모여 서로 양보하며 의사를 결정하는 평화의 과학." },
+        { title: "선거로 바꾸는 우리 세상", author: "민주주의포럼", desc: "한 표의 소중함과 반장 선거부터 대통령 선거까지의 모든 규칙들!" },
+        { title: "용돈 기입장 쓰는 날개 찬 키라", author: "키라클럽", desc: "용돈을 모아서 정말 갖고 싶은 꿈의 선물을 살 수 있는 소비 습관 계획." },
+        { title: "세계의 직업들과 나의 미래", author: "진로상담회", desc: "앞으로 생겨날 상상초월 메타버스 직업부터 멋진 실무 직종까지 완벽 분석!" },
+        { title: "아주 특별한 인권 학교", author: "세계평화위원회", desc: "세상 누구든 평등하고 존엄하게 살아가야 하는 소중한 권리를 배워요." },
+        { title: "어린이 외교관이 되는 길", author: "외교부 서포터즈", desc: "지구촌 갈등을 대화로 우아하게 조율하는 멋진 세계 외교 무대 이야기!" }
+      ],
+      "400": [
+        { title: "초등학생이 알아야 할 과학 100가지", author: "어스본 코리아", desc: "우주, 공룡, 인체까지 과학적 지식이 머릿속에 통째로 쏙 들어오는 명작!" },
+        { title: "기후 변화와 뜨거워지는 지구", author: "로르 누알라", desc: "우리 지구를 위해 매일 실천할 수 있는 아름다운 에코 라이프 꿀팁!" },
+        { title: "재미있는 인체 탐험 대모험", author: "시모어 사이먼", desc: "숨 쉬고, 심장이 쿵쾅쿵쾅 뛰는 신기하고 비밀스러운 우리 몸속 정밀 지도!" },
+        { title: "우주 정거장에서 보낸 엽서", author: "티머시 피크", desc: "진짜 우주 비행사 삼촌이 전해주는 눈부시게 찬란한 은하계 일상 엿보기." },
+        { title: "공룡들의 대백과와 지질 시대", author: "고생물학회", desc: "수천만 년 전 지구를 뒤흔들었던 어마어마한 공룡들의 비밀 생활 습성!" },
+        { title: "물리가 귀찮은 아이들을 위한 책", author: "양자물리학회", desc: "중력, 마찰력, 관성이 얼마나 재미있는 놀이인지 알려주는 책!" },
+        { title: "화학 원소들의 신나는 댄스 파티", author: "원소연구소", desc: "H2O 물부터 산소까지 일상을 구성하는 비밀 원소들과의 유쾌한 수다." },
+        { title: "숲속 식물들이 보내온 편지", author: "생태학자클럽", desc: "말을 하지 않는 풀과 나무들이 어떻게 소통하고 상처를 치유하는지 궁금하지?" },
+        { title: "미생물들의 거대한 비밀 세계", author: "생명과학팀", desc: "눈에 전혀 보이지 않는 미세한 생명체들이 만드는 발효와 면역 비밀!" },
+        { title: "심해 깊은 바다속 괴수 도감", author: "해양생물학회", desc: "햇빛조차 닿지 않는 어둡고 깊은 바다에 살고 있는 신기한 심해 생물들!" }
+      ],
+      "500": [
+        { title: "미래를 여는 메타버스와 AI 로봇", author: "정보통신진흥원", desc: "앞으로 다가올 세상의 첨단 발명 과학과 함께 공부하는 신기술 총망라." },
+        { title: "세상을 바꾼 엉뚱한 발명가들의 실수", author: "클레어 히버트", desc: "모두가 안 된다고 할 때 끝까지 포기하지 않고 인류를 바꾼 좌충우돌 비화!" },
+        { title: "의사 선생님들은 옛날에 어떻게 치료했을까?", author: "예병일", desc: "신비한 약초부터 현대 첨단 수술까지 위대한 의학의 역사 교과서." },
+        { title: "빵이 부풀고 김치가 익는 밥상 과학", author: "정창훈", desc: "우리 매일 맛있게 먹는 급식과 간식 속에 꽁꽁 숨은 발효와 가열의 마술!" },
+        { title: "비행기는 어떻게 저 큰 몸집으로 뜰까?", author: "항공연구소", desc: "라이트 형제부터 초음속 전투기까지 양력의 놀라운 역학 상식 대방출." },
+        { title: "전기와 에너지가 흐르는 원리", author: "한국전력교육단", desc: "스위치를 켜면 전구에 불이 오기까지 눈 깜짝할 새 일어나는 물리 모험!" },
+        { title: "세상을 구하는 신기한 친환경 자동차", author: "교통안전위원회", desc: "전기차, 수소차, 자율주행차가 어떻게 매연 없이 씽씽 달릴까요?" },
+        { title: "나도 유튜버 크리에이터가 될래!", author: "영상편집학교", desc: "촬영, 마이크, 편집 프로그램 기초부터 저작권까지 완벽하게 배우기!" },
+        { title: "세계 최고의 다리 교량 공학 이야기", author: "건축공학회", desc: "바다 한가운데에 어떻게 저 거대한 다리를 세울 수 있었을까?" },
+        { title: "재난을 대비하는 안전 구급 지침", author: "안전재난처", desc: "지진이나 태풍이 와도 든든하게 가족들을 지킬 수 있는 대처 요령 백과!" }
+      ],
+      "600": [
+        { title: "방구석 미술관 (어린이 에디션)", author: "조원재", desc: "천재 화가 고흐와 모네의 유쾌하고 귀여운 그림 에피소드로 예술과 놀기!" },
+        { title: "모차르트가 들려주는 클래식 수다", author: "김강은", desc: "우리의 집중력을 백 배로 높여주고 마음을 토닥여주는 클래식 명곡 비화." },
+        { title: "나만의 멋진 웹툰 캐릭터 그리기", author: "이혜경", desc: "웹툰 작가가 되고 싶은 친구들을 위한 비율 맞추기와 표정 그리기 강좌!" },
+        { title: "석굴암부터 에펠탑까지 세계 건축 여행", author: "프랭크 로이드", desc: "돌과 철로 만든 세계에서 가장 유명하고 가치 있는 아름다운 유산 탐방." },
+        { title: "어린이 연극 놀이와 시나리오 작가", author: "연극진흥협회", desc: "주인공이 되어 대사를 읊조리며 표현력과 자신감을 키우는 마법 수업." },
+        { title: "영화 속에 숨어있는 카메라 각도 기법", author: "시네마크루", desc: "어벤져스는 왜 이렇게 멋질까? 비밀은 바로 카메라 앵글 구도에 있어!" },
+        { title: "사진 한 장으로 전하는 따뜻한 마음", author: "사진작가협회", desc: "스마트폰 카메라로 예술 사진 구도 잡고 이쁘게 보정하는 팁." },
+        { title: "세계의 명화 속 숨겨진 수수께끼", author: "미술관투어팀", desc: "모나리자의 미소는 왜 오묘할까? 다빈치 코드를 파헤치는 예술 탐험." },
+        { title: "나도 애니메이터가 될 수 있어!", author: "스튜디오캠프", desc: "움직이는 애니메이션 캐릭터의 원리와 디자인 과정을 차근차근 배워요." },
+        { title: "마음을 그리는 예쁜 캘리그래피", author: "한글디자인회", desc: "글씨 하나만으로 아름다운 편지 카드를 직접 꾸며 선물하는 행복 처방전!" }
+      ],
+      "700": [
+        { title: "국어 실력이 자라는 기적의 속담 사전", author: "박두수", desc: "상황에 딱 맞는 재치 있고 조상들의 오랜 지혜가 풍성히 담긴 대화 기술!" },
+        { title: "어린이를 위한 올바른 우리말 맞춤법", author: "안소민", desc: "맨날 헷갈려서 일기 쓸 때 혼나던 '되'와 '돼' 완벽 구별 초능력 가이드!" },
+        { title: "세계를 움직이는 영어의 탄생과 역사", author: "데이비드 크리스탈", desc: "영어 알파벳은 어떻게 만들어졌고, 왜 전 세계에서 사용하게 되었을까?" },
+        { title: "발표가 두렵지 않은 대화 자신감 코칭", author: "이민우", desc: "학교 교실에서 떨지 않고 큰 목소리로 또박또박 내 의견을 말하는 비결!" },
+        { title: "한글 창제와 훈민정음 해례본", author: "한글문화연대", desc: "세종대왕님이 글을 몰라 눈물짓던 백성들을 위해 만든 과학적인 한글 비밀." },
+        { title: "속담에서 발견하는 역사 이야기", author: "역사속담회", desc: "식은 죽 먹기, 누워서 떡 먹기 같은 재밌는 말이 유래된 진짜 이유!" },
+        { title: "고사성어로 배우는 교과서 상식", author: "한자교육원", desc: "사자성어 속에 숨어있는 유비무환, 삼고초려 같은 흥미진진 중국 역사사." },
+        { title: "외국어 한마디로 시작하는 세계 일주", author: "다문화교육", desc: "중국어, 일어, 프랑스어로 반갑게 아침 인사하는 다정한 회화 일기." },
+        { title: "나쁜 말 버릇을 예쁜 말 버릇으로", author: "언어순화연구소", desc: "친구를 감동시키고 선생님께 무한 칭찬받는 매력쟁이의 대화 습관!" },
+        { title: "세계 언어들의 신비한 비밀 수수께끼", author: "언어학회", desc: "지구상에 언어가 몇 개나 있을까? 소멸 위기 언어를 지키는 영웅 이야기." }
+      ],
+      "800": [
+        { title: "긴긴밤", author: "루리", desc: "세상에 단 하나 남은 코뿔소와 버려진 아기 펭귄의 눈물 나도록 아름다운 여정!" },
+        { title: "푸른 사자 와니니", author: "이현", desc: "야생 아프리카 초원에서 무리에서 쫓겨나 훌륭한 우두머리로 성장하는 감동 대서사시." },
+        { title: "해리 포터와 마법사의 돌", author: "J.K. 롤링", desc: "계단 밑 골방 소년 해리가 호그와트 마법학교 입학장을 받는 화려한 마법의 시작!" },
+        { title: "자전거 도둑", author: "박완서", desc: "차가운 도시 골목 속에서 소년이 양심과 정의를 끝까지 지켜나가는 명작 문학 소설." },
+        { title: "몽실 언니", author: "권정생", desc: "아픈 다리로 가난과 시련을 이겨내고 참사랑을 베푼 가슴 뭉클한 감동 대작." },
+        { title: "마당을 나온 암탉", author: "황선미", desc: "자유로운 하늘을 날고 싶었던 암탉 초록이의 생명과 희망의 뜨거운 울림!" },
+        { title: "어린 왕자", author: "생텍쥐페리", desc: "별에서 찾아온 어린 왕자가 알려주는 세상에서 가장 소중하고 보이지 않는 기적." },
+        { title: "찰리와 초콜릿 공장", author: "로알드 다스", desc: "황금 티켓을 찾은 가난한 소년 찰리가 윙카 공장에서 맛보는 초콜릿 판타지!" },
+        { title: "초정리 편지", author: "배유안", desc: "세종대왕님이 만든 훈민정음을 배운 석이의 일상을 다룬 감동 한글 소설." },
+        { title: "시간을 파는 상점", author: "김선영", desc: "시간을 훔쳐 마음의 짐을 덜어주는 신기하고 철학적인 힐링 청소년 소설!" }
+      ],
+      "900": [
+        { title: "용선생의 시끌벅적 한국사", author: "사회평론 역사연구소", desc: "재미있는 역사 타임머신을 타고 위대한 인물들을 생생하게 만나는 역사 모험!" },
+        { title: "위인들의 부끄러운 실수 비하인드", author: "지나 무어", desc: "우리와 똑같이 실수도 하고 장난꾸러기였던 영웅들의 인간미 넘치는 좌절 극복기!" },
+        { title: "그림과 서찰로 만나는 조선 시대", author: "한영혜", desc: "타임머신 없이도 한눈에 들여다보는 조선왕조 임금님과 백성들의 주막 라이프." },
+        { title: "세계 지도 속의 아슬아슬 숨겨진 영토", author: "지리학회", desc: "독도부터 5대양 6대주까지 세계 지리를 탐험하는 멋진 지도 탐색 탐험기!" },
+        { title: "세종대왕의 한글 프로젝트 비밀 일기", author: "역사연구소", desc: "눈이 침침한 순간에도 백성들을 위해 한글을 창제한 뜨거운 사랑과 끈기의 역사." },
+        { title: "이순신 장군과 거북선 과학", author: "이순신포럼", desc: "수적 열세를 딛고 23전 23승 무패 신화를 기록한 거북선 전술 과학 수사대!" },
+        { title: "백범 김구와 아름다운 우리나라", author: "김구기념재단", desc: "오직 더 높고 멋진 문화를 가진 평화로운 대한민국을 바랐던 백범 할아버지 이야기." },
+        { title: "처음 배우는 세계 역사 탐험대", author: "세계사포럼", desc: "이집트 미라부터 로마 콜로세움까지 지구의 화려한 역사를 한눈에 정복하자!" },
+        { title: "한국의 아름다운 유네스코 보물들", author: "문화재청", desc: "석굴암, 경복궁, 훈민정음 등 세계가 극찬해 등재한 우리의 자랑스러운 문화유산." },
+        { title: "도전하는 여성 위인 100인 이야기", author: "여성사포럼", desc: "편견을 극복하고 비행사, 과학자, 외교관이 되어 세상을 바꾼 멋진 영웅들의 기록!" }
+      ]
+    };
+
+    // 실시간 상태바 가동 및 날씨 로드
+    window.onload = function() {
+      updateTime();
+      setInterval(updateTime, 1000);
+      initLocationAndWeather();
+    };
+
+    // 실시간 상태바 디지털 시계
+    function updateTime() {
+      const now = new Date();
+      let hours = now.getHours();
+      let minutes = now.getMinutes();
+      hours = hours < 10 ? '0' + hours : hours;
+      minutes = minutes < 10 ? '0' + minutes : minutes;
+      document.getElementById('status-time').innerText = `${hours}:${minutes}`;
+    }
+
+    // 위치 기반 날씨 수집 및 대체값 처리
+    function initLocationAndWeather() {
+      const weatherSpan = document.getElementById('status-weather');
+      
+      if (!navigator.geolocation) {
+        weatherSpan.innerHTML = "⚠️ 날씨 기능 지원 안 됨";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          
+          try {
+            const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
+            const geoData = await geoRes.json();
+            const cityName = geoData.locality || geoData.principalSubdivision || "우리동네";
+            
+            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+            const weatherDataRaw = await weatherRes.json();
+            const temp = Math.round(weatherDataRaw.current_weather.temperature);
+            const wCode = weatherDataRaw.current_weather.weathercode;
+
+            let emoji = "☀️";
+            if ([1, 2, 3].includes(wCode)) emoji = "🌤️";
+            else if ([45, 48, 51, 53, 55, 61, 63, 65, 80, 81, 82].includes(wCode)) emoji = "🌧️";
+            else if ([71, 73, 75, 77, 85, 86].includes(wCode)) emoji = "❄️";
+            else if ([95, 96, 99].includes(wCode)) emoji = "⚡";
+
+            weatherData = { city: cityName, emoji: emoji, temp: temp };
+            weatherSpan.innerHTML = `<i class="fa-solid fa-location-dot text-emerald-300"></i> <span class="text-[10px]">${cityName}</span> <span class="ml-1 text-[10px]">${emoji} ${temp}°C</span>`;
+
+          } catch (error) {
+            console.error("날씨 연동 에러:", error);
+            weatherSpan.innerHTML = "⛅ 날씨 서비스 연결 지연";
+          }
+        },
+        function(error) {
+          console.warn("위치 정보 거부됨. 안전하게 기본 알림 처리.");
+          weatherSpan.innerHTML = "❌ 날씨 정보 없음";
+          weatherData = { city: "독서실", emoji: "📖", temp: "따스한" };
+        }
+      );
+    }
+
+    // 성별 입력 설정
+    function selectGender(gender) {
+      selectedGender = gender;
+      document.querySelectorAll('.gender-btn').forEach(btn => {
+        btn.classList.remove('bg-emerald-600', 'text-white');
+        btn.classList.add('bg-emerald-50', 'text-emerald-800');
+      });
+
+      let activeId = 'btn-gender-none';
+      if (gender === '남성') activeId = 'btn-gender-male';
+      else if (gender === '여성') activeId = 'btn-gender-female';
+
+      document.getElementById(activeId).classList.remove('bg-emerald-50', 'text-emerald-800');
+      document.getElementById(activeId).classList.add('bg-emerald-600', 'text-white');
+    }
+
+    // KDC 테마 대분류 설정
+    function selectKdc(kdcCode) {
+      selectedKdc = kdcCode;
+      document.querySelectorAll('.kdc-btn').forEach(btn => {
+        btn.classList.remove('bg-emerald-600', 'text-white');
+        btn.classList.add('bg-white', 'text-emerald-800');
+      });
+      
+      const targetBtn = document.querySelector(`.kdc-btn[data-kdc="${kdcCode}"]`);
+      if (targetBtn) {
+        targetBtn.classList.remove('bg-white', 'text-emerald-800');
+        targetBtn.classList.add('bg-emerald-600', 'text-white');
+      }
+    }
+
+    // 화면 라우터 변환기
+    function goToStage(stageNum) {
+      currentStage = stageNum;
+      document.getElementById('stage-1').classList.add('hidden');
+      document.getElementById('stage-2').classList.add('hidden');
+      document.getElementById('stage-3').classList.add('hidden');
+
+      document.getElementById(`stage-${stageNum}`).classList.remove('hidden');
+    }
+
+    // 분석 로딩 프로세스 작동
+    function startAnalysis() {
+      goToStage(2);
+      
+      const bar = document.getElementById('loading-bar');
+      const txt1 = document.getElementById('loading-txt-1');
+      const txt2 = document.getElementById('loading-txt-2');
+      const txt3 = document.getElementById('loading-txt-3');
+
+      bar.style.width = '0%';
+      txt1.style.opacity = '100';
+      txt2.style.opacity = '0';
+      txt3.style.opacity = '0';
+
+      setTimeout(() => {
+        bar.style.width = '50%';
+        txt2.style.opacity = '100';
+      }, 700);
+
+      setTimeout(() => {
+        bar.style.width = '100%';
+        txt3.style.opacity = '100';
+      }, 1400);
+
+      setTimeout(() => {
+        generateRecommendation();
+        goToStage(3);
+      }, 2200);
+    }
+
+    // 결과 생성 및 네이버 도서 검색(Naver Book Search) 단일 버튼 생성
+    function generateRecommendation() {
+      const ageInput = document.getElementById('input-age').value;
+      const kdcPool = booksDatabase[selectedKdc] || booksDatabase["800"];
+      
+      const shuffled = [...kdcPool].sort(() => 0.5 - Math.random());
+      const selectedBooks = shuffled.slice(0, 3);
+
+      const kdcNames = {
+        "000": "000 총류", "100": "100 철학", "200": "200 종교", "300": "300 사회과학",
+        "400": "400 자연과학", "500": "500 기술과학", "600": "600 예술", "700": "700 언어",
+        "800": "800 문학", "900": "900 역사"
+      };
+      document.getElementById('result-kdc-tag').innerText = kdcNames[selectedKdc] || "맞춤 분야";
+
+      const greetingBox = document.getElementById('recommendation-greeting');
+      const now = new Date();
+      const hour = now.getHours();
+      let timeWord = "빛나는 하루";
+      if (hour < 11) timeWord = "상쾌한 아침 기운";
+      else if (hour >= 11 && hour < 17) timeWord = "포근하고 차분한 오후 햇살";
+      else timeWord = "어둠이 은은히 내려앉은 밤공기";
+
+      let weatherWord = "기분 좋은 오늘";
+      if (weatherData.emoji === "☀️") weatherWord = "눈부시게 맑고 화창한 오늘";
+      else if (weatherData.emoji === "🌤️") weatherWord = "몽글몽글 구름이 흘러가는 오늘";
+      else if (weatherData.emoji === "🌧️") weatherWord = "차분한 빗소리가 감수성을 자극하는 오늘";
+      else if (weatherData.emoji === "❄️") weatherWord = "온 세상이 새하얗게 덮인 듯 설레는 오늘";
+
+      greetingBox.innerHTML = `
+        <div class="flex items-center gap-1.5 mb-1.5">
+          <span class="text-base">${weatherData.emoji}</span>
+          <span class="text-[11px] text-emerald-900 font-black">${weatherData.city}의 지금은 어떤가요?</span>
+        </div>
+        <div class="leading-relaxed text-slate-700">
+          ${timeWord} 속 ${weatherWord}, <b>${ageInput}세</b> ${selectedGender !== '선택안함' ? '<b>' + selectedGender + '</b>' : '지적 호기심 가득한'} 친구의 오늘 마음을 읽어주는 책들이야! <b>[${kdcNames[selectedKdc]}]</b> 서재에서 정말 잘 어울릴 3권을 콕 골라봤어! 💖
+        </div>
+      `;
+
+      const container = document.getElementById('recommended-books-container');
+      container.innerHTML = '';
+
+      selectedBooks.forEach((book, idx) => {
+        const customComments = [
+          "너의 놀라운 영감과 상상력을 열 배는 넓혀줄 신비로운 힘을 가졌어!",
+          "한번 읽기 시작하면 밤이 가도록 시간 가는 줄 모르는 꿀잼 보장 책이지!",
+          "친한 친구에게 선물해서 같이 도란도란 읽고 수다 떨면 너무 행복할 거야!"
+        ];
+
+        const card = document.createElement('div');
+        card.className = "bg-white border-2 border-emerald-600 p-4 shadow-sm relative";
+        card.innerHTML = `
+          <div class="absolute top-0 right-4 w-6 h-7 bg-emerald-600 flex items-center justify-center text-white text-[10px] font-black">
+            ${idx + 1}
+          </div>
+          
+          <div class="pr-6">
+            <h4 class="text-sm font-black text-emerald-900 flex items-center gap-1.5 mb-1 truncate">
+              <i class="fa-solid fa-book-open text-emerald-600 text-xs"></i> ${book.title}
+            </h4>
+            <p class="text-[10px] text-slate-500 font-extrabold mb-2.5">작가: ${book.author}</p>
+            <p class="text-xs text-slate-700 bg-emerald-50/40 p-2.5 border border-dashed border-emerald-200 font-bold leading-relaxed mb-3">
+              "${book.desc}"
+            </p>
+            <div class="text-[10px] text-emerald-700 font-black flex items-center gap-1 mb-3.5">
+              <i class="fa-solid fa-sparkles"></i> <span>이유: ${customComments[idx] || "선생님이 보증하는 올해의 인성 도서!"}</span>
+            </div>
+            
+            <!-- 네이버 도서 검색(Book Search) 연동 단일 버튼으로 업그레이드 -->
+            <div class="mt-2">
+              <a href="https://search.shopping.naver.com/book/search?query=${encodeURIComponent(book.title)}" target="_blank" rel="noopener noreferrer" 
+                 class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 text-center font-bold text-xs border border-emerald-800 flex items-center justify-center gap-1.5 active:scale-95 transition-all">
+                <i class="fa-solid fa-book"></i> 네이버 도서에서 책 검색하기
+              </a>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // 내비게이션 바 제어
+    function goHome() {
+      goToStage(1);
+    }
+
+    function goBack() {
+      if (currentStage === 3) {
+        goToStage(1);
+      } else if (currentStage === 2) {
+        goToStage(1);
+      } else {
+        showToast("여기가 앱의 첫 화면이자 메인화면이야! 😉");
+      }
+    }
+
+    function toggleMenuModal() {
+      const modal = document.getElementById('menu-modal');
+      const content = document.getElementById('menu-modal-content');
+
+      if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+          content.classList.remove('translate-y-full');
+          content.classList.add('translate-y-0');
+        }, 50);
+      } else {
+        content.classList.remove('translate-y-0');
+        content.classList.add('translate-y-full');
+        setTimeout(() => {
+          modal.classList.add('hidden');
+        }, 300);
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast-message');
+      const toastText = document.getElementById('toast-text');
+      toastText.innerText = message;
+      toast.classList.remove('hidden');
+      toast.classList.add('animate-slideup');
+
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 2500);
+    }
+  </script>
+</body>
+</html>

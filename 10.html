@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>watching - 상황별 맞춤 유튜브 채널 추천</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=300;400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        /* 폰 형태 가상 디바이스 스타일링 */
+        .phone-container {
+            width: 390px;
+            height: 844px;
+            border: 12px solid #282828;
+            border-radius: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            position: relative;
+            overflow: hidden;
+            background-color: #0f0f0f;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 노치 디자인 */
+        .phone-notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 25px;
+            background-color: #282828;
+            border-bottom-left-radius: 18px;
+            border-bottom-right-radius: 18px;
+            z-index: 50;
+        }
+
+        /* 스크롤바 숨기기 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 클릭 피드백 애니메이션 */
+        .btn-active:active {
+            transform: scale(0.95);
+            transition: transform 0.1s;
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-4 bg-zinc-900">
+
+    <!-- 스마트폰 모형 프레임 -->
+    <div class="phone-container text-white select-none relative">
+        <!-- 상단 스피커/카메라 노치 -->
+        <div class="phone-notch"></div>
+
+        <!-- 폰 상단 상태바 (시간 / 배터리 / 날씨) -->
+        <div class="pt-6 px-6 pb-2 flex justify-between items-center text-xs text-zinc-400 z-10 bg-[#0f0f0f]">
+            <span id="current-time-clock" class="font-medium">10:00 AM</span>
+            <div class="flex items-center gap-2">
+                <!-- 실시간 위치 및 날씨 정보 영역 -->
+                <span id="weather-widget" class="bg-zinc-800 px-2 py-0.5 rounded-full text-[10px] text-zinc-300 flex items-center gap-1">
+                    <i class="fa-solid fa-spinner animate-spin"></i> 위치 확인 중
+                </span>
+                <i class="fa-solid fa-wifi"></i>
+                <i class="fa-solid fa-battery-three-quarters"></i>
+            </div>
+        </div>
+
+        <!-- 메인 앱 콘텐츠 영역 (스크롤 가능) -->
+        <div class="flex-1 overflow-y-auto no-scrollbar pb-16 bg-[#0f0f0f]" id="app-content">
+
+            <!-- ================= PAGE 1: 홈 화면 ================= -->
+            <div id="page-home" class="p-5 flex flex-col h-full">
+                <!-- 왓칭 헤더 -->
+                <div class="flex justify-between items-center mb-6 mt-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl font-black tracking-tighter text-[#FF0000] flex items-center gap-1">
+                            <i class="fa-solid fa-eye"></i> watching
+                        </span>
+                        <span class="text-[10px] bg-[#FF0000] text-white px-1.5 py-0.5 rounded font-bold uppercase">Beta</span>
+                    </div>
+                    <button onclick="showAlertModal('알림', '🔔 나이대 세분화 패치가 완료되었어요! 동생부터 형, 누나까지 딱 맞는 유튜브 채널을 더욱 정교하게 매칭해 드립니다.')" class="w-10 h-10 bg-zinc-950 hover:bg-zinc-800 flex justify-center items-center rounded-full text-zinc-300 btn-active">
+                        <i class="fa-regular fa-bell text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- 안내 문구 -->
+                <div class="bg-zinc-900 p-4 rounded-2xl mb-5 border-l-4 border-[#FF0000]">
+                    <p class="text-xs text-zinc-400">맞춤 스마트 안심 필터</p>
+                    <h2 class="text-sm font-bold text-zinc-100 mt-1">"선택한 연령에 딱 맞춰서 안전하고 재밌는 최적의 채널들만 쏙쏙 왓칭해 줄게!" 🛡️</h2>
+                </div>
+
+                <!-- 실시간 커스텀 키워드 검색창 (업데이트 반영) -->
+                <div class="mb-6 bg-zinc-900 p-4 rounded-xl border border-zinc-800">
+                    <p class="text-xs text-zinc-400 mb-2 font-bold"><i class="fa-solid fa-magnifying-glass text-[#FF0000] mr-1"></i> 어떤 유튜브 채널을 보고 싶어? 직접 검색해봐!</p>
+                    <div class="flex gap-2">
+                        <input type="text" id="home-search-input" placeholder="예) 게임, 노래, 과학, 예능, 공부" class="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#FF0000] text-white">
+                        <button onclick="triggerHomeSearch()" class="px-4 py-2 rounded-lg bg-[#FF0000] text-white font-bold text-xs hover:bg-red-700 flex justify-center items-center gap-1 btn-active">
+                            검색 <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 mt-3">
+                        <span class="text-[9px] text-zinc-500 flex items-center">💡 추천 키워드:</span>
+                        <button onclick="fillHomeSearch('게임')" class="bg-zinc-950 text-[10px] text-zinc-400 px-2 py-0.5 rounded border border-zinc-800 hover:text-white">🎮 게임</button>
+                        <button onclick="fillHomeSearch('과학')" class="bg-zinc-950 text-[10px] text-zinc-400 px-2 py-0.5 rounded border border-zinc-800 hover:text-white">🔬 과학</button>
+                        <button onclick="fillHomeSearch('노래')" class="bg-zinc-950 text-[10px] text-zinc-400 px-2 py-0.5 rounded border border-zinc-800 hover:text-white">🎵 노래</button>
+                        <button onclick="fillHomeSearch('역사')" class="bg-zinc-950 text-[10px] text-zinc-400 px-2 py-0.5 rounded border border-zinc-800 hover:text-white">📚 역사</button>
+                    </div>
+                </div>
+
+                <!-- 다양해진 연령 설정 영역 (4단계 구성) -->
+                <div class="bg-zinc-900 p-4 rounded-xl mb-6 border border-zinc-800">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-bold text-zinc-200"><i class="fa-solid fa-user-gear text-[#FF0000] mr-1"></i> 시청 연령대 선택</span>
+                        <span id="age-badge" class="text-[10px] font-bold text-white bg-[#FF0000] px-2 py-0.5 rounded-full">초등 고학년 (11~13세)</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="setAgeGroup('preschool')" id="btn-age-preschool" class="py-2.5 px-2 rounded-lg text-[11px] font-medium bg-zinc-800 text-zinc-400 hover:bg-zinc-700 btn-active">
+                            👶 새싹 키즈 (7세 이하)
+                        </button>
+                        <button onclick="setAgeGroup('low')" id="btn-age-low" class="py-2.5 px-2 rounded-lg text-[11px] font-medium bg-zinc-800 text-zinc-400 hover:bg-zinc-700 btn-active">
+                            👦 초등 저학년 (8~10세)
+                        </button>
+                        <button onclick="setAgeGroup('high')" id="btn-age-high" class="py-2.5 px-2 rounded-lg text-[11px] font-bold bg-[#FF0000] text-white btn-active">
+                            🧑 초등 고학년 (11~13세)
+                        </button>
+                        <button onclick="setAgeGroup('teen')" id="btn-age-teen" class="py-2.5 px-2 rounded-lg text-[11px] font-medium bg-zinc-800 text-zinc-400 hover:bg-zinc-700 btn-active">
+                            😎 청소년 (14세 이상)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 상황 테마 카드 선택 영역 -->
+                <div class="mb-4">
+                    <span class="text-sm font-bold text-zinc-200 block mb-3"><i class="fa-solid fa-clock text-[#FF0000] mr-1"></i> 현재 나의 시간 & 상황 선택하기</span>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- 아침/오전 상황 -->
+                        <div onclick="selectSituation('morning')" class="situation-card cursor-pointer border border-zinc-800 bg-zinc-950 p-4 rounded-xl flex flex-col justify-between h-24 hover:border-[#FF0000] hover:bg-zinc-900 transition btn-active">
+                            <div class="text-xl">☀️</div>
+                            <div>
+                                <h3 class="text-xs font-bold text-white">상쾌한 아침/오전</h3>
+                                <p class="text-[10px] text-zinc-400 mt-0.5">하루 활기차게 시작하기</p>
+                            </div>
+                        </div>
+
+                        <!-- 오후 상황 -->
+                        <div onclick="selectSituation('afternoon')" class="situation-card cursor-pointer border border-zinc-800 bg-zinc-950 p-4 rounded-xl flex flex-col justify-between h-24 hover:border-[#FF0000] hover:bg-zinc-900 transition btn-active">
+                            <div class="text-xl">⚡</div>
+                            <div>
+                                <h3 class="text-xs font-bold text-white">심심한 오후/방과후</h3>
+                                <p class="text-[10px] text-zinc-400 mt-0.5">시간 순삭 최고의 동반자</p>
+                            </div>
+                        </div>
+
+                        <!-- 저녁/밤 상황 -->
+                        <div onclick="selectSituation('night')" class="situation-card cursor-pointer border border-zinc-800 bg-zinc-950 p-4 rounded-xl flex flex-col justify-between h-24 hover:border-[#FF0000] hover:bg-zinc-900 transition btn-active">
+                            <div class="text-xl">🌙</div>
+                            <div>
+                                <h3 class="text-xs font-bold text-white">하루를 마치는 밤</h3>
+                                <p class="text-[10px] text-zinc-400 mt-0.5">감정 힐링 & 수면 준비</p>
+                            </div>
+                        </div>
+
+                        <!-- 공부/집중 상황 -->
+                        <div onclick="selectSituation('study')" class="situation-card cursor-pointer border border-zinc-800 bg-zinc-950 p-4 rounded-xl flex flex-col justify-between h-24 hover:border-[#FF0000] hover:bg-zinc-900 transition btn-active">
+                            <div class="text-xl">✍️</div>
+                            <div>
+                                <h3 class="text-xs font-bold text-white">집중이 필요한 공부</h3>
+                                <p class="text-[10px] text-zinc-400 mt-0.5">학습 자극 & 집중 노동요</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 맞춤 분석 버튼 -->
+                <button onclick="startAnalysis()" class="w-full bg-[#FF0000] hover:bg-red-700 text-white font-bold py-4 rounded-xl mt-4 flex items-center justify-center gap-2 text-sm shadow-lg shadow-red-900/30 btn-active">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> 왓칭 알고리즘 채널 추천받기
+                </button>
+            </div>
+
+            <!-- ================= PAGE 2: 분석 중 화면 ================= -->
+            <div id="page-loading" class="hidden p-5 flex flex-col justify-center items-center h-full pt-24 text-center">
+                <!-- 로딩 애니메이션 -->
+                <div class="relative w-32 h-32 flex justify-center items-center mb-8">
+                    <div class="absolute inset-0 border-4 border-t-[#FF0000] border-r-transparent border-b-[#FF0000] border-l-transparent rounded-full animate-spin duration-1000"></div>
+                    <div class="absolute inset-2 border-4 border-r-zinc-800 border-t-transparent border-l-zinc-800 border-b-transparent rounded-full animate-spin duration-700"></div>
+                    <i class="fa-solid fa-eye text-4xl text-[#FF0000] animate-pulse"></i>
+                </div>
+
+                <h2 class="text-xl font-black text-white tracking-wide">watching 분석 중...</h2>
+                <p id="loading-status-text" class="text-xs text-zinc-400 mt-2 px-6">
+                    현재 시각 정보를 가져와 분석하는 중입니다.
+                </p>
+
+                <!-- 게이지 바 -->
+                <div class="w-48 bg-zinc-900 h-1.5 rounded-full mt-6 overflow-hidden">
+                    <div id="progress-bar" class="bg-[#FF0000] h-full w-0 transition-all duration-300 rounded-full"></div>
+                </div>
+            </div>
+
+            <!-- ================= PAGE 3: 추천 결과 화면 ================= -->
+            <div id="page-result" class="hidden p-5">
+                <div class="flex items-center justify-between mb-4 mt-2">
+                    <h2 class="text-lg font-extrabold text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-clapperboard text-[#FF0000]"></i> 오늘의 추천 왓칭리스트
+                    </h2>
+                    <span class="text-xs text-zinc-500 font-bold" id="result-time-stamp">오전 10:00</span>
+                </div>
+
+                <!-- 현재 설정 요약 배지 -->
+                <div class="flex gap-1.5 mb-5 overflow-x-auto no-scrollbar">
+                    <span id="badge-result-age" class="text-[10px] font-bold text-zinc-300 bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-full whitespace-nowrap">👦 11~13세</span>
+                    <span id="badge-result-situation" class="text-[10px] font-bold text-zinc-300 bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-full whitespace-nowrap">🍚 밥 먹을 때</span>
+                </div>
+
+                <!-- 추천 채널 컨테이너 -->
+                <div class="space-y-4" id="recommendation-cards-container">
+                    <!-- 동적 카드 예시 (JS에서 렌더링) -->
+                </div>
+
+                <!-- 다시 추천받기 및 홈으로 이동 버튼 -->
+                <div class="mt-8 space-y-2">
+                    <button onclick="startAnalysis()" class="w-full bg-[#FF0000] hover:bg-red-700 text-white font-bold py-3.5 rounded-xl text-xs flex justify-center items-center gap-2 btn-active">
+                        <i class="fa-solid fa-rotate"></i> 다른 채널 더 보기 (새로고침)
+                    </button>
+                    <button onclick="goHome()" class="w-full bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-bold py-3 rounded-xl text-xs flex justify-center items-center gap-2 btn-active">
+                        <i class="fa-solid fa-house"></i> 메인 홈으로 가기
+                    </button>
+                </div>
+            </div>
+
+            <!-- ================= PAGE 4: 서치/검색 화면 ================= -->
+            <div id="page-search" class="hidden p-5">
+                <h2 class="text-lg font-black mb-4"><i class="fa-solid fa-magnifying-glass text-[#FF0000] mr-1"></i> 직접 상황을 검색해 봐!</h2>
+                
+                <div class="flex gap-2 mb-6">
+                    <input type="text" id="custom-search-input" placeholder="예) 게임, 공부, 개그, 힐링" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#FF0000] text-white">
+                    <button onclick="triggerCustomSearch()" class="bg-[#FF0000] px-4 rounded-xl flex justify-center items-center text-white btn-active">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+
+                <div class="mb-4">
+                    <p class="text-xs text-zinc-400 font-bold mb-2">추천 검색어</p>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="setSearchInput('게임 방송')" class="bg-zinc-900 hover:bg-zinc-800 text-xs text-zinc-300 px-3 py-2 rounded-lg border border-zinc-800 btn-active">🎮 마인크래프트</button>
+                        <button onclick="setSearchInput('유머 코미디')" class="bg-zinc-900 hover:bg-zinc-800 text-xs text-zinc-300 px-3 py-2 rounded-lg border border-zinc-800 btn-active">😂 배꼽 빠지는 코미디</button>
+                        <button onclick="setSearchInput('지식 보따리')" class="bg-zinc-900 hover:bg-zinc-800 text-xs text-zinc-300 px-3 py-2 rounded-lg border border-zinc-800 btn-active">💡 호기심 해결사</button>
+                        <button onclick="setSearchInput('요리 가이드')" class="bg-zinc-900 hover:bg-zinc-800 text-xs text-zinc-300 px-3 py-2 rounded-lg border border-zinc-800 btn-active">🍳 요리/간식 만들기</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= PAGE 5: 설정 화면 ================= -->
+            <div id="page-settings" class="hidden p-5">
+                <h2 class="text-lg font-black mb-4"><i class="fa-solid fa-gear text-zinc-400 mr-1"></i> 서비스 설정</h2>
+                
+                <div class="space-y-4">
+                    <div class="bg-zinc-900 p-4 rounded-xl flex justify-between items-center border border-zinc-800">
+                        <div>
+                            <h3 class="text-sm font-bold">클린 유튜브 필터링</h3>
+                            <p class="text-[10px] text-zinc-500">초등학생이 볼 수 없는 영상들을 원천 차단합니다.</p>
+                        </div>
+                        <span class="text-xs font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-900 px-2 py-0.5 rounded-full">켜짐(자동)</span>
+                    </div>
+
+                    <div class="bg-zinc-900 p-4 rounded-xl flex justify-between items-center border border-zinc-800">
+                        <div>
+                            <h3 class="text-sm font-bold">유용한 알람 받기</h3>
+                            <p class="text-[10px] text-zinc-500">하루에 한 번 딱 맞는 시간에 채널 알림을 받아요.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" checked class="sr-only peer">
+                            <div class="w-9 h-5 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#FF0000]"></div>
+                        </label>
+                    </div>
+
+                    <div class="bg-zinc-900 p-4 rounded-xl border border-zinc-800">
+                        <h3 class="text-sm font-bold mb-1">앱 정보</h3>
+                        <p class="text-xs text-zinc-400">버전 1.2.0 (실시간 검색 필터 업그레이드)</p>
+                        <p class="text-[10px] text-zinc-500 mt-2">상상을 실현해주는 파트너 AI와 함께 초등학교 기획 천재의 아이디어를 녹여낸 왓칭입니다.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 슬라이드 메뉴 드로워 -->
+        <div id="side-menu" class="absolute inset-y-0 left-0 w-64 bg-zinc-950 border-r border-zinc-800 z-40 transform -translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl">
+            <div>
+                <div class="flex justify-between items-center mb-8">
+                    <span class="text-xl font-black text-[#FF0000]"><i class="fa-solid fa-eye"></i> watching</span>
+                    <button onclick="toggleMenu()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+                
+                <nav class="space-y-4">
+                    <a href="#" onclick="clickMenuLink('내 저장 리스트', '⭐ 마음에 드는 채널들을 따로 모아서 모아볼 수 있는 기능이 곧 준비될 예정이야!')" class="flex items-center gap-3 text-sm text-zinc-300 hover:text-white py-2"><i class="fa-regular fa-star"></i> 내 북마크 리스트</a>
+                    <a href="#" onclick="clickMenuLink('시청 기록', '⏳ 네가 왓칭에서 추천받아 클릭한 유튜버들의 기록을 볼 수 있는 기능이 곧 추가될 거야!')" class="flex items-center gap-3 text-sm text-zinc-300 hover:text-white py-2"><i class="fa-regular fa-clock"></i> 시청한 추천 기록</a>
+                    <a href="#" onclick="clickMenuLink('클린 캠페인', '🧼 왓칭은 자극적이거나 미성년자에게 유해한 욕설, 음주, 폭력적인 채널은 인공지능이 완벽히 차단하고 있어 안심하고 볼 수 있단다!')" class="flex items-center gap-3 text-sm text-zinc-300 hover:text-white py-2"><i class="fa-solid fa-shield-halved text-[#FF0000]"></i> 클린 알고리즘 가이드</a>
+                    <a href="#" onclick="clickMenuLink('도움말', '💡 사용 중 궁금한 점이 생기면 언제든 친절한 앱 개발 파트너 AI를 찾아줘!')" class="flex items-center gap-3 text-sm text-zinc-300 hover:text-white py-2"><i class="fa-regular fa-circle-question"></i> 자주 묻는 질문</a>
+                </nav>
+            </div>
+            
+            <div class="text-[10px] text-zinc-600 border-t border-zinc-900 pt-4">
+                <p>© 2026 watching. All rights reserved.</p>
+                <p class="mt-1">Designed by 초등학교 기획 천재 🌟</p>
+            </div>
+        </div>
+
+        <!-- 하단 공통 네비게이션 바 -->
+        <div class="absolute bottom-0 inset-x-0 bg-[#0f0f0f] border-t border-zinc-900 h-16 flex justify-around items-center text-zinc-400 text-sm z-30">
+            <button onclick="toggleMenu()" class="flex flex-col items-center justify-center w-12 h-12 hover:text-[#FF0000] transition btn-active">
+                <i class="fa-solid fa-bars text-lg"></i>
+                <span class="text-[9px] mt-0.5">메뉴</span>
+            </button>
+            <button onclick="goHome()" class="flex flex-col items-center justify-center w-12 h-12 hover:text-[#FF0000] transition btn-active">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="text-[9px] mt-0.5">홈</span>
+            </button>
+            <button onclick="goBack()" class="flex flex-col items-center justify-center w-12 h-12 hover:text-[#FF0000] transition btn-active">
+                <i class="fa-solid fa-arrow-left text-lg"></i>
+                <span class="text-[9px] mt-0.5">뒤로가기</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 다이얼로그 모달 -->
+    <div id="modal-container" class="hidden fixed inset-0 bg-black/70 flex justify-center items-center z-50 p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-[320px] p-6 text-center shadow-2xl">
+            <h3 id="modal-title" class="text-base font-black text-white mb-2">알림</h3>
+            <p id="modal-body" class="text-xs text-zinc-400 mb-6 leading-relaxed">내용</p>
+            <button onclick="closeModal()" class="w-full bg-[#FF0000] hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs btn-active">확인 완료</button>
+        </div>
+    </div>
+
+    <script>
+        // ================= APP STATE MANAGEMENT =================
+        const state = {
+            currentAgeGroup: 'high', // 'preschool', 'low', 'high', 'teen'
+            currentSituation: 'afternoon', // 'morning', 'afternoon', 'night', 'study', 'search'
+            searchQuery: '', // 실시간 직접 타이핑 키워드
+            pageHistory: ['page-home'],
+            menuOpen: false
+        };
+
+        // ================= 확장형 유튜브 채널 안심 추천 데이터 풀 (16개 다변화 구성) =================
+        const youtubeDatabase = [
+            // 👶 새싹 키즈 (7세 이하) 채널군
+            {
+                id: 1,
+                name: "핑크퐁",
+                subscribers: "6800만명",
+                tags: ["#동요", "#아기상어", "#놀이"],
+                emoji: "🦈",
+                recommendationReason: "우리 귀여운 새싹들을 위한 신나는 리듬 동요가 가득해요! 아기상어와 함께 춤추고 놀아보아요.",
+                searchQuery: "핑크퐁",
+                time: "morning",
+                targetAges: ["preschool"]
+            },
+            {
+                id: 2,
+                name: "뽀로로 Pororo",
+                subscribers: "740만명",
+                tags: ["#애니메이션", "#조기교육", "#뽀롱뽀롱", "#동화"],
+                emoji: "🐧",
+                recommendationReason: "노는 게 제일 좋은 뽀로로와 친구들이 함께 펼치는 재미난 안전상식 이야기와 생활 습관 뮤지컬!",
+                searchQuery: "뽀로로",
+                time: "afternoon",
+                targetAges: ["preschool"]
+            },
+            {
+                id: 3,
+                name: "주니토니 JunyTony",
+                subscribers: "540만명",
+                tags: ["#동화", "#과학동요", "#어린이노래", "#과학"],
+                emoji: "🪄",
+                recommendationReason: "재미난 노래와 흥미진진한 인체 탐험 동화를 통해 자연스럽게 과학 지식을 배우는 채널입니다.",
+                searchQuery: "주니토니",
+                time: "study",
+                targetAges: ["preschool"]
+            },
+            {
+                id: 4,
+                name: "에그박사 토이",
+                subscribers: "15만명",
+                tags: ["#장난감놀이", "#어린이클레이", "#재미", "#만들기"],
+                emoji: "🧸",
+                recommendationReason: "상상력 넘치는 장난감 언박싱과 클레이 만들기로 창의성을 쑥쑥 길러보아요.",
+                searchQuery: "에그박사 토이",
+                time: "night",
+                targetAges: ["preschool"]
+            },
+
+            // 👦 초등 저학년 (8~10세) 채널군
+            {
+                id: 5,
+                name: "에그박사 Egg & Bugs",
+                subscribers: "51만명",
+                tags: ["#자연탐사", "#곤충월드", "#호기심", "#동물", "#곤충"],
+                emoji: "🐛",
+                recommendationReason: "우리 주변의 신기하고 귀여운 곤충과 동물의 비밀을 밝히는 신나는 야외 관찰 채널이랍니다!",
+                searchQuery: "에그박사",
+                time: "morning",
+                targetAges: ["low", "preschool"]
+            },
+            {
+                id: 6,
+                name: "잠뜰 TV",
+                subscribers: "221만명",
+                tags: ["#마크놀이", "#스토리게임", "#친구협동", "#게임", "#마인크래프트"],
+                emoji: "🎮",
+                recommendationReason: "친구들과 협동하며 문제를 풀어나가는 유익하고 건전한 마인크래프트 게임 채널!",
+                searchQuery: "잠뜰 TV",
+                time: "afternoon",
+                targetAges: ["low", "high"]
+            },
+            {
+                id: 7,
+                name: "흔한남매",
+                subscribers: "271만명",
+                tags: ["#코믹일상", "#남매케미", "#순수유머", "#예능", "#개그"],
+                emoji: "🤪",
+                recommendationReason: "스트레스 쌓이는 방과후! 배꼽 도둑 에이미와 으뜸이의 유쾌하고 왁자지껄한 일상 소동극!",
+                searchQuery: "흔한남매",
+                time: "afternoon",
+                targetAges: ["low", "high"]
+            },
+            {
+                id: 8,
+                name: "따뜻한 목소리 요정",
+                subscribers: "12만명",
+                tags: ["#잠자리동화", "#힐링사운드", "#이야기책", "#동화", "#책"],
+                emoji: "🧚‍♀️",
+                recommendationReason: "하루 일과를 조용히 마무리하며 스르륵 잠들 수 있는 조근조근한 구연동화 채널입니다.",
+                searchQuery: "잠자리 동화",
+                time: "night",
+                targetAges: ["low", "preschool"]
+            },
+
+            // 🧑 초등 고학년 (11~13세) 채널군
+            {
+                id: 9,
+                name: "사물궁이 잡학다식",
+                subscribers: "153만명",
+                tags: ["#지식잡학", "#애니메이션", "#과학적호기심", "#과학", "#호기심"],
+                emoji: "💡",
+                recommendationReason: "세상 모든 쓸모 있고 재미난 질문들의 답을 애니메이션으로 쉽고 유익하게 알려드려요.",
+                searchQuery: "사물궁이 잡학다식",
+                time: "morning",
+                targetAges: ["high", "low", "teen"]
+            },
+            {
+                id: 10,
+                name: "민쩌미 Minjemi",
+                subscribers: "38만명",
+                tags: ["#초등공감", "#상황극", "#1인다역", "#예능", "#개그"],
+                emoji: "🙋‍♀️",
+                recommendationReason: "고학년 친구들의 최대 관심사, 우정, 학업, 학교생활을 핵공감 백배 상황극으로 시원하게 대변해줘요!",
+                searchQuery: "민쩌미",
+                time: "afternoon",
+                targetAges: ["high", "low"]
+            },
+            {
+                id: 11,
+                name: "때껄룩 Take a Look",
+                subscribers: "152만명",
+                tags: ["#감성플리", "#배경음악", "#집중", "#노래", "#음악"],
+                emoji: "🎧",
+                recommendationReason: "감각적이고 세련된 고퀄리티 플레이리스트가 가득해 책 읽거나 일기 쓸 때 틀어두기 최고예요.",
+                searchQuery: "때껄룩",
+                time: "study",
+                targetAges: ["high", "teen"]
+            },
+            {
+                id: 12,
+                name: "교양만두",
+                subscribers: "74만명",
+                tags: ["#인문학", "#재미난역사", "#교양지식", "#역사", "#이야기"],
+                emoji: "🥟",
+                recommendationReason: "이불 속에서 시청하기 딱 좋은 만두 캐릭터들의 유쾌한 세계 역사 및 문화 스토리텔링 교양 채널!",
+                searchQuery: "교양만두",
+                time: "night",
+                targetAges: ["high", "teen"]
+            },
+
+            // 😎 청소년 (14세 이상) 채널군
+            {
+                id: 13,
+                name: "긱블 Geekble",
+                subscribers: "112만명",
+                tags: ["#메이커스", "#기상천외발명", "#공학수행", "#과학", "#만들기", "#실험"],
+                emoji: "🦾",
+                recommendationReason: "쓸데없어 보이지만 보면 깜짝 놀랄 기상천외한 과학/공학 발명품 제작쇼! 과학 호기심 대자극!",
+                searchQuery: "긱블",
+                time: "morning",
+                targetAges: ["teen", "high"]
+            },
+            {
+                id: 14,
+                name: "워크맨 Workman",
+                subscribers: "410만명",
+                tags: ["#직업체험", "#세상구경", "#취업팁", "#예능", "#알바"],
+                emoji: "💼",
+                recommendationReason: "세상의 수많은 아르바이트와 어른들의 직무 세계를 유쾌하고 날카로운 입담으로 체험해 보는 유쾌 직무 방송!",
+                searchQuery: "워크맨",
+                time: "afternoon",
+                targetAges: ["teen"]
+            },
+            {
+                id: 15,
+                name: "조코딩 JoCoding",
+                subscribers: "59만명",
+                tags: ["#인공지능", "#IT최신기술", "#앱개발가이드", "#공부", "#코딩"],
+                emoji: "💻",
+                recommendationReason: "챗GPT 활용법부터 나만의 프로그램 만드는 꿀팁까지, 공부하며 디지털 무기를 준비하는 트렌디한 IT 학습 채널!",
+                searchQuery: "조코딩",
+                time: "study",
+                targetAges: ["teen", "high"]
+            },
+            {
+                id: 16,
+                name: "Soupe ASMR",
+                subscribers: "53만명",
+                tags: ["#화이트노이즈", "#빗소리ASMR", "#정신집중", "#잠", "#수면"],
+                emoji: "🌧️",
+                recommendationReason: "학습 후 피곤한 뇌를 위해 3D 입체 음향 빗소리 사운드로 완벽한 수면 환경을 세팅해 드려요.",
+                searchQuery: "Soupe ASMR",
+                time: "night",
+                targetAges: ["teen", "high", "low", "preschool"]
+            }
+        ];
+
+        // ================= LIFE CYCLE & INITIALIZATION =================
+        window.onload = function() {
+            initAppTime();
+            initWeatherAndLocation();
+            setInterval(updateTime, 1000);
+        };
+
+        function initAppTime() {
+            updateTime();
+        }
+
+        function updateTime() {
+            const clockEl = document.getElementById('current-time-clock');
+            const resultStampEl = document.getElementById('result-time-stamp');
+            
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            
+            const formattedTime = `${hours}:${minutes} ${ampm}`;
+            if (clockEl) clockEl.innerText = formattedTime;
+            if (resultStampEl) resultStampEl.innerText = formattedTime;
+        }
+
+        // ================= 실시간 위치 및 날씨 연동 =================
+        function initWeatherAndLocation() {
+            const weatherWidget = document.getElementById('weather-widget');
+            
+            if (!navigator.geolocation) {
+                weatherWidget.innerHTML = "⚠️ 위치 지원불가";
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    try {
+                        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+                        const weatherData = await weatherRes.json();
+                        const temp = Math.round(weatherData.current_weather.temperature);
+                        const weatherCode = weatherData.current_weather.weathercode;
+                        const weatherEmoji = getWeatherEmoji(weatherCode);
+
+                        let regionName = "내 주변";
+                        try {
+                            const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=12`, {
+                                headers: { 'Accept-Language': 'ko' }
+                            });
+                            const geoData = await geoRes.json();
+                            if (geoData.address) {
+                                regionName = geoData.address.city || geoData.address.province || geoData.address.borough || geoData.address.county || "내 근처";
+                                if (regionName.length > 6) {
+                                    regionName = regionName.substring(0, 5) + "..";
+                                }
+                            }
+                        } catch (e) {
+                            console.log("주소 반환 실패");
+                        }
+
+                        weatherWidget.innerHTML = `📍 ${regionName} ${weatherEmoji} ${temp}°C`;
+
+                    } catch (error) {
+                        weatherWidget.innerHTML = "🌧️ 날씨 정보 없음";
+                    }
+                },
+                (error) => {
+                    weatherWidget.innerHTML = "💨 날씨 정보 없음";
+                }
+            );
+        }
+
+        function getWeatherEmoji(code) {
+            if (code === 0) return "☀️";
+            if (code >= 1 && code <= 3) return "☁️";
+            if (code >= 45 && code <= 48) return "🌫️";
+            if (code >= 51 && code <= 67) return "🌧️";
+            if (code >= 71 && code <= 77) return "❄️";
+            if (code >= 80 && code <= 82) return "☔";
+            if (code >= 95 && code <= 99) return "⚡";
+            return "☀️";
+        }
+
+
+        // ================= PAGE NAVIGATION =================
+        function navigateTo(pageId) {
+            const pages = ['page-home', 'page-loading', 'page-result', 'page-search', 'page-settings'];
+            pages.forEach(p => {
+                const el = document.getElementById(p);
+                if (el) el.classList.add('hidden');
+            });
+
+            const activePage = document.getElementById(pageId);
+            if (activePage) {
+                activePage.classList.remove('hidden');
+            }
+
+            if (state.pageHistory[state.pageHistory.length - 1] !== pageId) {
+                state.pageHistory.push(pageId);
+            }
+
+            if (state.menuOpen) {
+                toggleMenu();
+            }
+        }
+
+        function goHome() {
+            state.pageHistory = ['page-home'];
+            // 홈 인풋 값 리셋
+            const input = document.getElementById('home-search-input');
+            if (input) input.value = '';
+            navigateTo('page-home');
+        }
+
+        function goBack() {
+            if (state.pageHistory.length <= 1) {
+                showAlertModal('알림', '더 이상 뒤로 갈 페이지가 없어요! 메인 홈으로 갑니다.');
+                goHome();
+                return;
+            }
+            state.pageHistory.pop();
+            const prevPage = state.pageHistory[state.pageHistory.length - 1];
+            navigateTo(prevPage);
+        }
+
+        function toggleMenu() {
+            const sideMenu = document.getElementById('side-menu');
+            if (state.menuOpen) {
+                sideMenu.classList.add('-translate-x-full');
+                state.menuOpen = false;
+            } else {
+                sideMenu.classList.remove('-translate-x-full');
+                state.menuOpen = true;
+            }
+        }
+
+
+        // ================= LOGIC & INTERACTIVE FUNCTIONALITY =================
+
+        // 나이대 필터링 설정 변경 (세분화된 4단계)
+        function setAgeGroup(group) {
+            state.currentAgeGroup = group;
+            
+            // 모든 연령 버튼 스타일 초기화
+            const ageButtons = ['preschool', 'low', 'high', 'teen'];
+            ageButtons.forEach(g => {
+                const btn = document.getElementById(`btn-age-${g}`);
+                if (btn) {
+                    btn.className = "py-2.5 px-2 rounded-lg text-[11px] font-medium bg-zinc-800 text-zinc-400 hover:bg-zinc-700 btn-active";
+                }
+            });
+
+            // 현재 선택된 버튼 하이라이트
+            const activeBtn = document.getElementById(`btn-age-${group}`);
+            if (activeBtn) {
+                activeBtn.className = "py-2.5 px-2 rounded-lg text-[11px] font-bold bg-[#FF0000] text-white btn-active";
+            }
+
+            // 배지 문구 업데이트
+            const badge = document.getElementById('age-badge');
+            badge.innerText = getAgeGroupName(group);
+        }
+
+        function getAgeGroupName(group) {
+            switch(group) {
+                case 'preschool': return "새싹 키즈 (7세 이하)";
+                case 'low': return "초등 저학년 (8~10세)";
+                case 'high': return "초등 고학년 (11~13세)";
+                case 'teen': return "청소년 (14세 이상)";
+                default: return "초등 고학년 (11~13세)";
+            }
+        }
+
+        // 개별 상황 선택
+        function selectSituation(sit) {
+            state.currentSituation = sit;
+            state.searchQuery = ''; // 일반 상황 선택 시 검색어 지우기
+            
+            const cards = document.querySelectorAll('.situation-card');
+            cards.forEach(card => {
+                card.classList.remove('border-[#FF0000]', 'bg-zinc-900');
+                card.classList.add('border-zinc-800', 'bg-zinc-950');
+            });
+
+            event.currentTarget.classList.remove('border-zinc-800', 'bg-zinc-950');
+            event.currentTarget.classList.add('border-[#FF0000]', 'bg-zinc-900');
+
+            startAnalysis();
+        }
+
+        // 실시간 직접 검색어 가동 기능 (업데이트 핵심 로직)
+        function triggerHomeSearch() {
+            const query = document.getElementById('home-search-input').value.trim();
+            if (!query) {
+                showAlertModal('앗! 검색어 입력 오류', '추천받고 싶은 상황이나 키워드를 입력해 줘! 😉\n(예: 게임, 공부, 음악, 역사 등)');
+                return;
+            }
+
+            state.currentSituation = 'search';
+            state.searchQuery = query;
+            startAnalysis();
+        }
+
+        // 추천 키워드 탭 채워넣기 기능
+        function fillHomeSearch(keyword) {
+            const input = document.getElementById('home-search-input');
+            if (input) {
+                input.value = keyword;
+                triggerHomeSearch();
+            }
+        }
+
+        function startFastAnalyze(customText) {
+            state.currentSituation = 'afternoon';
+            state.searchQuery = '';
+            startAnalysis();
+        }
+
+        // 분석 애니메이션 가동 후 결과 페이지로 이동
+        function startAnalysis() {
+            navigateTo('page-loading');
+            
+            const statusText = document.getElementById('loading-status-text');
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = '0%';
+
+            const ageLabel = getAgeGroupName(state.currentAgeGroup);
+            const situationLabel = getSituationName(state.currentSituation);
+
+            setTimeout(() => {
+                statusText.innerText = `⏳ [${situationLabel}] 실시간 필터 적용 중!`;
+                progressBar.style.width = '35%';
+            }, 600);
+
+            setTimeout(() => {
+                statusText.innerText = `🛡️ [${ageLabel}] 나이대 특화 알고리즘 분석 중...`;
+                progressBar.style.width = '70%';
+            }, 1300);
+
+            setTimeout(() => {
+                statusText.innerText = `✨ 왓칭 맞춤 유튜브 추천 세트 조합 성공!`;
+                progressBar.style.width = '100%';
+            }, 2000);
+
+            setTimeout(() => {
+                renderRecommendations();
+                navigateTo('page-result');
+            }, 2500);
+        }
+
+        function getSituationName(sit) {
+            switch(sit) {
+                case 'morning': return '상쾌한 아침/오전';
+                case 'afternoon': return '심심한 오후/방과후';
+                case 'night': return '하루를 마치는 밤';
+                case 'study': return '집중 공부 시간';
+                case 'search': return `🔍 "${state.searchQuery}" 검색 상황`;
+                default: return '맞춤 일상 시간';
+            }
+        }
+
+        // ================= 데이터 큐레이션 및 렌더링 =================
+        function renderRecommendations() {
+            const container = document.getElementById('recommendation-cards-container');
+            container.innerHTML = '';
+
+            const badgeAge = document.getElementById('badge-result-age');
+            const badgeSit = document.getElementById('badge-result-situation');
+            
+            badgeAge.innerText = `👦 ${getAgeGroupName(state.currentAgeGroup)}`;
+            badgeSit.innerText = `🎯 ${getSituationName(state.currentSituation)}`;
+
+            let filteredList = [];
+
+            if (state.currentSituation === 'search' && state.searchQuery) {
+                // 직접 입력한 검색어로 필터링 (채널이름, 태그, 추천 이유 등 다방면 검색)
+                const q = state.searchQuery.toLowerCase();
+                filteredList = youtubeDatabase.filter(channel => {
+                    const nameMatch = channel.name.toLowerCase().includes(q);
+                    const tagMatch = channel.tags.some(tag => tag.toLowerCase().includes(q));
+                    const reasonMatch = channel.recommendationReason.toLowerCase().includes(q);
+                    const ageFit = channel.targetAges.includes(state.currentAgeGroup);
+                    
+                    return (nameMatch || tagMatch || reasonMatch) && ageFit;
+                });
+
+                // 만약 연령대에 매칭되는 특정 검색 결과가 없다면, 나이에 맞는 전체 채널 중 무작위 제안
+                if (filteredList.length === 0) {
+                    container.innerHTML = `
+                        <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl text-center">
+                            <p class="text-2xl mb-2">😢</p>
+                            <h4 class="text-xs font-bold text-zinc-300">"${state.searchQuery}"에 꼭 맞는 채널을 찾지 못했어요.</h4>
+                            <p class="text-[10px] text-zinc-500 mt-1 leading-relaxed">
+                                하지만 걱정 마세요! 왓칭 인공지능이 아래에 네 연령대에 딱 맞는 재미있는 안심 채널들을 대신 골라왔어요! 😊
+                            </p>
+                        </div>
+                    `;
+                    filteredList = youtubeDatabase.filter(channel => channel.targetAges.includes(state.currentAgeGroup));
+                }
+            } else {
+                // 기존 시간 및 나이 기반 상황 필터링
+                filteredList = youtubeDatabase.filter(channel => channel.time === state.currentSituation);
+                filteredList = filteredList.filter(channel => channel.targetAges.includes(state.currentAgeGroup));
+            }
+
+            // 만약 그것마저 부족하면 전체 리스트 복원
+            if (filteredList.length === 0) {
+                filteredList = youtubeDatabase;
+            }
+
+            // 3차 랜덤화: Math.random()을 사용하여 2~3개만 신선하게 실시간 큐레이션
+            const shuffled = [...filteredList].sort(() => 0.5 - Math.random());
+            const finalSelection = shuffled.slice(0, Math.min(3, shuffled.length));
+
+            finalSelection.forEach(channel => {
+                const tagsHTML = channel.tags.map(t => `<span class="bg-zinc-800 text-zinc-300 text-[10px] px-2 py-0.5 rounded-full font-medium">${t}</span>`).join(' ');
+
+                const cardHTML = `
+                    <div class="bg-zinc-900 border border-zinc-800 hover:border-[#FF0000] p-4 rounded-xl transition duration-200">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-12 h-12 bg-zinc-950 border border-zinc-800 rounded-full flex justify-center items-center text-2xl">
+                                ${channel.emoji}
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-sm font-black text-white">${channel.name}</h3>
+                                <p class="text-[10px] text-zinc-500 mt-0.5">구독자수 ${channel.subscribers}</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-zinc-950/50 p-2.5 rounded-lg border-l-2 border-[#FF0000] text-xs text-zinc-300 leading-relaxed mb-3">
+                            ${channel.recommendationReason}
+                        </div>
+
+                        <div class="flex flex-wrap gap-1 mb-4">
+                            ${tagsHTML}
+                        </div>
+
+                        <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(channel.searchQuery)}" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           class="w-full bg-[#FF0000] hover:bg-red-700 text-white font-extrabold py-2.5 rounded-lg text-xs flex justify-center items-center gap-1.5 btn-active">
+                            <i class="fa-brands fa-youtube"></i> ${channel.name} 채널 보러 가기
+                        </a>
+                    </div>
+                `;
+                container.innerHTML += cardHTML;
+            });
+        }
+
+
+        // ================= 기타 검색 기능 =================
+        function setSearchInput(text) {
+            document.getElementById('custom-search-input').value = text;
+        }
+
+        function triggerCustomSearch() {
+            const query = document.getElementById('custom-search-input').value.trim();
+            if (!query) {
+                showAlertModal('어이쿠!', '상황이나 키워드를 검색창에 입력해 줘! 😉');
+                return;
+            }
+
+            showAlertModal('검색 연동', `"${query}" 테마에 맞춰서 가장 안전한 유튜브 추천 페이지로 이동할게!`);
+            
+            setTimeout(() => {
+                window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank', 'noopener,noreferrer');
+            }, 1500);
+        }
+
+        function clickMenuLink(title, desc) {
+            showAlertModal(title, desc);
+        }
+
+        function showAlertModal(title, text) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = text;
+            document.getElementById('modal-container').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-container').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

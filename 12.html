@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>픽! - 나만의 책 추천 비서</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: 나눔고딕, 네오둥근모 스타일의 귀여운 서체와 둥글둥글한 느낌 적용 -->
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome (귀여운 아이콘용) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f7f9fa;
+        }
+        .cute-font {
+            font-family: 'Gaegu', cursive;
+        }
+        /* 귀여운 통통 튀는 애니메이션 */
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .bounce-img {
+            animation: bounce-slow 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-0 sm:p-4">
+
+    <!-- 모바일 프레임 컨테이너 -->
+    <div class="w-full max-w-md bg-white min-h-[100vh] sm:min-h-[800px] sm:rounded-[40px] shadow-[0_15px_50px_rgba(0,0,0,0.08)] border-0 sm:border-8 border-gray-100 flex flex-col justify-between overflow-hidden relative">
+        
+        <!-- ================= [1. 시작 화면 (Screen 1)] ================= -->
+        <div id="screen-start" class="flex-1 flex flex-col justify-between p-8 text-center bg-white">
+            <!-- 상단 캐릭터 장식 -->
+            <div class="mt-8">
+                <span class="text-xs bg-yellow-100 text-yellow-800 font-bold px-3 py-1 rounded-full cute-font">나만의 책 추천 비서</span>
+                <h1 class="text-6xl font-bold mt-4 text-gray-800 cute-font tracking-wider">픽! (Pick!)</h1>
+            </div>
+
+            <!-- 중간 귀여운 책 캐릭터 일러스트 (업그레이드된 극강의 초롱초롱함!) -->
+            <div class="my-6 flex justify-center">
+                <div class="relative bounce-img">
+                    <!-- 업그레이드된 초특급 귀요미 책 캐릭터 SVG -->
+                    <svg width="220" height="220" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 배경 포근하고 부드러운 원형 광채 -->
+                        <circle cx="100" cy="100" r="90" fill="#FFFDF0"/>
+                        
+                        <!-- 귀여운 주황색 아기 발자국 -->
+                        <rect x="75" y="145" width="16" height="12" rx="6" fill="#F59E0B" />
+                        <rect x="109" y="145" width="16" height="12" rx="6" fill="#F59E0B" />
+
+                        <!-- 빼꼼 튀어나온 귀여운 빨간 책갈피 꼬리 -->
+                        <path d="M 92 145 L 92 165 L 100 158 L 108 165 L 108 145 Z" fill="#EF4444" />
+
+                        <!-- 책 몸통 (둥글둥글하고 폭신한 파스텔 옐로우) -->
+                        <rect x="50" y="40" width="100" height="110" rx="22" fill="#FFF9E6" stroke="#F59E0B" stroke-width="5"/>
+                        <!-- 책 속지 입체감 레이어 -->
+                        <path d="M 63 40 L 63 150" stroke="#FCE3A1" stroke-width="4" stroke-linecap="round"/>
+                        
+                        <!-- 아장아장 뻗은 귀여운 손 -->
+                        <!-- 왼쪽 손 (안녕하며 흔들흔들) -->
+                        <circle cx="42" cy="95" r="9" fill="#FFF9E6" stroke="#F59E0B" stroke-width="3" />
+                        <!-- 오른쪽 손 -->
+                        <circle cx="158" cy="102" r="9" fill="#FFF9E6" stroke="#F59E0B" stroke-width="3" />
+                        
+                        <!-- 동그란 안경테 -->
+                        <circle cx="82" cy="85" r="19" stroke="#4B5563" stroke-width="3" fill="none" />
+                        <circle cx="118" cy="85" r="19" stroke="#4B5563" stroke-width="3" fill="none" />
+                        <line x1="101" y1="85" x2="118" y2="85" stroke="#4B5563" stroke-width="3" />
+                        
+                        <!-- 눈부시게 반짝이는 왕눈이 chibi 눈망울 -->
+                        <!-- 왼쪽 눈 -->
+                        <circle cx="82" cy="85" r="11" fill="#1F2937" />
+                        <circle cx="79" cy="81" r="3.5" fill="#FFFFFF" /> <!-- 주 하이라이트 -->
+                        <circle cx="85" cy="89" r="1.5" fill="#FFFFFF" /> <!-- 부 하이라이트 -->
+
+                        <!-- 오른쪽 눈 -->
+                        <circle cx="118" cy="85" r="11" fill="#1F2937" />
+                        <circle cx="115" cy="81" r="3.5" fill="#FFFFFF" /> <!-- 주 하이라이트 -->
+                        <circle cx="121" cy="89" r="1.5" fill="#FFFFFF" /> <!-- 부 하이라이트 -->
+
+                        <!-- 발그레 수줍은 볼터치 -->
+                        <ellipse cx="67" cy="101" rx="8" ry="5" fill="#FCA5A5" opacity="0.8" />
+                        <ellipse cx="133" cy="101" rx="8" ry="5" fill="#FCA5A5" opacity="0.8" />
+
+                        <!-- 기분 좋아 활짝 벌린 아기 입 -->
+                        <path d="M 94 97 Q 100 105 106 97 Z" fill="#EF4444" stroke="#1F2937" stroke-width="2.5" stroke-linejoin="round" />
+                        
+                        <!-- 머리 주변 아기자기한 데코레이션 효과 -->
+                        <!-- 왼쪽 위에 귀여운 노란 별 -->
+                        <path d="M 40 45 L 43 51 L 50 52 L 45 56 L 46 62 L 40 58 L 34 62 L 35 56 L 30 52 L 37 51 Z" fill="#FCD34D" />
+                        <!-- 오른쪽 위에 뿅 나타난 핑크 하트 -->
+                        <path d="M 160 55 C 158 52, 154 52, 154 56 C 154 60, 160 63, 160 63 C 160 63, 166 60, 166 56 C 166 52, 162 52, 160 55 Z" fill="#F43F5E" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 하단 설명 및 둥글둥글한 시작 버튼 -->
+            <div class="mb-6">
+                <div class="bg-amber-50 rounded-2xl p-4 mb-6 border border-amber-100 text-left">
+                    <p class="text-sm text-gray-600 leading-relaxed font-medium">
+                        ✨ <span class="font-bold text-amber-600">나이, 성별, 책 분야</span>에 딱 맞추어 나만을 위한 도서를 추천해 주는 귀여운 비서예요.
+                    </p>
+                    <p class="text-xs text-gray-500 mt-2">
+                        많은 사람들이 더 쉽고 재미있게 독서와 친해질 수 있도록 '픽!'이 함께할게요! 📖
+                    </p>
+                </div>
+                
+                <button onclick="goToForm()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-4 px-8 rounded-full shadow-[0_8px_0_#D97706] active:translate-y-1 active:shadow-[0_4px_0_#D97706] transition-all text-xl cute-font flex items-center justify-center gap-2">
+                    추천 받으러 가기! <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+
+        <!-- ================= [2. 정보 입력 & 추천 화면 (Screen 2)] ================= -->
+        <div id="screen-main" class="hidden flex-1 flex flex-col p-6 bg-white overflow-y-auto">
+            <!-- 상단 미니 헤더 -->
+            <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-5">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">📚</span>
+                    <h2 class="text-2xl font-bold text-gray-800 cute-font">나만의 픽 찾기!</h2>
+                </div>
+                <div id="time-badge" class="text-xs bg-indigo-50 text-indigo-700 font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+                    <i class="fa-regular fa-clock"></i> <span>시간 계산 중...</span>
+                </div>
+            </div>
+
+            <!-- 스케치 반영 입력 폼 -->
+            <div class="space-y-4 bg-gray-50 p-4 rounded-3xl border border-gray-100">
+                <!-- 1. 분야 선택 -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-1.5 flex items-center gap-1.5">
+                        <span class="text-yellow-500">✔</span> 분야를 골라주세요
+                    </label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="selectGenre('소설', this)" class="genre-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-2xl text-sm font-medium text-gray-700 hover:border-yellow-400 transition-all text-center">📙 소설</button>
+                        <button type="button" onclick="selectGenre('만화', this)" class="genre-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-2xl text-sm font-medium text-gray-700 hover:border-yellow-400 transition-all text-center">🎨 만화</button>
+                        <button type="button" onclick="selectGenre('에세이', this)" class="genre-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-2xl text-sm font-medium text-gray-700 hover:border-yellow-400 transition-all text-center">✍ 에세이</button>
+                        <button type="button" onclick="selectGenre('인문학', this)" class="genre-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-2xl text-sm font-medium text-gray-700 hover:border-yellow-400 transition-all text-center">🧠 인문학</button>
+                        <button type="button" onclick="selectGenre('자기계발', this)" class="genre-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-2xl text-sm font-medium text-gray-700 hover:border-yellow-400 transition-all text-center">🏃 자기계발</button>
+                        <button type="button" onclick="selectGenre('시/예술', this)" class="genre-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-2xl text-sm font-medium text-gray-700 hover:border-yellow-400 transition-all text-center">🌸 시/예술</button>
+                    </div>
+                </div>
+
+                <!-- 2. 성별 선택 -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-1.5 flex items-center gap-1.5">
+                        <span class="text-yellow-500">✔</span> 성별을 골라주세요
+                    </label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" onclick="selectGender('남자', this)" class="gender-btn py-3 px-4 bg-white border-2 border-gray-200 rounded-2xl text-sm font-medium text-gray-700 hover:border-blue-400 transition-all flex items-center justify-center gap-2">
+                            🙋‍♂️ 남자
+                        </button>
+                        <button type="button" onclick="selectGender('여자', this)" class="gender-btn py-3 px-4 bg-white border-2 border-gray-200 rounded-2xl text-sm font-medium text-gray-700 hover:border-pink-400 transition-all flex items-center justify-center gap-2">
+                            🙋‍♀️ 여자
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. 나이 선택 -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-1.5 flex items-center gap-1.5">
+                        <span class="text-yellow-500">✔</span> 나이를 입력해주세요 (숫자만)
+                    </label>
+                    <div class="relative">
+                        <input type="number" id="user-age" min="1" max="120" placeholder="예: 25" class="w-full py-3 px-4 bg-white border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-yellow-400 text-gray-700 font-semibold transition-all">
+                        <span class="absolute right-4 top-3 text-gray-400 font-medium text-sm">세</span>
+                    </div>
+                </div>
+
+                <!-- 스케치 디자인: '입력 완료' 버튼 -->
+                <button onclick="getRecommendations()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-3 px-4 rounded-full shadow-[0_5px_0_#D97706] active:translate-y-1 active:shadow-[0_2px_0_#D97706] transition-all text-lg cute-font flex items-center justify-center gap-2 mt-4">
+                    ✨ 입력 완료 (픽!)
+                </button>
+            </div>
+
+            <!-- 로딩 화면 효과 (추천 분석 시 노출) -->
+            <div id="loading-box" class="hidden my-8 text-center p-6 bg-amber-50 rounded-3xl border border-dashed border-amber-300">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-yellow-500 border-t-transparent mb-3"></div>
+                <p class="text-sm text-gray-600 font-bold cute-font text-lg">당신의 정보를 바탕으로 최고의 도서를 픽하는 중...</p>
+                <p id="loading-time-text" class="text-xs text-gray-400 mt-1"></p>
+            </div>
+
+            <!-- ================= [3. 추천 도서 리스트 영역 (스케치 반영)] ================= -->
+            <div id="recommendation-area" class="hidden mt-6 space-y-5">
+                
+                <!-- 시간대 맞춤 스페셜 헤더 말풍선 -->
+                <div class="bg-indigo-50 border border-indigo-100 rounded-3xl p-4 text-center relative">
+                    <p id="time-custom-message" class="text-xs text-indigo-800 font-medium"></p>
+                    <div class="text-lg font-bold text-gray-800 mt-1 cute-font">😊 이런 책은 어때요?</div>
+                    <!-- 스케치에 있던 아주 미니미한 미소 이모티콘 표정 데코 -->
+                    <div class="text-xs text-gray-400 mt-0.5">✨ 픽 비서가 엄선한 리스트입니다 ✨</div>
+                </div>
+
+                <!-- 실시간 동적 추천 도서 슬롯 -->
+                <div id="book-list-container" class="space-y-4">
+                    <!-- 도서 카드가 여기에 동적으로 추가됩니다 -->
+                </div>
+
+                <!-- 스케치 반영: "홈으로 돌아갈까요? 네 / 아니오" -->
+                <div class="bg-gray-50 border border-gray-100 rounded-3xl p-5 text-center mt-8">
+                    <p class="text-sm font-bold text-gray-700 cute-font text-lg mb-3">🏠 홈으로 돌아갈까요?</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="resetApp()" class="bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-2.5 px-4 rounded-full shadow-[0_4px_0_#D97706] active:translate-y-0.5 active:shadow-[0_2px_0_#D97706] transition-all text-sm">
+                            네! 처음부터
+                        </button>
+                        <button onclick="keepViewing()" class="bg-white hover:bg-gray-50 text-gray-600 font-bold py-2.5 px-4 rounded-full border-2 border-gray-200 hover:border-gray-300 transition-all text-sm">
+                            아니오, 더 볼래요
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 미니 알림창 (Toast) -->
+    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs py-2 px-4 rounded-full opacity-0 pointer-events-none transition-all duration-300 shadow-lg z-50">
+        알림 메시지
+    </div>
+
+    <!-- 자바스크립트 비즈니스 로직 -->
+    <script>
+        // 전역 상태 변수
+        let selectedGenre = '';
+        let selectedGender = '';
+        let currentTimePeriod = '오후'; // 아침, 오후, 밤, 새벽 기본값
+
+        // 1. 도서 데이터베이스 (분야, 나이대, 시간대 요소를 조합하여 가상 매칭)
+        const bookDatabase = {
+            '소설': [
+                { title: '불편한 편의점', author: '김호연', keywords: '따뜻한위로, 이웃사촌', priceUrl: 'https://search.shopping.naver.com/search/all?query=불편한+편의점', descUrl: 'https://search.naver.com/search.naver?query=불편한+편의점+도서정보', ageRange: [20, 50], time: '밤', img: '📙' },
+                { title: '메리골드 마음 세탁소', author: '윤정은', keywords: '힐링판타지, 고민세탁', priceUrl: 'https://search.shopping.naver.com/search/all?query=메리골드+마음+세탁소', descUrl: 'https://search.naver.com/search.naver?query=메리골드+마음+세탁소+도서정보', ageRange: [10, 40], time: '밤', img: '🌸' },
+                { title: '데미안', author: '헤르만 헤세', keywords: '성장소설, 자아성찰', priceUrl: 'https://search.shopping.naver.com/search/all?query=데미안', descUrl: 'https://search.naver.com/search.naver?query=데미안+도서정보', ageRange: [15, 30], time: '새벽', img: '🏛️' },
+                { title: '바다가 들리는 편의점', author: '마치다 소노코', keywords: '감성소설, 잔잔한바다', priceUrl: 'https://search.shopping.naver.com/search/all?query=바다가+들리는+편의점', descUrl: 'https://search.naver.com/search.naver?query=바다가+들리는+편의점+도서정보', ageRange: [10, 35], time: '오후', img: '🌊' }
+            ],
+            '만화': [
+                { title: '슬램덩크 오리지널', author: '이노우에 다케히코', keywords: '스포츠열정, 농구청춘', priceUrl: 'https://search.shopping.naver.com/search/all?query=슬램덩크+만화책', descUrl: 'https://search.naver.com/search.naver?query=슬램덩크+만화+정보', ageRange: [15, 50], time: '오후', img: '🏀' },
+                { title: '유미의 세포들 세트', author: '이동건', keywords: '일상공감, 아기자기세포들', priceUrl: 'https://search.shopping.naver.com/search/all?query=유미의+세포들+만화', descUrl: 'https://search.naver.com/search.naver?query=유미의+세포들+정보', ageRange: [20, 39], time: '밤', img: '🧠' },
+                { title: '귀멸의 칼날', author: '고토게 코요하루', keywords: '모험판타지, 형제애', priceUrl: 'https://search.shopping.naver.com/search/all?query=귀멸의+칼날+만화', descUrl: 'https://search.naver.com/search.naver?query=귀멸의+칼날+정보', ageRange: [10, 29], time: '오후', img: '⚔️' },
+                { title: '식객 세트', author: '허영만', keywords: '한국의맛, 사람사는이야기', priceUrl: 'https://search.shopping.naver.com/search/all?query=허영만+식객', descUrl: 'https://search.naver.com/search.naver?query=식객+정보', ageRange: [30, 60], time: '오후', img: '🍲' }
+            ],
+            '에세이': [
+                { title: '기분이 태도가 되지 않게', author: '레몬심리', keywords: '감정다스리기, 심리처방', priceUrl: 'https://search.shopping.naver.com/search/all?query=기분이+태도가+되지+않게', descUrl: 'https://search.naver.com/search.naver?query=기분이+태도가+되지+않게+정보', ageRange: [20, 45], time: '아침', img: '✍' },
+                { title: '죽고 싶지만 떡볶이는 먹고 싶어', author: '백세희', keywords: '마음치료, 가벼운우울', priceUrl: 'https://search.shopping.naver.com/search/all?query=죽고+싶지만+떡볶이는+먹고+싶어', descUrl: 'https://search.naver.com/search.naver?query=죽고+싶지만+떡볶이는+먹고+싶어+정보', ageRange: [20, 35], time: '밤', img: '🍢' },
+                { title: '하마터면 열심히 살 뻔했다', author: '하완', keywords: '인생위로, 나답게살기', priceUrl: 'https://search.shopping.naver.com/search/all?query=하마터면+열심히+살+뻔했다', descUrl: 'https://search.naver.com/search.naver?query=하마터면+열심히+살+뻔했다+정보', ageRange: [25, 45], time: '오후', img: '🦥' }
+            ],
+            '인문학': [
+                { title: '사피엔스', author: '유발 하라리', keywords: '인류의역사, 지식의깊이', priceUrl: 'https://search.shopping.naver.com/search/all?query=사피엔스+유발하라리', descUrl: 'https://search.naver.com/search.naver?query=사피엔스+정보', ageRange: [20, 60], time: '아침', img: '🌍' },
+                { title: '지적 대화를 위한 넓고 얕은 지식 1', author: '채사장', keywords: '교양입문, 넓고얕은지식', priceUrl: 'https://search.shopping.naver.com/search/all?query=지적+대화를+위한+넓고+얕은+지식', descUrl: 'https://search.naver.com/search.naver?query=지대넓얕+정보', ageRange: [18, 50], time: '아침', img: '💡' },
+                { title: '정의란 무엇인가', author: '마이클 샌델', keywords: '하버드명강의, 정의로운삶', priceUrl: 'https://search.shopping.naver.com/search/all?query=정의란+무엇인가', descUrl: 'https://search.naver.com/search.naver?query=정의란+무엇인가+정보', ageRange: [19, 50], time: '오후', img: '⚖️' }
+            ],
+            '자기계발': [
+                { title: '역행자', author: '자청', keywords: '자유를얻는7단계, 뇌해킹', priceUrl: 'https://search.shopping.naver.com/search/all?query=역행자', descUrl: 'https://search.naver.com/search.naver?query=역행자+정보', ageRange: [20, 45], time: '아침', img: '🏃' },
+                { title: '원씽 (The One Thing)', author: '게리 켈러', keywords: '한가지에집중, 단순화', priceUrl: 'https://search.shopping.naver.com/search/all?query=원씽', descUrl: 'https://search.naver.com/search.naver?query=원씽+정보', ageRange: [20, 50], time: '아침', img: '🎯' },
+                { title: '아주 작은 습관의 힘', author: '제임스 클리어', keywords: '성장시스템, 매일1퍼센트', priceUrl: 'https://search.shopping.naver.com/search/all?query=아주+작은+습관의+힘', descUrl: 'https://search.naver.com/search.naver?query=아주+작은+습관의+힘+정보', ageRange: [15, 60], time: '아침', img: '🔋' }
+            ],
+            '시/예술': [
+                { title: '꽃을 보듯 너를 본다', author: '나태주', keywords: '감성시집, 따뜻한말한마디', priceUrl: 'https://search.shopping.naver.com/search/all?query=꽃을+보듯+너를+본다', descUrl: 'https://search.naver.com/search.naver?query=꽃을+보듯+너를+본다+정보', ageRange: [10, 60], time: '새벽', img: '🌹' },
+                { title: '방구석 미술관', author: '조원재', keywords: '미술교양, 화가들의반전스토리', priceUrl: 'https://search.shopping.naver.com/search/all?query=방구석+미술관', descUrl: 'https://search.naver.com/search.naver?query=방구석+미술관+정보', ageRange: [20, 50], time: '오후', img: '🎨' },
+                { title: '서로 사랑하면 언제라도 봄', author: '이해인', keywords: '위로와사랑, 잔잔한시집', priceUrl: 'https://search.shopping.naver.com/search/all?query=서로+사랑하면+언제라도+봄', descUrl: 'https://search.naver.com/search.naver?query=서로+사랑하면+언제라도+봄+정보', ageRange: [15, 65], time: '밤', img: '🌿' }
+            ]
+        };
+
+        // 앱 시작 시 시간대 계산 진행
+        window.onload = function() {
+            calculateTime();
+        }
+
+        // 실시간 시간대 계산 (아침: 06-12시, 오후: 12-18시, 밤: 18-24시, 새벽: 00-06시)
+        function calculateTime() {
+            const now = new Date();
+            const hour = now.getHours();
+            let timeText = '';
+            
+            if (hour >= 6 && hour < 12) {
+                currentTimePeriod = '아침';
+                timeText = '🌅 상쾌한 아침';
+            } else if (hour >= 12 && hour < 18) {
+                currentTimePeriod = '오후';
+                timeText = '☀️ 활기찬 오후';
+            } else if (hour >= 18 && hour < 24) {
+                currentTimePeriod = '밤';
+                timeText = '🌙 차분한 밤';
+            } else {
+                currentTimePeriod = '새벽';
+                timeText = '🌌 고요한 새벽';
+            }
+
+            const badge = document.getElementById('time-badge');
+            if(badge) {
+                badge.innerHTML = `<i class="fa-regular fa-clock"></i> <span>${timeText}</span>`;
+            }
+        }
+
+        // 2. 화면 이동 제어 (시작 ➡️ 메인)
+        function goToForm() {
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('screen-main').classList.remove('hidden');
+            showToast('반가워요! 원하는 분야와 나이, 성별을 콕 짚어주세요!');
+        }
+
+        // 3. 버튼 다중 선택 방지 및 상태 저장
+        function selectGenre(genre, btn) {
+            selectedGenre = genre;
+            // 모든 분야 버튼 디자인 복구
+            document.querySelectorAll('.genre-btn').forEach(b => {
+                b.classList.remove('border-yellow-400', 'bg-yellow-50', 'text-yellow-800');
+                b.classList.add('border-gray-200', 'bg-white', 'text-gray-700');
+            });
+            // 선택된 버튼 하이라이트
+            btn.classList.remove('border-gray-200', 'bg-white', 'text-gray-700');
+            btn.classList.add('border-yellow-400', 'bg-yellow-50', 'text-yellow-800');
+        }
+
+        function selectGender(gender, btn) {
+            selectedGender = gender;
+            // 모든 성별 버튼 복구
+            document.querySelectorAll('.gender-btn').forEach(b => {
+                b.classList.remove('border-blue-400', 'bg-blue-50', 'text-blue-800', 'border-pink-400', 'bg-pink-50', 'text-pink-800');
+                b.classList.add('border-gray-200', 'bg-white', 'text-gray-700');
+            });
+            // 선택된 성별 하이라이트
+            if (gender === '남자') {
+                btn.classList.remove('border-gray-200', 'bg-white', 'text-gray-700');
+                btn.classList.add('border-blue-400', 'bg-blue-50', 'text-blue-800');
+            } else {
+                btn.classList.remove('border-gray-200', 'bg-white', 'text-gray-700');
+                btn.classList.add('border-pink-400', 'bg-pink-50', 'text-pink-800');
+            }
+        }
+
+        // 4. 추천 도서 로직 실행
+        function getRecommendations() {
+            const ageInput = document.getElementById('user-age').value.trim();
+
+            // 유효성 검사
+            if (!selectedGenre) {
+                showToast('읽고 싶은 분야를 하나 선택해 주세요! 📙');
+                return;
+            }
+            if (!selectedGender) {
+                showToast('성별을 선택해 주세요! 🙋‍♀️🙋‍♂️');
+                return;
+            }
+            if (!ageInput || isNaN(ageInput) || ageInput < 1 || ageInput > 120) {
+                showToast('올바른 나이를 숫자로 입력해 주세요! (1~120세) 🎂');
+                return;
+            }
+
+            const age = parseInt(ageInput);
+
+            // 로딩 화면 연출
+            const loadingBox = document.getElementById('loading-box');
+            const recArea = document.getElementById('recommendation-area');
+            const timeText = document.getElementById('loading-time-text');
+            
+            recArea.classList.add('hidden');
+            loadingBox.classList.remove('hidden');
+            timeText.innerText = `현재 시간(${currentTimePeriod})도 고려하여 똑똑하게 픽하는 중...`;
+
+            setTimeout(() => {
+                loadingBox.classList.add('hidden');
+                recArea.classList.remove('hidden');
+                
+                // 도서 추천 리스트 생성 및 정렬
+                generateBookList(selectedGenre, age, selectedGender);
+            }, 1200); // 1.2초 후 도서 픽 완료
+        }
+
+        // 5. 책 리스트 생성
+        function generateBookList(genre, age, gender) {
+            const container = document.getElementById('book-list-container');
+            container.innerHTML = ''; // 초기화
+
+            // 분야에 속하는 도서 목록 가져오기
+            const sourceBooks = bookDatabase[genre] || [];
+            
+            // 조건 가중치 매칭 (나이대 타겟팅, 접속 시간 타겟팅)
+            let matchedBooks = sourceBooks.map(book => {
+                let score = 0;
+                
+                // 나이 대 부합 여부 (+2점)
+                if (age >= book.ageRange[0] && age <= book.ageRange[1]) {
+                    score += 2;
+                }
+                
+                // 현재 시간대와 부합 여부 (+1점)
+                if (book.time === currentTimePeriod) {
+                    score += 1;
+                }
+                
+                return { ...book, score };
+            });
+
+            // 매칭 점수가 높은 순으로 정렬
+            matchedBooks.sort((a, b) => b.score - a.score);
+
+            // 만약 분야 도서가 없거나 부족한 비상시 디폴트 도서 추가 (예방)
+            if (matchedBooks.length === 0) {
+                container.innerHTML = `
+                    <div class="p-6 text-center text-gray-500 text-sm bg-gray-50 rounded-2xl">
+                        맞춤 도서를 찾는 도중 작은 책장 먼지를 만났어요! <br> 잠시 후 다시 시도해 주세요.
+                    </div>
+                `;
+                return;
+            }
+
+            // 실시간 문구 업데이트
+            const msgEl = document.getElementById('time-custom-message');
+            let periodMsg = '';
+            switch(currentTimePeriod) {
+                case '아침':
+                    periodMsg = `☀️ 기분 좋은 아침, 활력 넘치는 하루의 시작을 돕는 추천 책이에요!`;
+                    break;
+                case '오후':
+                    periodMsg = `☕ 나른한 오후, 지친 일상에 상큼한 환기를 전해줄 추천 책이에요!`;
+                    break;
+                case '밤':
+                    periodMsg = `🌙 아늑하고 깊어가는 오늘 밤, 하루를 보듬어 줄 힐링 책이에요!`;
+                    break;
+                case '새벽':
+                    periodMsg = `🌌 새벽 감성 물씬, 혼자만의 집중 시간이 가득 차오르는 책이에요!`;
+                    break;
+            }
+            msgEl.innerHTML = `👋 <strong>${age}세 ${gender}</strong>님을 위한 ${periodMsg}`;
+
+            // 도서 템플릿 렌더링 (스케치 내용 100% 반영)
+            matchedBooks.forEach(book => {
+                const isBestFit = book.score >= 2;
+                const card = document.createElement('div');
+                card.className = "p-4 bg-white border border-gray-100 rounded-3xl shadow-[0_8px_20px_rgba(0,0,0,0.03)] flex gap-4 items-center relative hover:shadow-md transition-all";
+                
+                card.innerHTML = `
+                    <!-- 1. 표지 (스케치 속 '표지' 파트 고스란히 반영) -->
+                    <div class="w-16 h-20 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col items-center justify-center text-3xl shrink-0 relative overflow-hidden">
+                        <span>${book.img}</span>
+                        ${isBestFit ? '<span class="absolute top-0 right-0 bg-red-500 text-white text-[8px] px-1 font-bold rounded-bl-lg">PICK</span>' : ''}
+                    </div>
+
+                    <!-- 2. 제목 및 정보 설명 -->
+                    <div class="flex-1 min-w-0">
+                        <div class="text-xs text-amber-600 font-bold mb-0.5">#${genre} #${currentTimePeriod}맞춤</div>
+                        <h4 class="font-bold text-gray-800 text-base truncate">${book.title}</h4>
+                        <p class="text-xs text-gray-400 mt-0.5">지은이: ${book.author}</p>
+                        <p class="text-[10px] text-gray-400 mt-1 truncate">키워드: ${book.keywords}</p>
+                    </div>
+
+                    <!-- 3. 구매 & 알아보기 액션 버튼 (스케치 내용 고스란히 구현) -->
+                    <div class="flex flex-col gap-1.5 shrink-0">
+                        <!-- '구매' 버튼: 네이버 쇼핑 연결 -->
+                        <a href="${book.priceUrl}" target="_blank" class="px-3.5 py-1.5 bg-yellow-400 hover:bg-yellow-500 text-gray-800 text-xs font-bold rounded-full text-center shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-cart-shopping"></i> 구매
+                        </a>
+                        <!-- '알아보기' 버튼: 네이버 상세검색 연결 -->
+                        <a href="${book.descUrl}" target="_blank" class="px-3.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-full text-center hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-circle-info"></i> 보기
+                        </a>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // 결과 화면으로 가볍게 스크롤 내려주기
+            document.getElementById('recommendation-area').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 6. 홈으로 가기 (네/아니오 액션)
+        function resetApp() {
+            // 모든 폼 리셋
+            selectedGenre = '';
+            selectedGender = '';
+            document.getElementById('user-age').value = '';
+            document.querySelectorAll('.genre-btn').forEach(b => {
+                b.classList.remove('border-yellow-400', 'bg-yellow-50', 'text-yellow-800');
+                b.classList.add('border-gray-200', 'bg-white', 'text-gray-700');
+            });
+            document.querySelectorAll('.gender-btn').forEach(b => {
+                b.classList.remove('border-blue-400', 'bg-blue-50', 'text-blue-800', 'border-pink-400', 'bg-pink-50', 'text-pink-800');
+                b.classList.add('border-gray-200', 'bg-white', 'text-gray-700');
+            });
+
+            document.getElementById('recommendation-area').classList.add('hidden');
+            document.getElementById('screen-main').classList.add('hidden');
+            document.getElementById('screen-start').classList.remove('hidden');
+            
+            showToast('홈 화면으로 신나게 돌아왔어요! 🏠');
+        }
+
+        // 계속 보기 알림
+        function keepViewing() {
+            showToast('맞춤 책 추천 결과를 천천히 더 구경해 보세요! 📖✨');
+        }
+
+        // 토스트 알림창 띄우기 함수
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.style.opacity = '1';
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
