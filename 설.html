@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>꿀맛이얌! - 꿀꿀이들을 위한 냉장고 파먹기 앱</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts Inter & Do Hyeon (for cute titles) -->
+  <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Inter:wght@400;600;800&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+  <!-- FontAwesome for cute icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Inter', 'Do Hyeon', sans-serif;
+    }
+    .font-cute {
+      font-family: 'Do Hyeon', sans-serif;
+    }
+    .font-hand {
+      font-family: 'Nanum Pen Script', cursive;
+    }
+    /* Cute bounce animation for 꿀얌이 */
+    @keyframes bounce-slow {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .bounce-cute {
+      animation: bounce-slow 2s infinite ease-in-out;
+    }
+    /* Bouncing effect for events banner */
+    @keyframes pulse-soft {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+    .pulse-soft {
+      animation: pulse-soft 2.5s infinite ease-in-out;
+    }
+    /* Pulse effect for scanning line */
+    @keyframes scan-move {
+      0% { top: 0%; }
+      50% { top: 100%; }
+      100% { top: 0%; }
+    }
+    .scan-line {
+      animation: scan-move 3s infinite linear;
+    }
+    /* Hide scrollbar but keep functional */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-emerald-50 min-h-screen flex items-center justify-center p-4">
+
+  <script>
+    // Simple Web Audio API sound generator for cute game-like sound effects!
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playCuteSound(type) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'click') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+      } else if (type === 'success') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+        osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'scan') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.8);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.8);
+      }
+    }
+  </script>
+
+  <!-- Smartphone Frame Wrapper -->
+  <div class="relative w-full max-w-[410px] h-[820px] bg-slate-900 rounded-[55px] p-3.5 shadow-2xl border-4 border-slate-700 flex flex-col items-center">
+    
+    <!-- Smartphone Notch / Dynamic Island simulation -->
+    <div class="absolute top-5 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-black rounded-full z-50 flex items-center justify-between px-3">
+      <div class="w-2.5 h-2.5 bg-slate-900 rounded-full"></div>
+      <div class="w-12 h-1.5 bg-slate-900 rounded-full"></div>
+      <div class="w-2.5 h-2.5 bg-slate-800 rounded-full"></div>
+    </div>
+
+    <!-- Screen Area -->
+    <div class="w-full h-full bg-white rounded-[42px] overflow-hidden flex flex-col relative shadow-inner">
+      
+      <!-- Top Status Bar -->
+      <div class="h-10 bg-white/90 backdrop-blur-md flex items-end justify-between px-6 pb-1 text-xs font-semibold text-slate-700 z-40 select-none border-b border-amber-100/50">
+        <span id="digital-clock" class="font-bold">09:50</span>
+        <!-- Geolocation Weather Info: default offline fallback state -->
+        <span id="weather-info" class="text-[10px] text-amber-700 font-bold bg-amber-100/60 px-2 py-0.5 rounded-full flex items-center gap-1">
+          <i class="fa-solid fa-location-dot animate-pulse"></i> 위치 파악 중...
+        </span>
+        <div class="flex items-center gap-1.5">
+          <i class="fa-solid fa-signal"></i>
+          <i class="fa-solid fa-wifi"></i>
+          <i class="fa-solid fa-battery-three-quarters text-emerald-500"></i>
+        </div>
+      </div>
+
+      <!-- Main Content Area (With screen transition controls) -->
+      <div id="screen-container" class="flex-1 overflow-y-auto no-scrollbar relative bg-gradient-to-b from-amber-50/50 via-white to-emerald-50/30 flex flex-col">
+        
+        <!-- ==================== VIEW 1: HOME VIEW ==================== -->
+        <div id="view-home" class="view-panel flex flex-col p-5 space-y-5">
+          
+          <!-- App Logo Banner from user's sketch -->
+          <div class="bg-white border-2 border-amber-300 rounded-3xl p-4 shadow-sm relative overflow-hidden">
+            <div class="absolute -right-2 -bottom-2 opacity-10 text-amber-500">
+              <i class="fa-solid fa-honey-pot text-7xl"></i>
+            </div>
+            <div class="flex items-center gap-3">
+              <!-- Custom Cute SVG of 꿀얌이 character! -->
+              <div class="w-16 h-16 bg-amber-300 rounded-2xl flex items-center justify-center shadow-md relative overflow-hidden flex-shrink-0 border-2 border-white">
+                <svg class="w-14 h-14 bounce-cute" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Head -->
+                  <circle cx="50" cy="50" r="35" fill="#FBBF24"/>
+                  <!-- Cheeks -->
+                  <circle cx="30" cy="55" r="7" fill="#FCA5A5"/>
+                  <circle cx="70" cy="55" r="7" fill="#FCA5A5"/>
+                  <!-- Eyes -->
+                  <ellipse cx="33" cy="42" rx="4" ry="5" fill="#1E293B"/>
+                  <ellipse cx="67" cy="42" rx="4" ry="5" fill="#1E293B"/>
+                  <!-- Sparkle in eyes -->
+                  <circle cx="34" cy="40" r="1.5" fill="white"/>
+                  <circle cx="68" cy="40" r="1.5" fill="white"/>
+                  <!-- Smile mouth -->
+                  <path d="M 40 58 Q 50 68 60 58" stroke="#1E293B" stroke-width="3" stroke-linecap="round" fill="none"/>
+                  <!-- Honey droplets on head -->
+                  <path d="M 40 18 Q 50 28 60 18" stroke="#F59E0B" stroke-width="4" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div>
+                <h1 class="text-2xl font-cute text-amber-500 tracking-wide flex items-center gap-1">
+                  꿀맛이얌! <span class="text-xs bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full font-sans font-normal">버전 1.3</span>
+                </h1>
+                <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                  집에 있는 재료를 알려주면 최고의 꿀조합을 찾아주는 꿀꿀이들의 비밀 요리 책방! 🍯✨
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SPECIAL EVENT BANNER SECTION -->
+          <div class="pulse-soft">
+            <button onclick="openEventModal()" class="w-full bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 border-b-4 border-emerald-600 p-3.5 rounded-3xl text-left shadow-md relative overflow-hidden flex items-center justify-between">
+              <!-- Animated Confetti dots behind -->
+              <div class="absolute inset-0 opacity-20 pointer-events-none">
+                <span class="absolute top-1 left-4 text-xs">🎉</span>
+                <span class="absolute bottom-2 right-12 text-xs">⭐</span>
+                <span class="absolute top-2 right-4 text-xs">🎈</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="text-3xl shrink-0 animate-bounce">🎁</span>
+                <div>
+                  <span class="bg-yellow-300 text-amber-950 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">이벤트 진행중</span>
+                  <div class="font-cute text-white text-sm mt-0.5">대장 꿀꿀이배 최강 꿀조합 콘테스트!</div>
+                  <div class="text-[9px] text-emerald-100 font-semibold">나만의 극강 레시피 적고 바나나우유 받자 🍌</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-gift text-white text-lg pr-1"></i>
+            </button>
+          </div>
+
+          <!-- SECTION 1: Curation Search Trigger -->
+          <div class="space-y-2">
+            <h2 class="text-xs font-bold text-emerald-800 uppercase tracking-wider pl-1 flex items-center gap-1">
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> 꿀얌이 추천
+            </h2>
+            <button onclick="startCuration()" class="w-full bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-300 hover:scale-[1.02] active:scale-[0.98] transition-all border-b-4 border-amber-500 p-4 rounded-3xl text-left shadow-md flex items-center justify-between group">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">🔍</span>
+                <div>
+                  <div class="font-cute text-amber-900 text-lg">[ 오늘의 꿀조합 추천! ]</div>
+                  <div class="text-[10px] text-amber-800 font-semibold opacity-80">지금 내 냉장고 속 재료로 검색하기</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right text-amber-800 group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+
+          <!-- DIRECT FEATURE LINKS (As requested: Chat & Calorie Scanner super visible!) -->
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="changeView('chat')" class="bg-gradient-to-br from-amber-100 to-yellow-200 border-2 border-amber-300 hover:scale-[1.02] active:scale-[0.98] transition-all p-3.5 rounded-3xl text-left shadow-sm flex flex-col justify-between h-28 relative overflow-hidden group">
+              <div class="absolute -right-2 -bottom-2 opacity-20 text-amber-600">
+                <i class="fa-solid fa-comments text-5xl"></i>
+              </div>
+              <div class="bg-white w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-sm">💬</div>
+              <div>
+                <div class="font-cute text-amber-900 text-sm">꿀얌이와 꿀톡</div>
+                <div class="text-[9px] text-amber-800/80 font-bold">1:1 실시간 꿀조합 대화</div>
+              </div>
+            </button>
+
+            <button onclick="changeView('calorie')" class="bg-gradient-to-br from-emerald-100 to-green-200 border-2 border-emerald-300 hover:scale-[1.02] active:scale-[0.98] transition-all p-3.5 rounded-3xl text-left shadow-sm flex flex-col justify-between h-28 relative overflow-hidden group">
+              <div class="absolute -right-2 -bottom-2 opacity-20 text-emerald-600">
+                <i class="fa-solid fa-calculator text-5xl"></i>
+              </div>
+              <div class="bg-white w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-sm">📊</div>
+              <div>
+                <div class="font-cute text-emerald-900 text-sm">삐빅! 칼로리 측정</div>
+                <div class="text-[9px] text-emerald-800/80 font-bold">푸드 스테이크 스캐너</div>
+              </div>
+            </button>
+          </div>
+
+          <!-- CAMERA SECTION: "사진을 찍어주시면 꿀조합을 알려줄게" -->
+          <div class="bg-emerald-50 border-2 border-emerald-300 rounded-3xl p-4 flex flex-col items-center relative overflow-hidden shadow-sm">
+            <!-- Background leafy design -->
+            <div class="absolute -left-3 -top-3 opacity-10 text-emerald-600">
+              <i class="fa-solid fa-seedling text-5xl"></i>
+            </div>
+            
+            <div class="flex items-center gap-3 w-full">
+              <!-- Animated mascot with bubble speech -->
+              <div class="flex flex-col items-center">
+                <svg class="w-12 h-12 bounce-cute" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="50" cy="50" r="35" fill="#10B981"/>
+                  <circle cx="30" cy="55" r="7" fill="#86EFAC"/>
+                  <circle cx="70" cy="55" r="7" fill="#86EFAC"/>
+                  <ellipse cx="33" cy="42" rx="4" ry="5" fill="white"/>
+                  <ellipse cx="67" cy="42" rx="4" ry="5" fill="white"/>
+                  <!-- Wink -->
+                  <path d="M 62 42 Q 67 36 72 42" stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
+                  <path d="M 40 58 Q 50 68 60 58" stroke="white" stroke-width="3" stroke-linecap="round" fill="none"/>
+                </svg>
+                <span class="text-[10px] font-bold text-emerald-800 mt-1">꿀얌이</span>
+              </div>
+              <div class="flex-1 bg-white border border-emerald-200 rounded-2xl p-2.5 shadow-sm relative">
+                <p class="text-[11px] font-bold text-slate-700 leading-normal">
+                  "식재료나 완제품 음식을 사진으로 찍어봐! 내가 맛있는 꿀조합을 콕 찝어 알려줄게! 📸"
+                </p>
+                <!-- Speech bubble anchor pointer -->
+                <div class="absolute left-[-6px] top-4 w-3 h-3 bg-white border-l border-b border-emerald-200 transform rotate-45"></div>
+              </div>
+            </div>
+
+            <button onclick="openCameraSimulation()" class="w-full mt-3 bg-emerald-500 hover:bg-emerald-600 text-white font-cute text-base py-2.5 rounded-2xl shadow-md border-b-4 border-emerald-700 flex items-center justify-center gap-2 transition-all">
+              <i class="fa-solid fa-camera"></i> 사진 찍기
+            </button>
+          </div>
+
+          <!-- SECTION 2: Community Posts Feed (1 Post for simplified look as requested!) -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between pl-1">
+              <h2 class="text-xs font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-users"></i> 우리 꿀꿀이들의 맛난 피드 (소통)
+              </h2>
+              <!-- Upload Post Button -->
+              <button onclick="openUploadPostModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-cute px-3 py-1.5 rounded-full shadow-sm border-b-2 border-emerald-700 flex items-center gap-1 active:scale-95 transition-all">
+                <i class="fa-solid fa-pen-to-square"></i> 나도 자랑하기
+              </button>
+            </div>
+
+            <!-- Dynamic & Existing Posts Container -->
+            <div id="community-posts-list" class="space-y-4">
+
+              <!-- ONLY 1 CLEAN COMPACT POST (Matching sketch perfectly) -->
+              <div class="bg-white border-2 border-slate-100 rounded-3xl p-4 shadow-sm space-y-3">
+                <!-- Post Header -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-rose-100 border border-rose-300 flex items-center justify-center text-sm">
+                      🐷
+                    </div>
+                    <div>
+                      <div class="text-xs font-bold text-slate-800">날개달린꿀꿀이</div>
+                      <div class="text-[9px] text-slate-400">방금 전 • 조회 284</div>
+                    </div>
+                  </div>
+                  <span class="bg-rose-100 text-rose-800 text-[9px] font-bold px-2 py-0.5 rounded-full">실시간 인기🔥</span>
+                </div>
+
+                <p class="text-xs text-slate-700 font-semibold leading-relaxed">
+                  날치알에 레몬즙 살짝 얹어서 에이스 크래커 위에 먹으면 완전 명품 카나페 탄생이야~ 😍 다들 편의점 가면 날치알 꼭 사봐!
+                </p>
+
+                <!-- Food Picture Box -->
+                <div class="w-full h-36 bg-amber-50/50 rounded-2xl border-2 border-dashed border-amber-200 overflow-hidden relative flex flex-col items-center justify-center">
+                  <svg class="w-32 h-32 opacity-90" viewBox="0 0 100 100">
+                    <ellipse cx="50" cy="70" rx="35" ry="12" fill="#E2E8F0"/>
+                    <ellipse cx="50" cy="67" rx="30" ry="10" fill="#F1F5F9"/>
+                    <rect x="25" y="50" width="22" height="20" rx="3" fill="#FBBF24" stroke="#D97706" stroke-width="1.5" transform="rotate(-5, 25, 50)"/>
+                    <rect x="52" y="47" width="22" height="20" rx="3" fill="#FBBF24" stroke="#D97706" stroke-width="1.5" transform="rotate(8, 52, 47)"/>
+                    <circle cx="31" cy="55" r="1" fill="#B45309"/>
+                    <circle cx="41" cy="55" r="1" fill="#B45309"/>
+                    <circle cx="31" cy="63" r="1" fill="#B45309"/>
+                    <circle cx="41" cy="63" r="1" fill="#B45309"/>
+                    <circle cx="58" cy="52" r="1" fill="#B45309"/>
+                    <circle cx="68" cy="52" r="1" fill="#B45309"/>
+                    <circle cx="58" cy="60" r="1" fill="#B45309"/>
+                    <circle cx="68" cy="60" r="1" fill="#B45309"/>
+                    <circle cx="33" cy="54" r="2.5" fill="#EF4444"/>
+                    <circle cx="36" cy="56" r="2.5" fill="#F97316"/>
+                    <circle cx="34" cy="58" r="2.5" fill="#EF4444"/>
+                    <circle cx="60" cy="51" r="2.5" fill="#EF4444"/>
+                    <circle cx="64" cy="53" r="2.5" fill="#F97316"/>
+                    <path d="M 45 42 Q 50 35 55 42 Z" fill="#FDE047" stroke="#CA8A04" stroke-width="1"/>
+                  </svg>
+                  <div class="absolute bottom-2 right-3 bg-black/60 text-white text-[9px] px-2 py-0.5 rounded-full font-sans">
+                    #에이스 #날치알 #레몬즙
+                  </div>
+                </div>
+
+                <!-- Like & Comments Interactive Buttons -->
+                <div class="flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500 font-semibold">
+                  <button onclick="toggleLikePost(this, 'like-count-1')" class="flex items-center gap-1.5 hover:text-rose-500 transition-colors">
+                    <i class="fa-regular fa-heart text-base text-slate-400"></i> 하트 <span id="like-count-1">52</span>개
+                  </button>
+                  <span class="text-[10px] text-slate-400 font-normal">댓글 3개</span>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                  <div class="text-[11px] leading-relaxed border-b border-slate-200/50 pb-1 flex items-start gap-1">
+                    <span class="font-bold text-slate-800">냠냠이:</span>
+                    <span class="text-slate-600">진짜 꿀맛조합! 집들이 할 때 내놨는데 다들 순삭함요ㅋㅋ</span>
+                  </div>
+                  <div class="text-[11px] leading-relaxed border-b border-slate-200/50 pb-1 flex items-start gap-1">
+                    <span class="font-bold text-slate-800">초코는사랑:</span>
+                    <span class="text-slate-600">와 짭짤고소 크래커에 톡톡 터지는 식감 최고겠네요 ㅠㅠ</span>
+                  </div>
+                  <div id="dynamic-comments-1" class="space-y-1"></div>
+                  <div class="flex gap-1.5 mt-2">
+                    <input id="comment-input-1" type="text" placeholder="댓글을 써보세요..." class="flex-1 text-[11px] px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    <button onclick="addPostComment(1)" class="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-3 rounded-xl transition-colors">등록</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ==================== VIEW 2: CHAT WITH KKULYAM ==================== -->
+        <div id="view-chat" class="view-panel hidden flex-col h-full bg-emerald-50/30">
+          <!-- Chat Header -->
+          <div class="p-4 bg-white border-b border-amber-100/60 flex items-center justify-between shrink-0">
+            <button onclick="goBack()" class="text-slate-600 hover:text-amber-500 font-cute text-xs transition-colors">
+              <i class="fa-solid fa-chevron-left"></i> 뒤로
+            </button>
+            <div class="flex items-center gap-1.5">
+              <div class="w-8 h-8 bg-amber-300 rounded-xl flex items-center justify-center text-sm font-bold text-amber-950 shadow-inner">🍯</div>
+              <span class="font-cute text-sm text-slate-800">꿀얌이와의 꿀톡 💬</span>
+            </div>
+            <span class="w-6"></span>
+          </div>
+
+          <!-- Messages area -->
+          <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
+            <!-- Preloaded Drawing Message (IMG_20260622_095029.jpg) -->
+            <div class="flex justify-end">
+              <div class="max-w-[75%] space-y-0.5">
+                <div class="text-right text-[9px] text-slate-400 pr-1.5">꿀꿀이 48일</div>
+                <div class="bg-yellow-100 text-slate-800 p-2.5 rounded-2xl rounded-tr-none shadow-sm font-semibold text-xs">
+                  꿀얌아 누텔라랑 어울리는 음식이 뭐야? 🍫
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-start gap-2">
+              <div class="w-8 h-8 bg-amber-200 rounded-lg shrink-0 flex items-center justify-center text-sm shadow-inner">🍯</div>
+              <div class="max-w-[75%] space-y-0.5">
+                <div class="text-slate-500 text-[9px] pl-1">꿀얌이</div>
+                <div class="bg-white border border-amber-200 text-slate-800 p-2.5 rounded-2xl rounded-tl-none shadow-sm font-semibold text-xs leading-relaxed">
+                  오! 꿀꿀아 누텔라는 에이스, 식빵 등에 발라 먹으면 맛있어! 🍪🍞
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <div class="max-w-[75%] space-y-0.5">
+                <div class="text-right text-[9px] text-slate-400 pr-1.5">꿀꿀이 48일</div>
+                <div class="bg-yellow-100 text-slate-800 p-2.5 rounded-2xl rounded-tr-none shadow-sm font-semibold text-xs">
+                  오! 꿀얌아 고마워~ ❤️
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Chat choices -->
+          <div class="px-4 py-2 bg-white/70 backdrop-blur-sm shrink-0 flex gap-1.5 overflow-x-auto no-scrollbar border-t border-amber-100">
+            <button onclick="sendQuickMessage('🔥 불닭소스는 뭐랑 어울려?')" class="bg-amber-100 hover:bg-amber-200 text-amber-950 text-[10px] font-bold px-3 py-1.5 rounded-full shrink-0 transition-colors">🔥 불닭소스 꿀조합</button>
+            <button onclick="sendQuickMessage('🧀 치즈 말고 맛난 라면 꿀조합 추천!')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-950 text-[10px] font-bold px-3 py-1.5 rounded-full shrink-0 transition-colors">🍜 라면 꿀조합</button>
+            <button onclick="sendQuickMessage('🍨 바닐라 아이스크림 디저트!')" class="bg-yellow-100 hover:bg-yellow-200 text-amber-950 text-[10px] font-bold px-3 py-1.5 rounded-full shrink-0 transition-colors">🍨 아이스크림 꿀팁</button>
+          </div>
+
+          <!-- Chat Input -->
+          <div class="p-3 bg-white border-t border-slate-100 shrink-0 flex gap-2">
+            <input id="chat-input-field" type="text" placeholder="꿀얌이에게 어울리는 음식 물어보기..." class="flex-1 text-xs px-3.5 py-2.5 rounded-2xl border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-300" onkeypress="if(event.key === 'Enter') sendMessageToKkulyam()">
+            <button onclick="sendMessageToKkulyam()" class="bg-amber-400 hover:bg-amber-500 text-amber-950 font-cute text-xs px-4 rounded-2xl shadow-sm transition-all active:scale-95">전송</button>
+          </div>
+        </div>
+
+
+        <!-- ==================== VIEW 3: CALORIE SCANNER ==================== -->
+        <div id="view-calorie" class="view-panel hidden flex-col p-5 space-y-4">
+          <!-- Back button header -->
+          <div class="flex items-center shrink-0">
+            <button onclick="goBack()" class="text-slate-600 hover:text-amber-500 font-cute text-xs transition-colors">
+              <i class="fa-solid fa-chevron-left"></i> 홈으로 가기
+            </button>
+          </div>
+
+          <div class="text-center">
+            <span class="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">실시간 AI 칼로리 측정기 📊</span>
+            <h2 class="text-xl font-cute text-slate-800 mt-2">이 음식, 몇 칼로리일까?</h2>
+            <p class="text-[10px] text-slate-500 mt-0.5">설계도 속 고기 접시를 터치하거나 스캔 버튼을 누르면 AI가 알려줄게!</p>
+          </div>
+
+          <!-- Calorie Scanning Graphic matching IMG_20260622_095029.jpg -->
+          <div class="bg-emerald-50/50 rounded-3xl p-4 border-2 border-emerald-200 flex flex-col items-center relative overflow-hidden shadow-inner">
+            <!-- Plate Interactive Graphic -->
+            <div class="w-full h-44 bg-white rounded-2xl border border-slate-100 relative flex items-center justify-center cursor-pointer overflow-hidden group shadow-sm" onclick="triggerCalorieScan()">
+              <!-- Animated Scanning Line -->
+              <div id="scan-bar" class="hidden absolute left-0 right-0 h-1 bg-emerald-500 shadow-md shadow-emerald-500/50 z-20 scan-line"></div>
+              
+              <!-- Drawing Steak Plate Replica -->
+              <svg class="w-40 h-40" viewBox="0 0 100 100">
+                <!-- Plate -->
+                <circle cx="50" cy="50" r="42" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2"/>
+                <circle cx="50" cy="50" r="35" fill="none" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="2 2"/>
+                
+                <!-- Steak Meat -->
+                <path d="M 32 50 Q 38 32 58 35 T 68 55 T 48 65 Z" fill="#854D0E" stroke="#451A03" stroke-width="1.5"/>
+                <!-- Meat Texture lines -->
+                <path d="M 38 46 Q 48 42 55 45" stroke="#A16207" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 42 54 Q 50 50 58 52" stroke="#A16207" stroke-width="2" stroke-linecap="round"/>
+
+                <!-- Broccoli Green Garnish -->
+                <circle cx="62" cy="35" r="5" fill="#22C55E"/>
+                <circle cx="58" cy="32" r="4" fill="#16A34A"/>
+                <circle cx="65" cy="31" r="3.5" fill="#15803D"/>
+
+                <!-- Red ketchup dots from drawing -->
+                <circle cx="62" cy="65" r="3" fill="#EF4444"/>
+                <circle cx="54" cy="68" r="2" fill="#EF4444"/>
+              </svg>
+
+              <!-- Hover state instructions -->
+              <div class="absolute inset-0 bg-emerald-950/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span class="bg-emerald-800 text-white text-[10px] px-2.5 py-1 rounded-full font-sans">터치해서 스캔하기 📸</span>
+              </div>
+            </div>
+
+            <!-- Scanning Status label -->
+            <div id="scan-progress-label" class="hidden text-[10px] text-emerald-600 font-bold animate-pulse mt-2.5">
+              ⚡ 음식을 레이저 광선으로 분석하고 있어요... 삐빅-
+            </div>
+
+            <!-- Result text box (drawing exactly "칼로리. 324칼로리입니다.") -->
+            <div class="w-full bg-white rounded-2xl p-4 mt-3 text-center border border-emerald-100">
+              <div id="calorie-text" class="text-base font-cute text-emerald-800">
+                접시를 눌러서 꿀얌 칼로리 스캐너를 작동시켜 봐!
+              </div>
+            </div>
+          </div>
+
+          <button onclick="triggerCalorieScan()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-cute text-sm py-3.5 rounded-2xl shadow-md border-b-4 border-emerald-700 transition-all flex items-center justify-center gap-2">
+            <i class="fa-solid fa-expand"></i> 삐빅- AI 푸드 스캐너 가동!
+          </button>
+        </div>
+
+
+        <!-- ==================== VIEW 4: CAMERA SIMULATOR VIEW ==================== -->
+        <div id="view-camera-sim" class="view-panel hidden flex-col h-full bg-black relative text-white">
+          <div class="p-4 flex items-center justify-between shrink-0 bg-zinc-900">
+            <button onclick="goBack()" class="text-white hover:text-amber-400 transition-colors"><i class="fa-solid fa-chevron-left"></i> 돌아가기</button>
+            <span class="font-cute text-sm">꿀얌 스마트 카메라 📸</span>
+            <span class="w-6"></span>
+          </div>
+
+          <!-- Camera Screen simulation -->
+          <div class="flex-1 relative flex flex-col items-center justify-center bg-zinc-950 overflow-hidden">
+            <div class="absolute inset-x-6 inset-y-12 border-2 border-white/20 rounded-3xl pointer-events-none flex items-center justify-center">
+              <div class="w-12 h-12 border-l-2 border-t-2 border-emerald-400 absolute top-0 left-0 rounded-tl-xl"></div>
+              <div class="w-12 h-12 border-r-2 border-t-2 border-emerald-400 absolute top-0 right-0 rounded-tr-xl"></div>
+              <div class="w-12 h-12 border-l-2 border-b-2 border-emerald-400 absolute bottom-0 left-0 rounded-bl-xl"></div>
+              <div class="w-12 h-12 border-r-2 border-b-2 border-emerald-400 absolute bottom-0 right-0 rounded-br-xl"></div>
+            </div>
+
+            <!-- Subject carousel (simulate point camera) -->
+            <div id="camera-carousel" class="text-center space-y-4">
+              <div class="text-sm text-emerald-400 font-bold bg-emerald-950/80 border border-emerald-600/50 px-3 py-1.5 rounded-full inline-block">
+                카메라 렌즈에 포착된 재료!
+              </div>
+              <div id="camera-subject-view" class="w-48 h-48 bg-zinc-900 rounded-full border border-zinc-700 mx-auto flex items-center justify-center text-6xl shadow-2xl relative">
+                🍳
+              </div>
+              <div>
+                <div id="camera-subject-name" class="font-cute text-lg text-amber-300">날달걀</div>
+                <p class="text-[11px] text-zinc-400">카메라 앞의 대상을 클릭해 변경하세요!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Camera Controls footer -->
+          <div class="p-6 bg-zinc-900 shrink-0 flex flex-col items-center space-y-4">
+            <!-- Carousel trigger arrows -->
+            <div class="flex items-center gap-6">
+              <button onclick="rotateCameraSubject(-1)" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-white active:bg-zinc-700">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <button onclick="triggerCameraCapture()" class="w-16 h-16 rounded-full border-4 border-white bg-red-600 active:scale-95 transition-transform shadow-lg flex items-center justify-center">
+                <i class="fa-solid fa-camera text-2xl text-white"></i>
+              </button>
+              <button onclick="rotateCameraSubject(1)" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-white active:bg-zinc-700">
+                <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+            <div class="text-[10px] text-zinc-500">셔터 버튼을 누르면 꿀조합 결과창으로 바로 이동합니다!</div>
+          </div>
+        </div>
+
+
+        <!-- ==================== VIEW 5: CURATION FLOW (STEP 1: SELECTION) ==================== -->
+        <div id="view-curation-step1" class="view-panel hidden flex-col p-5 space-y-4">
+          <div class="text-center">
+            <span class="text-xs font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">1단계: 취향 & 재료 선택 🥬</span>
+            <h2 class="text-xl font-cute text-slate-800 mt-2">지금 우리 집에 있는 재료는?</h2>
+            <p class="text-[10px] text-slate-500 mt-0.5">냉장고에 있는 재료를 골라주면 꿀얌이가 환상 조합을 만들어줄게!</p>
+          </div>
+
+          <!-- Ingredient Selector Grid -->
+          <div class="grid grid-cols-3 gap-2.5">
+            <!-- Toast/Bread -->
+            <button onclick="toggleIngredientSelection(this, '식빵')" class="ingredient-btn bg-white border border-slate-200 p-3 rounded-2xl flex flex-col items-center gap-1.5 transition-all active:scale-95 shadow-sm">
+              <span class="text-2xl">🍞</span>
+              <span class="text-xs font-bold text-slate-700">식빵</span>
+            </button>
+            <!-- Nutella -->
+            <button onclick="toggleIngredientSelection(this, '누텔라')" class="ingredient-btn bg-white border border-slate-200 p-3 rounded-2xl flex flex-col items-center gap-1.5 transition-all active:scale-95 shadow-sm">
+              <span class="text-2xl">🍫</span>
+              <span class="text-xs font-bold text-slate-700">누텔라</span>
+            </button>
+            <!-- Ace cracker -->
+            <button onclick="toggleIngredientSelection(this, '에이스')" class="ingredient-btn bg-white border border-slate-200 p-3 rounded-2xl flex flex-col items-center gap-1.5 transition-all active:scale-95 shadow-sm">
+              <span class="text-2xl">🍪</span>
+              <span class="text-xs font-bold text-slate-700">에이스</span>
+            </button>
+            <!-- Lemon -->
+            <button onclick="toggleIngredientSelection(this, '레몬즙')" class="ingredient-btn bg-white border border-slate-200 p-3 rounded-2xl flex flex-col items-center gap-1.5 transition-all active:scale-95 shadow-sm">
+              <span class="text-2xl">🍋</span>
+              <span class="text-xs font-bold text-slate-700">레몬즙</span>
+            </button>
+            <!-- Caviar/Fish Roe -->
+            <button onclick="toggleIngredientSelection(this, '날치알')" class="ingredient-btn bg-white border border-slate-200 p-3 rounded-2xl flex flex-col items-center gap-1.5 transition-all active:scale-95 shadow-sm">
+              <span class="text-2xl">🍣</span>
+              <span class="text-xs font-bold text-slate-700">날치알</span>
+            </button>
+            <!-- Ramyun -->
+            <button onclick="toggleIngredientSelection(this, '라면')" class="ingredient-btn bg-white border border-slate-200 p-3 rounded-2xl flex flex-col items-center gap-1.5 transition-all active:scale-95 shadow-sm">
+              <span class="text-2xl">🍜</span>
+              <span class="text-xs font-bold text-slate-700">라면</span>
+            </button>
+            <!-- Egg -->
+            <button onclick="toggleIngredientSelection(this, '계란')" class="ingredient-btn bg-white border border-slate-200 p-3 rounded-2xl flex flex-col items-center gap-1.5 transition-all active:scale-95 shadow-sm">
+              <span class="text-2xl">🥚</span>
+              <span class="text-xs font-bold text-slate-700">달걀</span>
+            </button>
+            <!-- Cheese -->
+            <button onclick="toggleIngredientSelection(this, '치즈')" class="ingredient-btn bg-white border border-slate-200 p-3 rounded-2xl flex flex-col items-center gap-1.5 transition-all active:scale-95 shadow-sm">
+              <span class="text-2xl">🧀</span>
+              <span class="text-xs font-bold text-slate-700">치즈</span>
+            </button>
+            <!-- Ice cream -->
+            <button onclick="toggleIngredientSelection(this, '아이스크림')" class="ingredient-btn bg-white border border-slate-200 p-3 rounded-2xl flex flex-col items-center gap-1.5 transition-all active:scale-95 shadow-sm">
+              <span class="text-2xl">🍨</span>
+              <span class="text-xs font-bold text-slate-700">아이스크림</span>
+            </button>
+          </div>
+
+          <!-- Selected feedback bar -->
+          <div class="bg-amber-100/60 rounded-2xl p-3 flex items-center justify-between">
+            <span class="text-[11px] font-bold text-amber-900">선택한 재료 목록:</span>
+            <div id="selected-list-text" class="text-xs text-amber-900 font-bold">선택 없음</div>
+          </div>
+
+          <!-- Submit button to trigger loading step -->
+          <button onclick="submitIngredientsForCuration()" class="w-full bg-amber-400 hover:bg-amber-500 text-amber-950 font-cute text-base py-3.5 rounded-2xl shadow-md border-b-4 border-amber-600 transition-all flex items-center justify-center gap-2">
+            꿀조합 분석 요청하기! <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </button>
+        </div>
+
+
+        <!-- ==================== VIEW 6: CURATION FLOW (STEP 2: ANALYZING) ==================== -->
+        <div id="view-curation-step2" class="view-panel hidden flex-col items-center justify-center p-6 h-full text-center">
+          <div class="space-y-6">
+            <!-- Animated spinning circle & mascot cooking -->
+            <div class="relative w-36 h-36 mx-auto flex items-center justify-center">
+              <div class="absolute inset-0 rounded-full border-4 border-emerald-100 border-t-emerald-500 animate-spin"></div>
+              <svg class="w-24 h-24 bounce-cute" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="35" fill="#FBBF24"/>
+                <circle cx="30" cy="55" r="7" fill="#FCA5A5"/>
+                <circle cx="70" cy="55" r="7" fill="#FCA5A5"/>
+                <!-- Eyes spinning -->
+                <circle cx="33" cy="42" r="4.5" fill="#1E293B"/>
+                <circle cx="67" cy="42" r="4.5" fill="#1E293B"/>
+                <!-- Sparkling pupils -->
+                <polygon points="33,39 34,42 37,42 35,44 36,47 33,45 30,47 31,44 29,42 32,42" fill="white" transform="scale(0.8) translate(8, 5)"/>
+                <!-- Tongue Out mouth -->
+                <path d="M 42 55 Q 50 65 58 55 Z" fill="#EF4444"/>
+                <path d="M 42 55 L 58 55" stroke="#1E293B" stroke-width="2"/>
+                <!-- Chef Hat representing analyzing cooking -->
+                <path d="M 38 18 C 30 15 32 5 45 10 C 50 2 60 5 62 12 C 70 8 72 16 64 20" fill="white" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+                <rect x="42" y="18" width="18" height="6" fill="white" stroke="#334155" stroke-width="2" rx="1"/>
+              </svg>
+            </div>
+
+            <div class="space-y-2">
+              <h2 class="text-xl font-cute text-emerald-800 animate-pulse">꿀얌이가 냉장고 뒤지는 중... 🧺</h2>
+              <p class="text-xs text-slate-500">
+                우리 꿀꿀이가 입력해준 완벽한 비밀 취향과 재료 목록을 분석해서, 환상의 우주 대존맛 꿀조합을 매칭하고 있어요! 잠시만 기다려줘!
+              </p>
+            </div>
+            
+            <!-- Progress counter mockup -->
+            <div class="w-48 bg-slate-100 rounded-full h-2.5 mx-auto overflow-hidden">
+              <div id="progress-bar-fill" class="bg-gradient-to-r from-yellow-400 to-emerald-500 h-2.5 rounded-full transition-all duration-[2000ms]" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ==================== VIEW 7: CURATION FLOW (STEP 3: RESULTS) ==================== -->
+        <div id="view-curation-step3" class="view-panel hidden flex-col p-5 space-y-4">
+          <div class="text-center">
+            <span class="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">3단계: 최강 꿀조합 매칭 결과 🎉</span>
+            <h2 class="text-xl font-cute text-slate-800 mt-2">꿀얌이가 엄선한 꿀조합!</h2>
+            <p class="text-[10px] text-slate-500 mt-0.5">매번 다른 맛있는 아이디어가 랜덤으로 선정돼요!</p>
+          </div>
+
+          <!-- Matching recipe card list area (populated dynamically via JS) -->
+          <div id="recipe-results-list" class="space-y-4">
+            <!-- Dynamic items go here -->
+          </div>
+
+          <!-- CTA to go home or trigger search again -->
+          <div class="flex gap-2.5 pt-2">
+            <button onclick="startCuration()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-cute py-3 rounded-2xl shadow-sm transition-colors text-sm">
+              <i class="fa-solid fa-rotate-left"></i> 다시 골라보기
+            </button>
+            <button onclick="changeView('home')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-cute py-3 rounded-2xl shadow-md border-b-4 border-emerald-700 transition-colors text-sm">
+              <i class="fa-solid fa-house"></i> 홈화면으로
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- POPUP MODAL: Shopping Confirmation Modal -->
+      <div id="shopping-modal" class="hidden absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-6 transition-all duration-300">
+        <div class="bg-white rounded-[32px] p-5 w-full max-w-[320px] text-center space-y-4 border-4 border-emerald-300 shadow-2xl transform scale-95 transition-transform">
+          <div class="w-16 h-16 bg-emerald-100 rounded-full mx-auto flex items-center justify-center text-3xl">
+            🛍️
+          </div>
+          <div class="space-y-1.5">
+            <h3 class="text-lg font-cute text-emerald-800">음식이 부족하신가요? 🐷</h3>
+            <p class="text-[11px] text-slate-500 leading-normal">
+              우리 꿀꿀이들이 재료가 모자라서 맛있는 조합을 먹지 못한다면 너무 슬프잖아요! 부족한 음식을 <strong class="text-emerald-600">네이버 쇼핑</strong>에서 안전하게 사러 가볼까요?
+            </p>
+          </div>
+
+          <div class="flex gap-2">
+            <button onclick="closeShoppingModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-cute rounded-xl transition-all">
+              아니요, 괜찮아요
+            </button>
+            <a id="modal-shopping-link" href="#" target="_blank" rel="noopener noreferrer" onclick="closeShoppingModal()" class="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-cute rounded-xl shadow-md border-b-2 border-emerald-700 flex items-center justify-center gap-1">
+              지금 사러가기!
+            </a>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- EVENT POPUP MODAL: Event Submit Form -->
+      <div id="event-modal" class="hidden absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-6 transition-all duration-300">
+        <div class="bg-white rounded-[32px] p-6 w-full max-w-[340px] text-center space-y-4 border-4 border-amber-300 shadow-2xl transform scale-95 transition-transform relative">
+          
+          <!-- Cute close button -->
+          <button onclick="closeEventModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-200">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+
+          <div class="w-14 h-14 bg-amber-100 rounded-full mx-auto flex items-center justify-center text-3xl animate-bounce">
+            🏆
+          </div>
+          <div class="space-y-1">
+            <h3 class="text-lg font-cute text-amber-900">꿀조합 뽐내기 콘테스트!</h3>
+            <p class="text-[10px] text-slate-500 leading-normal">
+              대장 꿀꿀이님의 기가 막힌 냉장고 꿀조합을 알려주세요! 참여만 해도 꿀얌이가 바나나우유 쿠폰을 추첨해 드려요! 🍌💛
+            </p>
+          </div>
+
+          <div class="space-y-2.5 text-left text-slate-800">
+            <div>
+              <label class="text-[10px] font-bold text-amber-800 block pl-1">꿀꿀이 닉네임</label>
+              <input id="event-author" type="text" value="대장꿀꿀이" class="w-full text-xs px-3 py-2 rounded-xl border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-300">
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-amber-800 block pl-1">나의 꿀조합 요리법 설명</label>
+              <textarea id="event-recipe" rows="3" placeholder="예) 에이스 크래커에 누텔라 바르고 바닐라 아이스크림 얹어 먹기!" class="w-full text-xs px-3 py-2 rounded-xl border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none"></textarea>
+            </div>
+          </div>
+
+          <button onclick="submitEventEntry()" class="w-full py-3 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-950 font-cute text-sm rounded-2xl shadow-md border-b-4 border-amber-600 flex items-center justify-center gap-1">
+            콘테스트에 제보하기! 🚀
+          </button>
+        </div>
+      </div>
+
+
+      <!-- NEW: WRITE/UPLOAD POST MODAL -->
+      <div id="upload-post-modal" class="hidden absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-6 transition-all duration-300">
+        <div class="bg-white rounded-[32px] p-6 w-full max-w-[340px] text-center space-y-4 border-4 border-emerald-300 shadow-2xl transform scale-95 transition-transform relative text-slate-800">
+          
+          <button onclick="closeUploadPostModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-200">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+
+          <div class="w-14 h-14 bg-emerald-100 rounded-full mx-auto flex items-center justify-center text-3xl">
+            ✍️
+          </div>
+          <div class="space-y-1">
+            <h3 class="text-lg font-cute text-emerald-800">나만의 꿀조합 피드 올리기</h3>
+            <p class="text-[10px] text-slate-500 leading-normal">
+              우리 꿀꿀이들에게 기가 막힌 꿀맛 간식 정보를 자랑해 보세요!
+            </p>
+          </div>
+
+          <div class="space-y-2.5 text-left">
+            <div>
+              <label class="text-[10px] font-bold text-emerald-800 block pl-1">꿀꿀이 닉네임</label>
+              <input id="post-nickname" type="text" value="글쓰는꿀꿀이" class="w-full text-xs px-3 py-2 rounded-xl border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-300">
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-emerald-800 block pl-1">어울리는 대표 요리 아이콘</label>
+              <div class="flex gap-2 justify-between pt-1">
+                <button type="button" onclick="selectPostIcon('🍜', this)" class="emoji-select-btn w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-xl border-2 border-emerald-400 ring-2 ring-emerald-300">🍜</button>
+                <button type="button" onclick="selectPostIcon('🍳', this)" class="emoji-select-btn w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-xl border border-slate-200">🍳</button>
+                <button type="button" onclick="selectPostIcon('🍞', this)" class="emoji-select-btn w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-xl border border-slate-200">🍞</button>
+                <button type="button" onclick="selectPostIcon('🍫', this)" class="emoji-select-btn w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-xl border border-slate-200">🍫</button>
+                <button type="button" onclick="selectPostIcon('🧀', this)" class="emoji-select-btn w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-xl border border-slate-200">🧀</button>
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-emerald-800 block pl-1">꿀조합 자랑글 작성</label>
+              <textarea id="post-content" rows="3" placeholder="예) 에이스 크래커 위에 누텔라와 달걀 프라이 노른자를 얹어먹으면 대존맛 완성!" class="w-full text-xs px-3 py-2 rounded-xl border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-300 resize-none"></textarea>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-emerald-800 block pl-1">태그 입력 (콤마로 구분)</label>
+              <input id="post-tags" type="text" placeholder="#에이스, #대박, #초간단" class="w-full text-xs px-3 py-2 rounded-xl border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-300">
+            </div>
+          </div>
+
+          <button onclick="submitNewPost()" class="w-full py-3 bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 text-white font-cute text-sm rounded-2xl shadow-md border-b-4 border-emerald-700 flex items-center justify-center gap-1">
+            피드에 게시글 올리기! 🚀
+          </button>
+        </div>
+      </div>
+
+      <!-- EVENT SUCCESS NOTIFICATION (Stamp style) -->
+      <div id="event-success-toast" class="hidden absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-6 transition-all">
+        <div class="bg-white rounded-[32px] p-6 w-full max-w-[300px] text-center space-y-4 border-4 border-emerald-400 shadow-2xl scale-100 transform transition-transform">
+          <!-- Big custom Success Badge -->
+          <div class="w-20 h-20 bg-emerald-100 rounded-full mx-auto flex items-center justify-center text-4xl border-4 border-emerald-400 relative">
+            🏅
+            <!-- Sweet dynamic animated check -->
+            <div class="absolute -bottom-1 -right-1 bg-red-500 text-white font-cute text-[10px] px-2 py-0.5 rounded-full rotate-12">PASS!</div>
+          </div>
+          <div class="space-y-1">
+            <h3 class="text-lg font-cute text-emerald-800">우와, 완벽해요! 🎉</h3>
+            <p id="event-success-message" class="text-[11px] text-slate-600 leading-normal font-semibold">
+              대장 꿀꿀이님의 꿀조합이 성공적으로 접수되었어요! 꿀얌이 검토 결과 기발함 점수 100점 만점에 100점입니다! 가자 1등상으로! 🏆
+            </p>
+          </div>
+          <button onclick="closeSuccessToast()" class="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-cute text-xs rounded-xl shadow-md border-b-2 border-emerald-700">
+            확인 (신난다!)
+          </button>
+        </div>
+      </div>
+
+
+      <!-- Bottom Navigation Bar (Operating strictly [ ☰ | ⌂ | ◁ ]) -->
+      <div class="h-[72px] bg-white border-t border-slate-200 flex items-center justify-around px-4 pb-2 z-40 select-none shrink-0">
+        <!-- Menu Bar Trigger Button (☰) -->
+        <button onclick="toggleSideMenu()" class="flex flex-col items-center justify-center w-12 h-12 rounded-full text-slate-600 hover:text-amber-500 hover:bg-amber-50 active:scale-90 transition-all">
+          <i class="fa-solid fa-bars text-xl"></i>
+          <span class="text-[9px] font-cute mt-0.5">메뉴</span>
+        </button>
+        <!-- Home Button (⌂) -->
+        <button onclick="changeView('home')" class="flex flex-col items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-amber-300 to-yellow-400 text-amber-950 shadow-md border-2 border-white hover:scale-105 active:scale-95 transition-all -translate-y-2">
+          <i class="fa-solid fa-house text-lg"></i>
+          <span class="text-[9px] font-cute mt-0.5">홈</span>
+        </button>
+        <!-- Back Button (◁) -->
+        <button onclick="goBack()" class="flex flex-col items-center justify-center w-12 h-12 rounded-full text-slate-600 hover:text-amber-500 hover:bg-amber-50 active:scale-90 transition-all">
+          <i class="fa-solid fa-arrow-left-long text-xl"></i>
+          <span class="text-[9px] font-cute mt-0.5">뒤로가기</span>
+        </button>
+      </div>
+
+
+      <!-- Side Menu / Bottom Drawer simulation panel -->
+      <div id="side-menu-drawer" class="hidden absolute inset-0 z-40 bg-black/50 transition-opacity">
+        <!-- Drawer Panel -->
+        <div class="absolute bottom-0 inset-x-0 bg-white rounded-t-[40px] p-6 space-y-4 border-t-4 border-amber-300 transform translate-y-full transition-transform duration-300" id="side-menu-panel">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-cute text-amber-900 flex items-center gap-2">
+              🍯 꿀맛이얌! 전체 메뉴 바로가기
+            </h3>
+            <button onclick="toggleSideMenu()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-200">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-3 pb-4">
+            <button onclick="drawerNavigate('home')" class="p-4 bg-amber-50 hover:bg-amber-100 rounded-2xl flex flex-col items-center gap-2 border border-amber-200 transition-colors">
+              <span class="text-3xl">🏠</span>
+              <span class="text-xs font-bold text-amber-900">홈화면</span>
+            </button>
+            <button onclick="drawerNavigate('curation')" class="p-4 bg-emerald-50 hover:bg-emerald-100 rounded-2xl flex flex-col items-center gap-2 border border-emerald-200 transition-colors">
+              <span class="text-3xl">🔍</span>
+              <span class="text-xs font-bold text-emerald-900">오늘의 꿀조합</span>
+            </button>
+            <button onclick="drawerNavigate('chat')" class="p-4 bg-yellow-50 hover:bg-yellow-100 rounded-2xl flex flex-col items-center gap-2 border border-yellow-200 transition-colors">
+              <span class="text-3xl">💬</span>
+              <span class="text-xs font-bold text-yellow-900">꿀얌이 토크</span>
+            </button>
+            <button onclick="drawerNavigate('calorie')" class="p-4 bg-lime-50 hover:bg-lime-100 rounded-2xl flex flex-col items-center gap-2 border border-lime-200 transition-colors">
+              <span class="text-3xl">📊</span>
+              <span class="text-xs font-bold text-lime-900">칼로리 측정</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // State machine management
+    const state = {
+      currentView: 'home',
+      viewHistory: ['home'],
+      selectedIngredients: [],
+      // Global counters for dynamic elements
+      dynamicPostIdCounter: 10,
+      selectedPostEmoji: '🍜',
+      availableRecipes: [
+        {
+          name: "식빵 누텔라 발림",
+          ingredients: ["식빵", "누텔라"],
+          desc: "바삭하게 노릇노릇 구운 뜨끈한 식빵에 악마의 잼 누텔라를 슥슥 발라 한 입 먹어봐! 꿀얌이가 장담하는데 우울함이 단번에 사라져! 🍞🍫"
+        },
+        {
+          name: "에이스 누텔라 샌드",
+          ingredients: ["에이스", "누텔라"],
+          desc: "고소하고 짭조름한 에이스 과자 위에 달콤꾸덕한 누텔라를 샌드위치처럼 얹어 먹는 궁극의 단짠 레시피! 🍪🍫"
+        },
+        {
+          name: "참크래커 날치알 레몬 디쉬",
+          ingredients: ["에이스", "날치알", "레몬즙"],
+          desc: "에이스나 담백한 크래커에 톡톡 터지는 식감의 날치알을 올린 뒤, 상콤한 레몬즙을 뿌려봐! 고급 파티 부럽지 않은 극강 꿀조합이야! 🍋🍣"
+        },
+        {
+          name: "신치즈 컵라면 리조또",
+          ingredients: ["라면", "치즈"],
+          desc: "매콤한 신라면 국물에 고소한 슬라이스 치즈를 사르르 한 장 올려서 같이 녹여먹어봐! 국물이 아주 진하고 부드러워져서 기절해! 🍜🧀"
+        },
+        {
+          name: "에그 마요 토스트",
+          ingredients: ["식빵", "계란"],
+          desc: "식빵 테두리에 둥글둥글 마요네즈 벽을 쌓고 가운데 달걀 하나 톡! 소금 한 꼬집 얹어 굽는 마약토스트야! 계란 노른자가 고소함 끝판왕이야! 🍞🥚"
+        },
+        {
+          name: "포테이토 아이스 퐁당",
+          ingredients: ["아이스크림", "에이스"],
+          desc: "차가운 바닐라 아이스크림에 짭짤한 감자칩이나 크래커 과자를 푹 찍어서 드셔보세요! 달고 차가운 식감과 짠맛의 역대급 콜라보! 🍨🍪"
+        },
+        {
+          name: "누텔라 아이스 치크",
+          ingredients: ["누텔라", "아이스크림"],
+          desc: "바닐라 아이스크림 한 컵 위에 누텔라 초콜릿을 전자레인지에 살짝 돌려 리본처럼 둘러 먹어봐! 달콤한 천국으로 날아가요! 🍨🍫"
+        },
+        {
+          name: "날치알 계란 비빔밥",
+          ingredients: ["날치알", "계란"],
+          desc: "뜨끈한 밥 위에 달걀 반숙 올리고 날치알 듬뿍 올려서 간장 쪼르륵 비벼먹는 세상 간편하고 입안 가득 춤을 추는 맛있는 조합! 🥚🍣"
+        },
+        {
+          name: "더블 치즈 마요 샌드",
+          ingredients: ["식빵", "치즈"],
+          desc: "식빵 사이에 체다치즈, 모짜렐라 치즈를 듬뿍 넣고 구워내어 쭉- 늘려 먹는 환상 길거리 토스트 완성! 🍞🧀"
+        },
+        {
+          name: "레몬에이드 바닐라 셔벗",
+          ingredients: ["레몬즙", "아이스크림"],
+          desc: "컵에 레몬즙과 탄산수를 채운 뒤 그 위에 바닐라 아이스크림 한 스쿱을 둥둥 띄우면 아주 이색적이고 풍미 가득한 소다 완성! 🍨🍋"
+        }
+      ],
+      // Subject list for Camera simulator
+      cameraSubjects: [
+        { emoji: "🍳", name: "날달걀" },
+        { emoji: "🍋", name: "상큼레몬" },
+        { emoji: "🍫", name: "누텔라초콜릿" },
+        { emoji: "🍞", name: "부드러운식빵" },
+        { emoji: "🧀", name: "체다치즈" },
+        { emoji: "🍣", name: "톡톡날치알" }
+      ],
+      currentSubjectIndex: 0
+    };
+
+    // View changer
+    function changeView(viewName) {
+      playCuteSound('click');
+      
+      // Update panels active states
+      const panels = document.querySelectorAll('.view-panel');
+      panels.forEach(p => p.classList.add('hidden'));
+      
+      const targetView = document.getElementById(`view-${viewName}`);
+      if (targetView) {
+        targetView.classList.remove('hidden');
+        state.currentView = viewName;
+        // Keep history
+        if (state.viewHistory[state.viewHistory.length - 1] !== viewName) {
+          state.viewHistory.push(viewName);
+        }
+      }
+    }
+
+    // Go back in history
+    function goBack() {
+      if (state.viewHistory.length > 1) {
+        playCuteSound('click');
+        state.viewHistory.pop(); // remove current
+        const prev = state.viewHistory[state.viewHistory.length - 1];
+        
+        const panels = document.querySelectorAll('.view-panel');
+        panels.forEach(p => p.classList.add('hidden'));
+        
+        const targetView = document.getElementById(`view-${prev}`);
+        if (targetView) {
+          targetView.classList.remove('hidden');
+          state.currentView = prev;
+        }
+      }
+    }
+
+    // Drawer handlers
+    function toggleSideMenu() {
+      playCuteSound('click');
+      const drawer = document.getElementById('side-menu-drawer');
+      const panel = document.getElementById('side-menu-panel');
+      if (drawer.classList.contains('hidden')) {
+        drawer.classList.remove('hidden');
+        setTimeout(() => {
+          panel.classList.remove('translate-y-full');
+        }, 10);
+      } else {
+        panel.classList.add('translate-y-full');
+        setTimeout(() => {
+          drawer.classList.add('hidden');
+        }, 300);
+      }
+    }
+
+    function drawerNavigate(view) {
+      toggleSideMenu();
+      if (view === 'curation') {
+        startCuration();
+      } else {
+        changeView(view);
+      }
+    }
+
+    // Geolocation and Weather processing (Open-Meteo API)
+    async function initWeather() {
+      try {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(async (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            
+            // 1. Get city region name (using free BigDataCloud reverse geocode)
+            let region = "우리 동네";
+            try {
+              const geoUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`;
+              const geoRes = await fetch(geoUrl);
+              const geoData = await geoRes.json();
+              region = geoData.locality || geoData.city || geoData.principalSubdivision || "우리 동네";
+            } catch (e) {
+              console.log("Region parsing error, using default");
+            }
+
+            // 2. Get Weather
+            const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+            const weatherRes = await fetch(weatherUrl);
+            const weatherData = await weatherRes.json();
+            const temp = Math.round(weatherData.current_weather.temperature);
+            const code = weatherData.current_weather.weathercode;
+            
+            let emoji = "☀️";
+            if (code >= 1 && code <= 3) emoji = "⛅";
+            else if (code >= 45 && code <= 48) emoji = "🌫️";
+            else if (code >= 51 && code <= 67) emoji = "🌧️";
+            else if (code >= 71 && code <= 77) emoji = "❄️";
+            else if (code >= 80 && code <= 82) emoji = "🌦️";
+            else if (code >= 95) emoji = "⛈️";
+
+            document.getElementById('weather-info').innerHTML = `📍 ${region} | ${emoji} ${temp}°C`;
+          }, (err) => {
+            document.getElementById('weather-info').innerHTML = "📍 날씨 정보 없음 🌥️";
+          });
+        } else {
+          document.getElementById('weather-info').innerHTML = "📍 날씨 정보 없음 🌥️";
+        }
+      } catch (e) {
+        document.getElementById('weather-info').innerHTML = "📍 날씨 정보 없음 🌥️";
+      }
+    }
+
+    // Live clock update
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      let minutes = now.getMinutes();
+      if (hours < 10) hours = '0' + hours;
+      if (minutes < 10) minutes = '0' + minutes;
+      document.getElementById('digital-clock').innerText = `${hours}:${minutes}`;
+    }
+
+    // Curation Flow trigger
+    function startCuration() {
+      state.selectedIngredients = [];
+      const btnElements = document.querySelectorAll('.ingredient-btn');
+      btnElements.forEach(btn => {
+        btn.classList.remove('bg-emerald-100', 'border-emerald-500', 'ring-2', 'ring-emerald-300');
+        btn.classList.add('bg-white', 'border-slate-200');
+      });
+      document.getElementById('selected-list-text').innerText = "선택 없음";
+      changeView('curation-step1');
+    }
+
+    function toggleIngredientSelection(elem, name) {
+      playCuteSound('click');
+      const idx = state.selectedIngredients.indexOf(name);
+      if (idx > -1) {
+        state.selectedIngredients.splice(idx, 1);
+        elem.classList.remove('bg-emerald-100', 'border-emerald-500', 'ring-2', 'ring-emerald-300');
+        elem.classList.add('bg-white', 'border-slate-200');
+      } else {
+        state.selectedIngredients.push(name);
+        elem.classList.add('bg-emerald-100', 'border-emerald-500', 'ring-2', 'ring-emerald-300');
+        elem.classList.remove('bg-white', 'border-slate-200');
+      }
+
+      const listText = document.getElementById('selected-list-text');
+      if (state.selectedIngredients.length > 0) {
+        listText.innerText = state.selectedIngredients.join(', ');
+      } else {
+        listText.innerText = "선택 없음";
+      }
+    }
+
+    function submitIngredientsForCuration() {
+      if (state.selectedIngredients.length === 0) {
+        alert("최소 1개 이상의 재료를 선택해 줘! 그래야 꿀얌이가 맛난 레시피를 만들어주지! 🍯");
+        return;
+      }
+      
+      // Navigate to Analyzing view
+      changeView('curation-step2');
+      const fillBar = document.getElementById('progress-bar-fill');
+      fillBar.style.width = '0%';
+      
+      // Simulate analysis with rotating bar
+      setTimeout(() => {
+        fillBar.style.width = '100%';
+      }, 100);
+
+      setTimeout(() => {
+        // Complete Curation process and show results
+        generateRandomRecipeRecommendations();
+        changeView('curation-step3');
+        playCuteSound('success');
+      }, 2300);
+    }
+
+    // Generate random 2-3 combinations based on user criteria from total pool
+    function generateRandomRecipeRecommendations() {
+      const resultsContainer = document.getElementById('recipe-results-list');
+      resultsContainer.innerHTML = '';
+
+      // Filter recipes that have at least one chosen ingredient (or fallback to cute randomly picked ones if none fully match)
+      let matched = state.availableRecipes.filter(recipe => {
+        return recipe.ingredients.some(ing => state.selectedIngredients.includes(ing));
+      });
+
+      // Fallback if no matching ingredients (random pick 3 recipes)
+      if (matched.length === 0) {
+        matched = [...state.availableRecipes];
+      }
+
+      // Shuffle matched recipes pool
+      const shuffled = matched.sort(() => 0.5 - Math.random());
+      // Pick 2-3 recipes
+      const picked = shuffled.slice(0, Math.min(3, Math.max(2, shuffled.length)));
+
+      // Render cards
+      picked.forEach(recipe => {
+        const ingredientsHTML = recipe.ingredients.map(ing => 
+          `<span class="bg-amber-100 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-full">${ing}</span>`
+        ).join(' ');
+
+        const card = document.createElement('div');
+        card.className = "bg-white border-2 border-amber-200 rounded-3xl p-4 shadow-sm space-y-3 relative overflow-hidden";
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+              ⭐ ${recipe.name}
+            </h4>
+            <div class="flex gap-1">${ingredientsHTML}</div>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed font-semibold">
+            ${recipe.desc}
+          </p>
+          
+          <!-- Cute interactive shopper call-out requested by kid developer -->
+          <div class="bg-emerald-50 rounded-2xl p-2.5 border border-emerald-100 flex items-center justify-between">
+            <span class="text-[9px] font-bold text-emerald-800">재료가 다 있는지 냉장고 확인!</span>
+            <button onclick="promptShopping('${recipe.ingredients[0]}')" class="text-[9px] bg-emerald-500 hover:bg-emerald-600 text-white font-cute px-2.5 py-1.5 rounded-xl shadow-sm">
+              <i class="fa-solid fa-cart-shopping"></i> 장보기
+            </button>
+          </div>
+        `;
+        resultsContainer.appendChild(card);
+      });
+    }
+
+    // Modal Shopping dialog prompt
+    function promptShopping(itemName) {
+      playCuteSound('click');
+      const modal = document.getElementById('shopping-modal');
+      const panel = modal.querySelector('div');
+      const link = document.getElementById('modal-shopping-link');
+      
+      // Update link URL dynamic
+      link.href = `https://search.shopping.naver.com/search/all?query=${encodeURIComponent(itemName)}`;
+      
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        panel.classList.remove('scale-95');
+        panel.classList.add('scale-100');
+      }, 50);
+    }
+
+    function closeShoppingModal() {
+      playCuteSound('click');
+      const modal = document.getElementById('shopping-modal');
+      modal.classList.add('hidden');
+    }
+
+    // Open and Close Event Modal
+    function openEventModal() {
+      playCuteSound('click');
+      const modal = document.getElementById('event-modal');
+      const panel = modal.querySelector('div');
+      document.getElementById('event-recipe').value = ''; // Reset input
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        panel.classList.remove('scale-95');
+        panel.classList.add('scale-100');
+      }, 50);
+    }
+
+    function closeEventModal() {
+      playCuteSound('click');
+      const modal = document.getElementById('event-modal');
+      modal.classList.add('hidden');
+    }
+
+    // Submit Event Entry with stamp animation
+    function submitEventEntry() {
+      const author = document.getElementById('event-author').value.trim();
+      const recipe = document.getElementById('event-recipe').value.trim();
+
+      if (!recipe) {
+        alert("이벤트에 응모할 맛있는 꿀조합 레시피를 꼭 입력해줘! 🍯");
+        return;
+      }
+
+      playCuteSound('success');
+      // Hide event input modal
+      closeEventModal();
+
+      // Set and show dynamic success toast
+      const successMessage = document.getElementById('event-success-message');
+      successMessage.innerHTML = `
+        <strong>[${author}]</strong> 꿀꿀이님의 기발한 레시피:<br>
+        <span class="text-[10px] text-emerald-700 italic">"${recipe}"</span><br>
+        가 성공적으로 이벤트에 접수되었습니다! 꿀얌이가 바나나우유 추첨 통에 쏙 넣었어요! 🍌💛
+      `;
+
+      const toast = document.getElementById('event-success-toast');
+      toast.classList.remove('hidden');
+    }
+
+    function closeSuccessToast() {
+      playCuteSound('click');
+      document.getElementById('event-success-toast').classList.add('hidden');
+    }
+
+    // Calorie scanning simulator
+    function triggerCalorieScan() {
+      playCuteSound('scan');
+      const scanBar = document.getElementById('scan-bar');
+      const scanLabel = document.getElementById('scan-progress-label');
+      const resultText = document.getElementById('calorie-text');
+
+      scanBar.classList.remove('hidden');
+      scanLabel.classList.remove('hidden');
+      resultText.innerText = "삐빅- 스캔 분석 중...";
+
+      setTimeout(() => {
+        scanBar.classList.add('hidden');
+        scanLabel.classList.add('hidden');
+        
+        // Match the 324kcal from drawing with a slight cute deviation to look real!
+        const randomCalories = [324, 280, 410, 312, 195, 345];
+        const val = randomCalories[Math.floor(Math.random() * randomCalories.length)];
+        resultText.innerText = `🔥 칼로리 ${val} 칼로리입니다.`;
+        playCuteSound('success');
+      }, 2500);
+    }
+
+    // Chat Simulator logic
+    function sendMessageToKkulyam() {
+      const input = document.getElementById('chat-input-field');
+      const text = input.value.trim();
+      if (!text) return;
+
+      playCuteSound('click');
+      appendChatMessage('user', text);
+      input.value = '';
+
+      // Chat Mascot automated sweet feedback
+      setTimeout(() => {
+        let reply = "";
+        if (text.includes("누텔라")) {
+          reply = "오! 꿀꿀아 누텔라는 에이스나 잘 구운 식빵, 모닝빵에 발라먹으면 극락 완성이지! 바나나랑 같이 먹어도 진짜 꿀맛이야! 🍫🍌";
+        } else if (text.includes("불닭") || text.includes("라면")) {
+          reply = "🍜 매콤한 라면이나 불닭에는 스트링치즈나 달걀 반숙을 얹으면 훨씬 부드러워져서 국물까지 순삭할 수 있지롱! 삼각김밥도 같이 쪼개서 먹어봐!";
+        } else if (text.includes("아이스크림") || text.includes("디저트")) {
+          reply = "🍨 달콤 시원 바닐라 아이스크림엔 올리브유 살짝과 검은 후추를 톡톡 갈아 올리면 놀랍도록 비싸고 오묘한 명품 맛이 나! 완전 인스타 맛집 같아!";
+        } else if (text.includes("안녕") || text.includes("누구")) {
+          reply = "안녕 꿀꿀아! 나는 맛있는 꿀조합 탐험가 '꿀얌이'야! 우리 집에 맛있는 간식 꿀조합 뭐 없나 물어보고 싶으면 언제든 말해봐! 🍯✨";
+        } else {
+          reply = `우와! ${text} 조합이라니 우리 꿀꿀이 아이디어 엄청 참신한걸? 여기에 치즈를 살포시 한 장 얹거나 달콤한 꿀이나 올리고당 한 스푼을 돌려주면 맛이 2배로 살아나! 🍯😋`;
+        }
+        appendChatMessage('bot', reply);
+        playCuteSound('success');
+      }, 1000);
+    }
+
+    function sendQuickMessage(text) {
+      appendChatMessage('user', text);
+      setTimeout(() => {
+        let reply = "";
+        if (text.includes("불닭소스")) {
+          reply = "🔥 불닭소스는 삶은 만두에 뿌려서 '불닭비빔만두'로 만들어 먹거나 삼각김밥에 마요네즈와 불닭소스를 듬뿍 넣고 슥슥 비벼 김에 싸 먹으면 한 공기 뚝딱이야!";
+        } else if (text.includes("치즈 말고")) {
+          reply = "🍜 라면에 계란 대신 식빵 한 조각을 국물 위에 올려서 치즈처럼 녹여 먹는 '식빵라면 브레드탕'이나, 순두부를 숭덩숭덩 잘라 넣으면 대존맛 완성이지!";
+        } else {
+          reply = "🍨 차가운 아이스크림 위에 크래커 과자를 부숴서 크런치로 올리고 연유나 꿀을 살짝 뿌려봐! 바삭함과 달콤함이 최고의 디저트가 될 거야!";
+        }
+        appendChatMessage('bot', reply);
+        playCuteSound('success');
+      }, 1000);
+    }
+
+    function appendChatMessage(sender, text) {
+      const container = document.getElementById('chat-messages-container');
+      const bubble = document.createElement('div');
+      
+      if (sender === 'user') {
+        bubble.className = "flex justify-end";
+        bubble.innerHTML = `
+          <div class="max-w-[75%] space-y-0.5">
+            <div class="text-right text-[9px] text-slate-400 pr-1.5">꿀꿀이 48일</div>
+            <div class="bg-yellow-100 text-slate-800 p-2.5 rounded-2xl rounded-tr-none shadow-sm font-semibold">
+              ${text}
+            </div>
+          </div>
+        `;
+      } else {
+        bubble.className = "flex items-start gap-2";
+        bubble.innerHTML = `
+          <div class="w-8 h-8 bg-amber-200 rounded-lg shrink-0 flex items-center justify-center text-sm shadow-inner">🍯</div>
+          <div class="max-w-[75%] space-y-0.5">
+            <div class="text-slate-500 text-[9px] pl-1">꿀얌이</div>
+            <div class="bg-white border border-amber-200 text-slate-800 p-2.5 rounded-2xl rounded-tl-none shadow-sm font-semibold leading-relaxed">
+              ${text}
+            </div>
+          </div>
+        `;
+      }
+      
+      container.appendChild(bubble);
+      // Auto scroll to bottom
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // Community post comments
+    function addPostComment(postId) {
+      const input = document.getElementById(`comment-input-${postId}`);
+      const text = input.value.trim();
+      if (!text) return;
+
+      playCuteSound('click');
+      const container = document.getElementById(`dynamic-comments-${postId}`);
+      const c = document.createElement('div');
+      c.className = "text-[11px] leading-relaxed border-b border-slate-200/50 pb-1 flex items-start gap-1";
+      c.innerHTML = `
+        <span class="font-bold text-slate-800 shrink-0">나(꿀꿀이):</span>
+        <span class="text-slate-600">${text}</span>
+      `;
+      container.appendChild(c);
+      input.value = '';
+    }
+
+    // Like post toggle
+    function toggleLikePost(btn, counterId) {
+      playCuteSound('click');
+      const heartIcon = btn.querySelector('i');
+      const countSpan = document.getElementById(counterId);
+      let count = parseInt(countSpan.innerText);
+
+      if (heartIcon.classList.contains('fa-regular')) {
+        heartIcon.classList.remove('fa-regular', 'text-slate-400');
+        heartIcon.classList.add('fa-solid', 'text-rose-500');
+        countSpan.innerText = count + 1;
+      } else {
+        heartIcon.classList.remove('fa-solid', 'text-rose-500');
+        heartIcon.classList.add('fa-regular', 'text-slate-400');
+        countSpan.innerText = count - 1;
+      }
+    }
+
+    // Camera Simulator Logic
+    function openCameraSimulation() {
+      state.currentSubjectIndex = 0;
+      updateCameraSubject();
+      changeView('camera-sim');
+    }
+
+    // Open and Close Post Modal
+    function openUploadPostModal() {
+      playCuteSound('click');
+      const modal = document.getElementById('upload-post-modal');
+      const panel = modal.querySelector('div');
+      
+      // Reset defaults
+      document.getElementById('post-content').value = '';
+      document.getElementById('post-tags').value = '';
+      state.selectedPostEmoji = '🍜';
+      
+      const emojiBtns = document.querySelectorAll('.emoji-select-btn');
+      emojiBtns.forEach((btn, idx) => {
+        if(idx === 0) {
+          btn.className = "emoji-select-btn w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-xl border-2 border-emerald-400 ring-2 ring-emerald-300";
+        } else {
+          btn.className = "emoji-select-btn w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-xl border border-slate-200";
+        }
+      });
+
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        panel.classList.remove('scale-95');
+        panel.classList.add('scale-100');
+      }, 50);
+    }
+
+    function closeUploadPostModal() {
+      playCuteSound('click');
+      const modal = document.getElementById('upload-post-modal');
+      modal.classList.add('hidden');
+    }
+
+    function selectPostIcon(emoji, elem) {
+      playCuteSound('click');
+      state.selectedPostEmoji = emoji;
+      const emojiBtns = document.querySelectorAll('.emoji-select-btn');
+      emojiBtns.forEach(btn => {
+        btn.className = "emoji-select-btn w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-xl border border-slate-200";
+      });
+      elem.className = "emoji-select-btn w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-xl border-2 border-emerald-400 ring-2 ring-emerald-300";
+    }
+
+    function submitNewPost() {
+      const nickname = document.getElementById('post-nickname').value.trim();
+      const content = document.getElementById('post-content').value.trim();
+      let tagsInput = document.getElementById('post-tags').value.trim();
+
+      if (!content) {
+        alert("우리 꿀꿀이들을 위한 꿀조합 자랑글 내용을 작성해줘! 🍯");
+        return;
+      }
+
+      playCuteSound('success');
+      state.dynamicPostIdCounter += 1;
+      const currentId = state.dynamicPostIdCounter;
+
+      // Handle tags display formatting
+      if (tagsInput && !tagsInput.startsWith('#')) {
+        tagsInput = tagsInput.split(',').map(t => t.trim().startsWith('#') ? t.trim() : '#' + t.trim()).join(' ');
+      } else if (!tagsInput) {
+        tagsInput = "#내가만든 #꿀조합 #냠냠";
+      }
+
+      // Generate dynamic SVG based on selected Emoji
+      let sampleSvg = '';
+      if (state.selectedPostEmoji === '🍜') {
+        sampleSvg = `
+          <svg class="w-32 h-32 opacity-90" viewBox="0 0 100 100">
+            <ellipse cx="50" cy="78" rx="35" ry="8" fill="#E2E8F0"/>
+            <path d="M 28 42 L 34 72 Q 50 78 66 72 L 72 42 Z" fill="#EF4444" stroke="#DC2626" stroke-width="2"/>
+            <path d="M 32 44 Q 38 41 44 44 T 56 44 T 68 44" stroke="#FBBF24" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <rect x="40" y="40" width="22" height="20" rx="4" fill="#FCD34D" stroke="#F59E0B" stroke-width="1.5" transform="rotate(15, 50, 50)"/>
+          </svg>
+        `;
+      } else if (state.selectedPostEmoji === '🍳') {
+        sampleSvg = `
+          <svg class="w-32 h-32 opacity-90" viewBox="0 0 100 100">
+            <ellipse cx="50" cy="70" rx="38" ry="12" fill="#E2E8F0"/>
+            <rect x="25" y="38" width="50" height="25" rx="12" fill="#F1F5F9" stroke="#94A3B8" stroke-width="2"/>
+            <circle cx="45" cy="50" r="8" fill="#F59E0B" stroke="#D97706" stroke-width="1"/>
+            <circle cx="55" cy="48" r="8" fill="#FBBF24" stroke="#D97706" stroke-width="1"/>
+          </svg>
+        `;
+      } else if (state.selectedPostEmoji === '🍞') {
+        sampleSvg = `
+          <svg class="w-32 h-32 opacity-90" viewBox="0 0 100 100">
+            <ellipse cx="50" cy="75" rx="35" ry="10" fill="#E2E8F0"/>
+            <rect x="28" y="42" width="44" height="28" rx="4" fill="#F59E0B" stroke="#D97706" stroke-width="2"/>
+            <path d="M 32 50 Q 40 45 48 52 T 64 50 T 68 55" stroke="#78350F" stroke-width="5" stroke-linecap="round" fill="none"/>
+          </svg>
+        `;
+      } else if (state.selectedPostEmoji === '🍫') {
+        sampleSvg = `
+          <svg class="w-32 h-32 opacity-90" viewBox="0 0 100 100">
+            <rect x="30" y="30" width="40" height="40" rx="6" fill="#78350F" stroke="#451A03" stroke-width="2"/>
+            <rect x="35" y="35" width="12" height="12" fill="#B45309" rx="2"/>
+            <rect x="53" y="35" width="12" height="12" fill="#B45309" rx="2"/>
+            <rect x="35" y="53" width="12" height="12" fill="#B45309" rx="2"/>
+            <rect x="53" y="53" width="12" height="12" fill="#B45309" rx="2"/>
+          </svg>
+        `;
+      } else { // 🧀
+        sampleSvg = `
+          <svg class="w-32 h-32 opacity-90" viewBox="0 0 100 100">
+            <path d="M 25 65 L 75 65 L 65 35 Z" fill="#FCD34D" stroke="#F59E0B" stroke-width="2"/>
+            <circle cx="45" cy="52" r="3" fill="#D97706" opacity="0.6"/>
+            <circle cx="55" cy="58" r="4" fill="#D97706" opacity="0.6"/>
+            <circle cx="35" cy="60" r="2.5" fill="#D97706" opacity="0.6"/>
+          </svg>
+        `;
+      }
+
+      // Create new post element HTML
+      const newPostHtml = `
+        <div class="bg-white border-2 border-emerald-100 rounded-3xl p-4 shadow-md space-y-3 relative overflow-hidden transition-all duration-300 transform scale-95 translate-y-2" style="animation: bounce-slow 1s forwards">
+          <!-- Post Header -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-300 flex items-center justify-center text-sm">
+                ${state.selectedPostEmoji}
+              </div>
+              <div>
+                <div class="text-xs font-bold text-slate-800">${nickname} (나)</div>
+                <div class="text-[9px] text-slate-400">방금 전 • 조회 1</div>
+              </div>
+            </div>
+            <span class="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-2 py-0.5 rounded-full">갓 올린 맛글✨</span>
+          </div>
+
+          <p class="text-xs text-slate-700 font-semibold leading-relaxed">
+            ${content}
+          </p>
+
+          <!-- Food Picture Box -->
+          <div class="w-full h-36 bg-emerald-50/50 rounded-2xl border-2 border-dashed border-emerald-200 overflow-hidden relative flex flex-col items-center justify-center">
+            ${sampleSvg}
+            <div class="absolute bottom-2 right-3 bg-emerald-600/80 text-white text-[9px] px-2 py-0.5 rounded-full font-sans">
+              ${tagsInput}
+            </div>
+          </div>
+
+          <!-- Like & Comments Interactive Buttons -->
+          <div class="flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500 font-semibold">
+            <button onclick="toggleLikePost(this, 'like-count-${currentId}')" class="flex items-center gap-1.5 hover:text-rose-500 transition-colors">
+              <i class="fa-regular fa-heart text-base text-slate-400"></i> 하트 <span id="like-count-${currentId}">0</span>개
+            </button>
+            <span class="text-[10px] text-slate-400 font-normal">댓글 0개</span>
+          </div>
+
+          <!-- Comments Section -->
+          <div class="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+            <div id="dynamic-comments-${currentId}" class="space-y-1"></div>
+            <div class="flex gap-1.5 mt-2">
+              <input id="comment-input-${currentId}" type="text" placeholder="댓글을 써보세요..." class="flex-1 text-[11px] px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+              <button onclick="addPostComment(${currentId})" class="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-3 rounded-xl transition-colors">등록</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Prepend to posts list container
+      const container = document.getElementById('community-posts-list');
+      container.insertAdjacentHTML('afterbegin', newPostHtml);
+      
+      closeUploadPostModal();
+      
+      // Stamp-like notification
+      const successMessage = document.getElementById('event-success-message');
+      successMessage.innerHTML = `
+        <strong>[${nickname}]</strong> 대장 꿀꿀이님의 꿀조합이 성공적으로 소통 피드에 올라갔어요! 다른 친구들이 벌써 맛보러 달려옵니다! 🏃‍♂️💨
+      `;
+      document.getElementById('event-success-toast').classList.remove('hidden');
+    }
+
+    function rotateCameraSubject(dir) {
+      playCuteSound('click');
+      state.currentSubjectIndex = (state.currentSubjectIndex + dir + state.cameraSubjects.length) % state.cameraSubjects.length;
+      updateCameraSubject();
+    }
+
+    function updateCameraSubject() {
+      const item = state.cameraSubjects[state.currentSubjectIndex];
+      document.getElementById('camera-subject-view').innerText = item.emoji;
+      document.getElementById('camera-subject-name').innerText = item.name;
+    }
+
+    function triggerCameraCapture() {
+      playCuteSound('scan');
+      const item = state.cameraSubjects[state.currentSubjectIndex];
+      // Convert name to simplified ingredient query
+      let ingredientQuery = "식빵";
+      if (item.name.includes("달걀")) ingredientQuery = "계란";
+      else if (item.name.includes("레몬")) ingredientQuery = "레몬즙";
+      else if (item.name.includes("누텔라")) ingredientQuery = "누텔라";
+      else if (item.name.includes("치즈")) ingredientQuery = "치즈";
+      else if (item.name.includes("날치알")) ingredientQuery = "날치알";
+
+      state.selectedIngredients = [ingredientQuery];
+      
+      // Flash screen simulation
+      const screen = document.getElementById('view-camera-sim');
+      screen.classList.add('opacity-30');
+      setTimeout(() => {
+        screen.classList.remove('opacity-30');
+        // Go straight to step 2 analyzing
+        changeView('curation-step2');
+        const fillBar = document.getElementById('progress-bar-fill');
+        fillBar.style.width = '0%';
+        setTimeout(() => fillBar.style.width = '100%', 100);
+
+        setTimeout(() => {
+          generateRandomRecipeRecommendations();
+          changeView('curation-step3');
+          playCuteSound('success');
+        }, 2000);
+      }, 150);
+    }
+
+    window.onload = function () {
+      initWeather();
+      updateClock();
+      setInterval(updateClock, 60000);
+    }
+  </script>
+</body>
+</html>

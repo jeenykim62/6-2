@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나만의 감성 책방 - 책갈피</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons for Beautiful UI -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & Nanum Pen Script for Emotional Cozy Vibe -->
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .handwritten {
+            font-family: 'Gaegu', cursive;
+        }
+        /* Custom pastel shadow and soft transitions */
+        .pastel-card {
+            box-shadow: 0 8px 24px rgba(149, 157, 165, 0.15);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .pastel-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(149, 157, 165, 0.25);
+        }
+        /* Pulse animation for analysis */
+        @keyframes pulse-soft {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+        .pulse-book {
+            animation: pulse-soft 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 overflow-x-hidden select-none">
+
+    <!-- SMARTPHONE TEMPLATE CONTAINER -->
+    <div class="relative w-full max-w-[410px] h-[820px] bg-slate-900 rounded-[50px] p-3 shadow-2xl border-4 border-slate-800 flex flex-col overflow-hidden">
+        
+        <!-- Smartphone Top Notch (Camera, Speaker) -->
+        <div class="absolute top-4 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-full z-50 flex items-center justify-center gap-1.5">
+            <div class="w-3 h-3 bg-slate-800 rounded-full"></div>
+            <div class="w-12 h-1 bg-slate-800 rounded-full"></div>
+        </div>
+
+        <!-- APP CONTENT SCREEN (All pages inside) -->
+        <div class="relative w-full h-full bg-[#f6f9fc] rounded-[40px] overflow-hidden flex flex-col justify-between pt-8 pb-14">
+            
+            <!-- Top Status Bar inside the app -->
+            <div class="px-6 pt-2 flex justify-between items-center text-xs text-slate-500 font-semibold">
+                <span id="live-time">10:11 AM</span>
+                <div class="flex items-center gap-1">
+                    <span id="weather-top-display" class="flex items-center gap-1 bg-white/80 px-2 py-0.5 rounded-full text-[10px] text-sky-700 shadow-sm">
+                        <i class="fa-solid fa-spinner animate-spin"></i> 위치 확인 중
+                    </span>
+                    <i class="fa-solid fa-wifi"></i>
+                    <i class="fa-solid fa-battery-three-quarters"></i>
+                </div>
+            </div>
+
+            <!-- MAIN CONTENT AREA -->
+            <div class="flex-1 overflow-y-auto px-5 py-3 flex flex-col">
+                
+                <!-- SCREEN 1: START SCREEN (시작 화면) -->
+                <div id="screen-start" class="flex-1 flex flex-col justify-between">
+                    <div class="text-center my-4">
+                        <p class="handwritten text-xl text-sky-600 font-bold tracking-widest">나만의 감성 책방</p>
+                        <h1 class="handwritten text-5xl text-[#e49373] font-bold mt-1 tracking-wider drop-shadow-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-bookmark text-amber-300 text-3xl"></i> 책갈피
+                        </h1>
+                    </div>
+
+                    <!-- Sketch-inspired visual of an open book -->
+                    <div class="flex flex-col items-center justify-center my-6">
+                        <div class="relative bg-white p-6 rounded-3xl pastel-card border border-amber-100 flex items-center justify-center w-48 h-48">
+                            <i class="fa-solid fa-book-open text-7xl text-sky-200"></i>
+                            <i class="fa-solid fa-feather-pointed absolute top-6 right-6 text-2xl text-amber-400"></i>
+                            <!-- Soft cartoonish decorations around -->
+                            <span class="absolute -top-3 -left-3 text-2xl animate-bounce">✨</span>
+                            <span class="absolute -bottom-2 -right-3 text-2xl">🧸</span>
+                        </div>
+                    </div>
+
+                    <!-- Inputs Area -->
+                    <div class="space-y-3 bg-white/70 p-5 rounded-3xl border border-sky-100/60 backdrop-blur-sm shadow-sm">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5 ml-1 flex items-center gap-1">
+                                <i class="fa-solid fa-heart text-rose-300"></i> 너의 멋진 닉네임
+                            </label>
+                            <input id="user-nickname" type="text" placeholder="예: 구름이, 독서왕" 
+                                class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-200 text-slate-700 font-medium">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5 ml-1 flex items-center gap-1">
+                                <i class="fa-solid fa-cake-candles text-amber-300"></i> 너의 나이 (세)
+                            </label>
+                            <input id="user-age" type="number" min="5" max="99" value="13" 
+                                class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-200 text-slate-700 font-medium">
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="mt-6 mb-2">
+                        <button onclick="goToAnalysis()" 
+                            class="w-full bg-gradient-to-r from-sky-300 to-sky-400 hover:from-sky-400 hover:to-sky-500 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-sky-200/50 transform active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <span>책갈피 끼우러 가기!</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <div class="flex justify-center gap-4 mt-3 text-xs text-slate-400">
+                            <span onclick="showInfoModal('intro')" class="cursor-pointer hover:text-slate-600">책갈피란?</span>
+                            <span>|</span>
+                            <span onclick="showInfoModal('help')" class="cursor-pointer hover:text-slate-600">사용법</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCREEN 2: ANALYSIS SCREEN (분석 화면) -->
+                <div id="screen-analysis" class="hidden flex-1 flex flex-col justify-between">
+                    <div class="text-center my-3">
+                        <span class="bg-[#e2f0d9] text-[#548235] text-xs font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-magnifying-glass-chart"></i> 맞춤 추천 분석</span>
+                        <h2 class="text-xl font-bold text-slate-700 mt-2">어떤 감성의 책이 당기나요?</h2>
+                        <p class="text-xs text-slate-400 mt-1">오늘 너에게 딱 어울리는 분위기를 골라줘!</p>
+                    </div>
+
+                    <!-- User and Weather tags -->
+                    <div class="grid grid-cols-2 gap-2 my-2">
+                        <div class="bg-white/90 p-3 rounded-2xl border border-slate-100 flex items-center gap-2 shadow-sm">
+                            <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-500 text-sm">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-[10px] text-slate-400 font-semibold leading-tight">내 정보</p>
+                                <p id="analysis-user-info" class="text-xs font-bold text-slate-700 truncate">13세 (초6)</p>
+                            </div>
+                        </div>
+                        <div class="bg-white/90 p-3 rounded-2xl border border-slate-100 flex items-center gap-2 shadow-sm">
+                            <div class="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sky-500 text-sm">
+                                <i class="fa-solid fa-cloud-sun-rain"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-[10px] text-slate-400 font-semibold leading-tight">현재 날씨</p>
+                                <p id="analysis-weather-info" class="text-xs font-bold text-slate-700 truncate">맑음 ☀️</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Theme Selection (From the kid's sketch detail) -->
+                    <div class="my-4 space-y-3">
+                        <p class="text-xs font-bold text-slate-400 ml-1">오늘의 북 무드 선택하기</p>
+                        
+                        <!-- 3 Choices based on sketch symbols (Warm, Knowledge, Adventure) -->
+                        <div class="grid grid-cols-3 gap-2.5">
+                            <button onclick="selectMood('warm')" id="mood-warm" 
+                                class="mood-btn flex flex-col items-center justify-center p-3 bg-white border-2 border-transparent rounded-2xl shadow-sm text-center transform hover:scale-105 transition-all">
+                                <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-400 flex items-center justify-center text-lg mb-2">
+                                    <i class="fa-solid fa-heart"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-700">따뜻한 감성</span>
+                            </button>
+
+                            <button onclick="selectMood('knowledge')" id="mood-knowledge" 
+                                class="mood-btn flex flex-col items-center justify-center p-3 bg-white border-2 border-transparent rounded-2xl shadow-sm text-center transform hover:scale-105 transition-all">
+                                <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-400 flex items-center justify-center text-lg mb-2">
+                                    <i class="fa-solid fa-graduation-cap"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-700">유익한 지식</span>
+                            </button>
+
+                            <button onclick="selectMood('adventure')" id="mood-adventure" 
+                                class="mood-btn flex flex-col items-center justify-center p-3 bg-white border-2 border-transparent rounded-2xl shadow-sm text-center transform hover:scale-105 transition-all">
+                                <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-lg mb-2">
+                                    <i class="fa-solid fa-compass"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-700">짜릿한 모험</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sketch central open book visualization that rotates/pulses during loading -->
+                    <div id="loading-container" class="hidden flex flex-col items-center justify-center py-4">
+                        <div class="pulse-book flex flex-col items-center">
+                            <i class="fa-solid fa-book-open-reader text-5xl text-sky-300"></i>
+                            <p class="text-xs text-sky-500 font-bold mt-2 animate-bounce">AI가 네게 딱 맞는 책을 고르는 중...</p>
+                        </div>
+                    </div>
+
+                    <!-- Bottom CTA Trigger -->
+                    <div class="mt-3">
+                        <button onclick="startAnalysis()" id="btn-do-analysis"
+                            class="w-full bg-[#a3c9a8] hover:bg-[#8eb994] text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-green-100 transform active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>지금 분석하기!</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SCREEN 3: RESULT SCREEN (결과 화면) -->
+                <div id="screen-result" class="hidden flex-1 flex flex-col justify-between">
+                    <div class="text-center my-3">
+                        <span class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-award"></i> 오늘의 큐레이션</span>
+                        <h2 class="text-xl font-bold text-slate-700 mt-2">오늘 너만을 위한 인생 책!</h2>
+                        <p id="curation-subtitle" class="text-xs text-slate-400 mt-1">맑은 날, 중학생 감성에 어울리는 추천</p>
+                    </div>
+
+                    <!-- Recommended Book Cards (Will be rendered dynamically) -->
+                    <div id="book-results-container" class="space-y-3 my-2 overflow-y-auto max-h-[420px] pr-1">
+                        <!-- Dynamic Cards go here -->
+                    </div>
+
+                    <!-- Finish Message & Reset -->
+                    <div class="mt-4 pt-2 border-t border-slate-100">
+                        <div class="bg-white/85 p-3 rounded-2xl text-center text-xs text-slate-500 mb-3 border border-sky-50/80">
+                            🎈 마음에 드는 책 표지를 누르면 <b>네이버 쇼핑</b>으로 연결되어 책을 구경할 수 있어!
+                        </div>
+                        <button onclick="resetApp()" 
+                            class="w-full bg-slate-300 hover:bg-slate-400 text-white font-bold py-3.5 px-6 rounded-2xl shadow-md transform active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-rotate-right"></i>
+                            <span>처음부터 다시 찾기</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SMARTPHONE BOTTOM NAVIGATION BAR (Fully Functional!) -->
+            <div class="absolute bottom-0 left-0 right-0 h-14 bg-white border-t border-slate-100 flex items-center justify-around px-6 text-slate-400 text-lg rounded-b-[40px] z-40">
+                <button onclick="toggleSideMenu()" class="hover:text-sky-400 p-2 transform active:scale-90 transition-all flex flex-col items-center">
+                    <i class="fa-solid fa-bars text-sm"></i>
+                    <span class="text-[8px] mt-0.5 font-bold">메뉴</span>
+                </button>
+                <button onclick="resetApp()" class="hover:text-sky-400 p-2 transform active:scale-90 transition-all flex flex-col items-center">
+                    <i class="fa-solid fa-house text-sm"></i>
+                    <span class="text-[8px] mt-0.5 font-bold">홈</span>
+                </button>
+                <button onclick="goBack()" class="hover:text-sky-400 p-2 transform active:scale-90 transition-all flex flex-col items-center">
+                    <i class="fa-solid fa-chevron-left text-sm"></i>
+                    <span class="text-[8px] mt-0.5 font-bold">뒤로가기</span>
+                </button>
+            </div>
+
+            <!-- SLIDE MENU OVERLAY (All options function) -->
+            <div id="side-menu" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden transition-all">
+                <div class="absolute top-0 bottom-0 left-0 w-3/4 bg-white p-6 shadow-2xl flex flex-col justify-between rounded-r-[30px] transform -translate-x-full transition-transform duration-300" id="side-menu-content">
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="handwritten text-3xl text-sky-400 font-bold">책갈피 메뉴</h3>
+                            <button onclick="toggleSideMenu()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+                        </div>
+                        <ul class="space-y-4">
+                            <li>
+                                <button onclick="showInfoModal('intro'); toggleSideMenu();" class="w-full text-left py-2 px-3 hover:bg-slate-50 rounded-xl font-semibold text-slate-700 flex items-center gap-2">
+                                    <i class="fa-solid fa-bookmark text-sky-300"></i> 앱 소개
+                                </button>
+                            </li>
+                            <li>
+                                <button onclick="showInfoModal('help'); toggleSideMenu();" class="w-full text-left py-2 px-3 hover:bg-slate-50 rounded-xl font-semibold text-slate-700 flex items-center gap-2">
+                                    <i class="fa-solid fa-circle-question text-amber-300"></i> 어떻게 쓰나요?
+                                </button>
+                            </li>
+                            <li>
+                                <button onclick="showDeveloperMessage(); toggleSideMenu();" class="w-full text-left py-2 px-3 hover:bg-slate-50 rounded-xl font-semibold text-slate-700 flex items-center gap-2">
+                                    <i class="fa-solid fa-code text-emerald-300"></i> 개발자 한마디
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="text-center text-[10px] text-slate-400">
+                        <p>© 2026 책갈피 All Rights Reserved.</p>
+                        <p>만든 이: 꿈꾸는 꿈나무 & AI 파트너</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DYNAMIC DIALOG MODAL (Alert replacement) -->
+            <div id="modal-container" class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-6">
+                <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-[320px] text-center border border-slate-100">
+                    <div id="modal-icon" class="text-4xl mb-3">💡</div>
+                    <h4 id="modal-title" class="text-lg font-bold text-slate-800 mb-2">알림</h4>
+                    <p id="modal-body" class="text-xs text-slate-500 leading-relaxed mb-5">여기에 안내 메시지가 들어갑니다.</p>
+                    <button onclick="closeModal()" class="w-full bg-sky-300 hover:bg-sky-400 text-white font-bold py-2.5 rounded-xl text-sm transform active:scale-95 transition-all">확인</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- 1. BOOK DATABASE (Age, Weather, Mood matching curation pool of 15 realistic items) ---
+        // Ages categories: 어린이(Children 1-12), 청소년(Teens 13-18), 성인(Adults 19+)
+        // Moode categories: warm, knowledge, adventure
+        const bookDatabase = [
+            // Children Books (1-12)
+            {
+                title: "책 먹는 여우",
+                author: "프란치스카 비어만",
+                mood: "warm",
+                ageGroup: "children",
+                weather: ["sunny", "cloudy"],
+                reason: "맑은 날 독서에 푹 빠져서 책을 소금과 후추에 찍어먹어 보고 싶어질 만큼 유쾌해지는 기분 좋은 책이에요!",
+                coverEmoji: "🦊📚"
+            },
+            {
+                title: "마당을 나온 암탉",
+                author: "황선미",
+                mood: "warm",
+                ageGroup: "children",
+                weather: ["rainy", "cloudy"],
+                reason: "비 오거나 흐린 날, 촉촉한 감성에 젖어 알을 품고 세상을 향해 나아가는 잎싹이의 뜨거운 가족애를 느껴보세요.",
+                coverEmoji: "🐔🥚"
+            },
+            {
+                title: "이상한 과자 가게 전천당",
+                author: "히로시마 레이코",
+                mood: "adventure",
+                ageGroup: "children",
+                weather: ["sunny", "cloudy", "rainy"],
+                reason: "상상 속에만 존재하던 요상하고 신기방기한 과자들이 가득한 가게로 짜릿한 모험을 함께 떠나볼까요?",
+                coverEmoji: "🏪🍬"
+            },
+            {
+                title: "만화로 보는 그리스 로마 신화",
+                author: "토마스 불핀치",
+                mood: "knowledge",
+                ageGroup: "children",
+                weather: ["sunny"],
+                reason: "햇살 가득 맑은 날, 세상을 가득 채운 흥미로운 올림포스 신들의 역사와 재미있는 이야기 지식을 쏙쏙 채워요!",
+                coverEmoji: "⚡🏛️"
+            },
+            {
+                title: "초등 과학 실험실",
+                author: "과학연구회",
+                mood: "knowledge",
+                ageGroup: "children",
+                weather: ["rainy"],
+                reason: "밖에 나가 놀지 못해 심심한 비 오는 날! 집안의 도구들을 사용해 재미있고 신기한 과학 지식 탐험가가 되어보세요.",
+                coverEmoji: "🧪🔬"
+            },
+
+            // Teens Books (13-18)
+            {
+                title: "아몬드",
+                author: "손원평",
+                mood: "warm",
+                ageGroup: "teens",
+                weather: ["cloudy", "rainy"],
+                reason: "감정을 느끼지 못하는 소년 윤재의 따뜻한 성장 일기를 통해 타인의 마음을 헤아리는 깊은 감동을 선물해요.",
+                coverEmoji: "🪵🌰"
+            },
+            {
+                title: "체리새우: 비밀글입니다",
+                author: "황영미",
+                mood: "warm",
+                ageGroup: "teens",
+                weather: ["sunny"],
+                reason: "싱그러운 햇살 아래, 은따를 극복하고 진짜 나를 지키는 법을 깨닫는 우리들의 풋풋하고 따뜻한 우정 이야기예요.",
+                coverEmoji: "🍒🦐"
+            },
+            {
+                title: "시간을 파는 상점",
+                author: "김선영",
+                mood: "adventure",
+                ageGroup: "teens",
+                weather: ["sunny", "cloudy"],
+                reason: "시간을 사고파는 기묘한 의뢰들이 이어지는 상점! 주인공 온조와 함께 심장을 울리는 미스터리를 해결하러 가볼까요?",
+                coverEmoji: "⏳✉️"
+            },
+            {
+                title: "스프린터: 빛의 도전자들",
+                author: "박하경",
+                mood: "adventure",
+                ageGroup: "teens",
+                weather: ["sunny"],
+                reason: "청춘들의 달리기 시합처럼 가슴 뛰는 전율과 모험이 가득한 에너지 넘치는 책으로, 맑은 날 최고의 몰입을 선사합니다.",
+                coverEmoji: "🏃‍♂️💨"
+            },
+            {
+                title: "청소년을 위한 경제학 스쿨",
+                author: "김민우",
+                mood: "knowledge",
+                ageGroup: "teens",
+                weather: ["cloudy", "rainy"],
+                reason: "차분한 날, 우리가 매일 사용하는 돈의 비밀과 똑똑한 경제 규칙들을 쉽게 풀어내며 세상을 읽는 똑똑한 지식 눈을 떠줘요.",
+                coverEmoji: "📈💰"
+            },
+
+            // Adult Books (19+)
+            {
+                title: "불편한 편의점",
+                author: "김호연",
+                mood: "warm",
+                ageGroup: "adults",
+                weather: ["rainy", "cloudy"],
+                reason: "비 내리는 저녁, 한 구석 따뜻한 가로등 아래 청파동 골목 편의점에서 일어나는 가슴 몽글몽글한 힐링 위로 처방전.",
+                coverEmoji: "🏪🏪"
+            },
+            {
+                title: "메리골드 마음 세탁소",
+                author: "윤정은",
+                mood: "warm",
+                ageGroup: "adults",
+                weather: ["sunny"],
+                reason: "맑은 바람 부는 날, 상처 입은 내 마음을 깨끗하게 빨아 뽀송하게 말려줄 가슴 따뜻한 동화 같은 감성 소설.",
+                coverEmoji: "🧺🧼"
+            },
+            {
+                title: "기발한 세계사 과학 탐험",
+                author: "존 모리스",
+                mood: "knowledge",
+                ageGroup: "adults",
+                weather: ["sunny", "cloudy"],
+                reason: "날씨와 지형이 인류 문명을 어떻게 바꿨는지 흥미진진한 교양 지식으로, 지적 대화를 즐기기 딱 좋은 베스트셀러예요.",
+                coverEmoji: "🌍📚"
+            },
+            {
+                title: "끝까지 가는 경제 상식",
+                author: "금융혁신포럼",
+                mood: "knowledge",
+                ageGroup: "adults",
+                weather: ["rainy"],
+                reason: "비 소리와 함께 즐기는 깊은 경제 공부! 알쏭달쏭한 세계 금융 트렌드를 핵심만 쏙쏙 짚어주는 명품 입문서입니다.",
+                coverEmoji: "📊🧠"
+            },
+            {
+                title: "용의자 X의 헌신",
+                author: "히가시노 게이고",
+                mood: "adventure",
+                ageGroup: "adults",
+                weather: ["cloudy", "rainy"],
+                reason: "흐릿하고 스산한 비 오는 날, 머리를 번뜩이게 만드는 완벽한 알리바이와 숨 막히는 추리 대결 속으로 깊숙이 빨려 들어가 보세요.",
+                coverEmoji: "🔍♟️"
+            }
+        ];
+
+        // --- STREAMING_CHUNK: 앱 상태 및 실시간 기기 정보 셋팅... ---
+        // Global variables
+        let appState = {
+            currentScreen: 'start',
+            nickname: '',
+            age: 13,
+            selectedMood: '',
+            weather: {
+                temp: '19°C',
+                text: '맑음',
+                emoji: '☀️',
+                key: 'sunny' // default
+            },
+            prevScreens: []
+        };
+
+        // Initialize App
+        window.onload = function() {
+            updateTime();
+            setInterval(updateTime, 1000 * 60); // 1 min interval update
+            detectLocationAndWeather();
+        }
+
+        // Clock Update Function
+        function updateTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // block '0'
+            document.getElementById('live-time').innerText = `${hours}:${minutes} ${ampm}`;
+        }
+
+        // --- STREAMING_CHUNK: GPS 위치 및 날씨 정보 API 연동... ---
+        // Weather & Location detector with Open-Meteo
+        function detectLocationAndWeather() {
+            const weatherTop = document.getElementById('weather-top-display');
+            const startWeatherStatus = document.getElementById('analysis-weather-info');
+
+            if (!navigator.geolocation) {
+                setWeatherUnavailable();
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    try {
+                        // 1. Get Weather data from Open-Meteo
+                        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+                        const weatherData = await weatherRes.json();
+                        const weatherCode = weatherData.current_weather.weathercode;
+                        const tempVal = Math.round(weatherData.current_weather.temperature);
+
+                        // 2. Map Weather Code to friendly label/emoji
+                        let mapped = mapWeatherCode(weatherCode);
+                        appState.weather.temp = `${tempVal}°C`;
+                        appState.weather.text = mapped.text;
+                        appState.weather.emoji = mapped.emoji;
+                        appState.weather.key = mapped.key;
+
+                        // 3. Reverse Geocode for location name using OSM Nominatim (Free)
+                        let locationName = "내 주변";
+                        try {
+                            const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`);
+                            const geoData = await geoRes.json();
+                            if (geoData.address) {
+                                locationName = geoData.address.city || geoData.address.town || geoData.address.borough || "내 주변";
+                            }
+                        } catch (e) {
+                            console.log("Location naming failed, using fallback.");
+                        }
+
+                        // Update Status Bar & Screen tags
+                        weatherTop.innerHTML = `<span>${locationName} ${appState.weather.emoji} ${appState.weather.temp}</span>`;
+                        if (startWeatherStatus) {
+                            startWeatherStatus.innerHTML = `${locationName} ${appState.weather.emoji} (${appState.weather.temp})`;
+                        }
+                    } catch (error) {
+                        console.error("Weather API Error:", error);
+                        setWeatherUnavailable();
+                    }
+                },
+                (error) => {
+                    console.log("Location Access Denied/Failed:", error);
+                    setWeatherUnavailable();
+                }
+            );
+        }
+
+        // Map Open-Meteo weather codes to child-friendly tags
+        function mapWeatherCode(code) {
+            if ([0].includes(code)) return { text: "완전 맑음", emoji: "☀️", key: "sunny" };
+            if ([1, 2, 3].includes(code)) return { text: "약간 흐림", emoji: "☁️", key: "cloudy" };
+            if ([45, 48].includes(code)) return { text: "안개 자욱", emoji: "🌫️", key: "cloudy" };
+            if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return { text: "비 촉촉", emoji: "🌧️", key: "rainy" };
+            if ([71, 73, 75, 77, 85, 86].includes(code)) return { text: "눈 소복", emoji: "❄️", key: "rainy" }; // Treated as moody rain
+            if ([95, 96, 99].includes(code)) return { text: "천둥 번개", emoji: "⚡🌧️", key: "rainy" };
+            return { text: "화창한 날", emoji: "☀️", key: "sunny" };
+        }
+
+        function setWeatherUnavailable() {
+            const weatherTop = document.getElementById('weather-top-display');
+            const startWeatherStatus = document.getElementById('analysis-weather-info');
+            
+            // Do not force "Seoul", show Weather unavailable text clearly as per the core rules
+            weatherTop.innerHTML = `<span>날씨 정보 없음 🚫</span>`;
+            if (startWeatherStatus) {
+                startWeatherStatus.innerHTML = `날씨 정보 없음 ☁️`;
+            }
+            
+            // Keep app functional with a default neutral "sunny" fallback to avoid breaking recommendation calculations
+            appState.weather.temp = "";
+            appState.weather.text = "어울리는 무드";
+            appState.weather.emoji = "📖";
+            appState.weather.key = "sunny"; 
+        }
+
+        // --- STREAMING_CHUNK: 화면 전환 및 입력 감지 로직... ---
+        // Navigation: Go to Screen 2
+        function goToAnalysis() {
+            const nicknameInput = document.getElementById('user-nickname').value.trim();
+            const ageInput = parseInt(document.getElementById('user-age').value);
+
+            if (!nicknameInput) {
+                openModal("🎈 깜빡했어요!", "멋진 책갈피를 꽂아줄 이름을 입력해 주세요!", "🧸");
+                return;
+            }
+
+            if (isNaN(ageInput) || ageInput < 5 || ageInput > 99) {
+                openModal("🎈 어라라?", "정확하고 알맞은 나이를 알려주면 더 맛있는 책을 골라줄 수 있어요!", "🎂");
+                return;
+            }
+
+            // Save info
+            appState.nickname = nicknameInput;
+            appState.age = ageInput;
+
+            // Generate group tag (6th grade standard vs teenager/adult)
+            let ageGroupLabel = "";
+            if (ageInput <= 12) ageGroupLabel = `어린이 (${ageInput}세)`;
+            else if (ageInput <= 18) ageGroupLabel = `청소년 (${ageInput}세)`;
+            else ageGroupLabel = `성인 (${ageInput}세)`;
+
+            document.getElementById('analysis-user-info').innerText = `${nicknameInput} 님 (${ageGroupLabel})`;
+            
+            // Map weather for analysis page
+            document.getElementById('analysis-weather-info').innerHTML = `${appState.weather.text} ${appState.weather.emoji} ${appState.weather.temp}`;
+
+            // Reset mood selections
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.classList.remove('border-sky-300', 'bg-sky-50');
+                btn.classList.add('bg-white');
+            });
+            appState.selectedMood = '';
+
+            // Transition
+            switchScreen('screen-analysis');
+        }
+
+        // Screen switching core logic
+        function switchScreen(screenId) {
+            const screens = ['screen-start', 'screen-analysis', 'screen-result'];
+            screens.forEach(s => {
+                const el = document.getElementById(s);
+                if (s === screenId) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+
+            // Track state for back button
+            if (appState.currentScreen !== screenId) {
+                appState.prevScreens.push(appState.currentScreen);
+                appState.currentScreen = screenId;
+            }
+        }
+
+        // Back button action
+        function goBack() {
+            if (appState.prevScreens.length > 0) {
+                const prev = appState.prevScreens.pop();
+                appState.currentScreen = prev;
+                const screens = ['screen-start', 'screen-analysis', 'screen-result'];
+                screens.forEach(s => {
+                    const el = document.getElementById(s);
+                    if (s === prev) {
+                        el.classList.remove('hidden');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                });
+            } else {
+                openModal("알림", "여기가 첫 화면이에요! 즐겁게 탐험을 시작해 보세요.", "✨");
+            }
+        }
+
+        // Home button action
+        function resetApp() {
+            appState.prevScreens = [];
+            document.getElementById('user-nickname').value = '';
+            document.getElementById('user-age').value = '13';
+            switchScreen('screen-start');
+        }
+
+        // Mood buttons select toggler
+        function selectMood(mood) {
+            appState.selectedMood = mood;
+            
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.classList.remove('border-sky-300', 'bg-sky-50', 'scale-105');
+                btn.classList.add('bg-white');
+            });
+
+            const activeBtn = document.getElementById(`mood-${mood}`);
+            activeBtn.classList.remove('bg-white');
+            activeBtn.classList.add('border-sky-300', 'bg-sky-50', 'scale-105');
+        }
+
+        // --- STREAMING_CHUNK: 3단계 분석 및 큐레이션 추천 알고리즘... ---
+        // Trigger Loading spinner, then calculate recommendations
+        function startAnalysis() {
+            if (!appState.selectedMood) {
+                openModal("🎈 책 무드 선택!", "오늘 읽고 싶은 분위기를 한 가지 꾹 눌러 선택해 주세용!", "📚");
+                return;
+            }
+
+            const loading = document.getElementById('loading-container');
+            const ctaBtn = document.getElementById('btn-do-analysis');
+
+            loading.classList.remove('hidden');
+            ctaBtn.setAttribute('disabled', 'true');
+            ctaBtn.classList.add('opacity-50');
+
+            setTimeout(() => {
+                loading.classList.add('hidden');
+                ctaBtn.removeAttribute('disabled');
+                ctaBtn.classList.remove('opacity-50');
+
+                // Perform core random curated matching
+                curateBooks();
+                switchScreen('screen-result');
+            }, 1800); // realistic cozy delay for loading experience
+        }
+
+        // Core Curation Engine (Age range matching + Mood + Weather randomized selection of 2-3 items)
+        function curateBooks() {
+            let ageGroupKey = "children";
+            if (appState.age >= 13 && appState.age <= 18) ageGroupKey = "teens";
+            else if (appState.age >= 19) ageGroupKey = "adults";
+
+            // 1. Filter database matching criteria
+            let filtered = bookDatabase.filter(b => {
+                // age group match
+                const ageMatch = b.ageGroup === ageGroupKey;
+                // mood match
+                const moodMatch = b.mood === appState.selectedMood;
+                // weather match (if available, otherwise match any)
+                const weatherMatch = b.weather.includes(appState.weather.key);
+                
+                return ageMatch && moodMatch && weatherMatch;
+            });
+
+            // Fallback to age group & mood if exact weather match doesn't have sufficient pool
+            if (filtered.length < 2) {
+                filtered = bookDatabase.filter(b => b.ageGroup === ageGroupKey && b.mood === appState.selectedMood);
+            }
+
+            // Fallback to age group if still small pool
+            if (filtered.length === 0) {
+                filtered = bookDatabase.filter(b => b.ageGroup === ageGroupKey);
+            }
+
+            // 2. Randomly select 2 or 3 items using shuffle to ensure surprise/variety
+            const shuffled = [...filtered].sort(() => 0.5 - Math.random());
+            const selection = shuffled.slice(0, Math.min(shuffled.length, 3));
+
+            // Set Title text dynamically
+            const subText = `${appState.nickname} 님을 위한 특별 배송 📚`;
+            document.getElementById('curation-subtitle').innerText = subText;
+
+            // 3. Render items safely
+            const resultsBox = document.getElementById('book-results-container');
+            resultsBox.innerHTML = '';
+
+            selection.forEach(book => {
+                const searchUrl = `https://search.shopping.naver.com/search/all?query=${encodeURIComponent(book.title)}`;
+                
+                // Card layout based on user's selected design
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-2xl border border-slate-100 flex items-start gap-3 shadow-sm hover:shadow-md transition-all";
+                
+                card.innerHTML = `
+                    <div class="w-16 h-20 bg-slate-50 border border-slate-100 rounded-xl flex flex-col items-center justify-center text-3xl shadow-inner relative flex-shrink-0">
+                        <span>${book.coverEmoji}</span>
+                        <div class="absolute bottom-1 right-1 text-[8px] text-amber-500"><i class="fa-solid fa-star"></i></div>
+                    </div>
+                    <div class="flex-1 flex flex-col justify-between min-h-[80px]">
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-800 line-clamp-1">${book.title}</h4>
+                            <p class="text-[10px] text-slate-400 font-medium">${book.author} 저</p>
+                            <p class="text-[11px] text-slate-600 font-medium leading-relaxed mt-1 line-clamp-2">
+                                <span class="text-rose-400">💡 <b>추천 이유:</b></span> ${book.reason}
+                            </p>
+                        </div>
+                        <div class="mt-2.5 flex items-center justify-between">
+                            <span class="text-[10px] bg-sky-50 text-sky-600 px-2.5 py-0.5 rounded-full font-bold">
+                                # ${appState.selectedMood === 'warm' ? '감성힐링' : appState.selectedMood === 'knowledge' ? '상식쏙쏙' : '모험탐색'}
+                            </span>
+                            <a href="${searchUrl}" target="_blank" rel="noopener noreferrer" 
+                                class="text-[10px] font-bold text-white bg-sky-300 hover:bg-sky-400 px-3 py-1 rounded-full transition-colors flex items-center gap-1">
+                                <i class="fa-solid fa-cart-shopping"></i> 구경가기
+                            </a>
+                        </div>
+                    </div>
+                `;
+                resultsBox.appendChild(card);
+            });
+        }
+
+        // --- STREAMING_CHUNK: 유틸리티 UI 인터렉션 구현... ---
+        // Side slide overlay controller
+        function toggleSideMenu() {
+            const menu = document.getElementById('side-menu');
+            const content = document.getElementById('side-menu-content');
+
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                setTimeout(() => {
+                    content.classList.remove('-translate-x-full');
+                }, 10);
+            } else {
+                content.classList.add('-translate-x-full');
+                setTimeout(() => {
+                    menu.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        // Custom Modal Actions
+        function openModal(title, body, icon = "💡") {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = body;
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('modal-container').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-container').classList.add('hidden');
+        }
+
+        // Static Info Modals for functional buttons
+        function showInfoModal(type) {
+            if (type === 'intro') {
+                openModal("📖 '책갈피'는?", "나이와 현재 있는 장소의 날씨 감성을 조합해, 오늘 내 마음에 단비처럼 쏙 들어올 감성 도서를 콕 찝어 선물하는 초개인화 도서 추천 비서랍니다!", "🎨");
+            } else if (type === 'help') {
+                openModal("🧸 어떻게 사용하나요?", "1. 시작화면에서 별명을 넣고 나이를 입력해요.\n2. 오늘 당기는 나만의 무드(감성/지식/모험)를 선택해요.\n3. 결과 화면에서 책을 구경하고 우측 하단 버튼을 통해 네이버 쇼핑으로 즉시 구경가요!", "📌");
+            }
+        }
+
+        function showDeveloperMessage() {
+            openModal("👩‍💻 개발자의 편지", "상상했던 앱을 직접 조작해 보는 즐거움이 마음 가득 울림이 되었길 바라요! 앞으로도 기발한 생각들을 현실로 멋지게 실현해 봐요!", "💌");
+        }
+    </script>
+</body>
+</html>

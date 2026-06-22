@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>댕냥이 이름 지어줄까?</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for cute icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Nanum Gothic & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Nanum Gothic', 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #dcfce7 100%);
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Custom scrollbar for mobile feel */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 overflow-hidden">
+
+    <!-- 스마트폰 목업 기기 -->
+    <div class="relative w-full max-w-[400px] h-[820px] bg-slate-900 rounded-[3rem] p-3 shadow-2xl border-4 border-slate-800 flex flex-col overflow-hidden">
+        
+        <!-- 스마트폰 스피커 및 전면 카메라 홀 -->
+        <div class="absolute top-4 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-full z-50 flex items-center justify-center gap-2">
+            <div class="w-3 h-3 bg-slate-800 rounded-full"></div>
+            <div class="w-12 h-1 bg-slate-800 rounded-full"></div>
+        </div>
+
+        <!-- 내부 화면 컨테이너 -->
+        <div class="w-full h-full bg-[#E3F4ED] rounded-[2.5rem] overflow-hidden flex flex-col relative pt-8 pb-14">
+            
+            <!-- 상단 바 (시간, 네트워크, 날씨 간이 표시) -->
+            <div class="px-6 py-2 flex justify-between items-center text-xs font-semibold text-emerald-800 z-10">
+                <span id="current-time">09:54</span>
+                <div class="flex items-center gap-2">
+                    <span id="weather-badge" class="bg-white/60 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm transition-all">
+                        <i class="fa-solid fa-spinner animate-spin text-[10px]"></i> 위치 파악 중
+                    </span>
+                    <i class="fa-solid fa-wifi"></i>
+                    <i class="fa-solid fa-battery-three-quarters"></i>
+                </div>
+            </div>
+
+            <!-- 메인 스크롤 가능 콘텐츠 영역 -->
+            <div class="flex-1 overflow-y-auto px-5 py-2 relative">
+                
+                <!-- 0단계: 시작 홈 화면 -->
+                <div id="screen-home" class="flex flex-col items-center justify-center h-full text-center">
+                    <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg mb-6 animate-bounce">
+                        <i class="fa-solid fa-paw text-5xl text-emerald-500"></i>
+                    </div>
+                    <h1 class="text-2xl font-black text-emerald-950 mb-2 leading-snug">
+                        댕냥이<br>이름 지어줄까? 🐾
+                    </h1>
+                    <p class="text-sm text-emerald-800/80 mb-8 font-medium">
+                        소중한 반려동물의 특징과<br>처음 만난 순간을 듬뿍 담은 이름!
+                    </p>
+                    <button onclick="changeScreen('screen-form')" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold rounded-2xl shadow-md transition-all text-lg flex items-center justify-center gap-2">
+                        <span>시작하기</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- 1단계: 조건 입력 화면 (스케치 완벽 반영) -->
+                <div id="screen-form" class="hidden flex flex-col gap-4 pb-6">
+                    <div class="text-center py-2">
+                        <h2 class="text-xl font-bold text-emerald-950 flex items-center justify-center gap-1">
+                            이름 짓기 <i class="fa-solid fa-pen-nib text-sm text-emerald-600"></i>
+                        </h2>
+                        <p class="text-xs text-emerald-800/70 mt-1">질문에 알맞게 우리 아이의 특징을 적어줘!</p>
+                    </div>
+
+                    <!-- 질문 1: 종류 -->
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100">
+                        <span class="inline-block bg-[#FAD9C1] text-amber-900 font-bold text-xs px-2.5 py-1 rounded-full mb-3 shadow-xs">
+                            1. 종류는? 🐶
+                        </span>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" onclick="selectPetType('강아지')" id="btn-type-dog" class="type-btn py-2 rounded-xl border-2 border-emerald-100 bg-emerald-50/50 text-sm font-bold text-emerald-900 hover:bg-emerald-50 transition-all flex flex-col items-center gap-1 active:scale-95">
+                                <span class="text-xl">🐶</span> 강아지
+                            </button>
+                            <button type="button" onclick="selectPetType('고양이')" id="btn-type-cat" class="type-btn py-2 rounded-xl border-2 border-emerald-100 bg-emerald-50/50 text-sm font-bold text-emerald-900 hover:bg-emerald-50 transition-all flex flex-col items-center gap-1 active:scale-95">
+                                <span class="text-xl">🐱</span> 고양이
+                            </button>
+                            <button type="button" onclick="selectPetType('기타')" id="btn-type-etc" class="type-btn py-2 rounded-xl border-2 border-emerald-100 bg-emerald-50/50 text-sm font-bold text-emerald-900 hover:bg-emerald-50 transition-all flex flex-col items-center gap-1 active:scale-95">
+                                <span class="text-xl">🐹</span> 기타
+                            </button>
+                        </div>
+                        <input type="text" id="input-pet-type-custom" placeholder="직접 종류 쓰기 (예: 햄스터, 토끼)" class="hidden w-full mt-3 px-3 py-2 text-sm rounded-xl border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                    </div>
+
+                    <!-- 질문 2: 성별 -->
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100">
+                        <span class="inline-block bg-[#FAD9C1] text-amber-900 font-bold text-xs px-2.5 py-1 rounded-full mb-3 shadow-xs">
+                            2. 성별은?
+                        </span>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" onclick="selectGender('남아')" id="btn-gender-male" class="gender-btn py-2 rounded-xl border-2 border-emerald-100 bg-emerald-50/50 text-sm font-bold text-emerald-950 transition-all flex items-center justify-center gap-1 active:scale-95">
+                                <span class="text-blue-500">♂</span> 남아
+                            </button>
+                            <button type="button" onclick="selectGender('여아')" id="btn-gender-female" class="gender-btn py-2 rounded-xl border-2 border-emerald-100 bg-emerald-50/50 text-sm font-bold text-emerald-950 transition-all flex items-center justify-center gap-1 active:scale-95">
+                                <span class="text-pink-500">♀</span> 여아
+                            </button>
+                            <button type="button" onclick="selectGender('모름')" id="btn-gender-unknown" class="gender-btn py-2 rounded-xl border-2 border-emerald-100 bg-emerald-50/50 text-sm font-bold text-emerald-950 transition-all flex items-center justify-center gap-1 active:scale-95">
+                                <span class="text-gray-500">⊘</span> 모름
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 질문 3: 색깔은? -->
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100">
+                        <span class="inline-block bg-[#FAD9C1] text-amber-900 font-bold text-xs px-2.5 py-1 rounded-full mb-3 shadow-xs">
+                            3. 색깔은?
+                        </span>
+                        <div class="relative">
+                            <input type="text" id="input-pet-color" placeholder="털이나 눈 색깔 (예: 노란 크림색, 새하양)" class="w-full px-4 py-2.5 text-sm rounded-xl border border-emerald-100 bg-emerald-50/20 focus:outline-none focus:ring-2 focus:ring-emerald-400 font-medium">
+                        </div>
+                    </div>
+
+                    <!-- 질문 4: 이름 테마 -->
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100">
+                        <span class="inline-block bg-[#FAD9C1] text-amber-900 font-bold text-xs px-2.5 py-1 rounded-full mb-3 shadow-xs">
+                            4. 이름 테마?
+                        </span>
+                        <input type="text" id="input-pet-theme" placeholder="어떤 이름 느낌? (예: 과일, 순우리말, 엉뚱)" class="w-full px-4 py-2.5 text-sm rounded-xl border border-emerald-100 bg-emerald-50/20 focus:outline-none focus:ring-2 focus:ring-emerald-400 font-medium">
+                    </div>
+
+                    <!-- 질문 5: 만난 순간 정보 자동수집 안내 -->
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100">
+                        <span class="inline-block bg-[#FAD9C1] text-amber-900 font-bold text-xs px-2.5 py-1 rounded-full mb-2 shadow-xs">
+                            5. 생성일시 (만난 순간)
+                        </span>
+                        <div class="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100/50 flex flex-col gap-1 text-xs text-emerald-900">
+                            <div class="flex justify-between font-semibold">
+                                <span>📅 날짜:</span>
+                                <span id="auto-date">2026년 06월 22일</span>
+                            </div>
+                            <div class="flex justify-between font-semibold">
+                                <span>⏰ 시간대:</span>
+                                <span id="auto-time">오전 09시 54분</span>
+                            </div>
+                            <div class="flex justify-between font-semibold">
+                                <span>📍 기후 및 위치:</span>
+                                <span id="auto-weather">조회 중...</span>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-emerald-800/60 mt-1.5 text-center leading-normal">
+                            *처음 만난 영원한 순간의 특별한 날씨와 시간이 자동 수집되어 아름다운 이름에 배합됩니다!
+                        </p>
+                    </div>
+
+                    <!-- 이름 확인 메인 버튼 -->
+                    <button type="button" onclick="processAnalysis()" class="w-full mt-2 py-4 bg-sky-400 hover:bg-sky-500 text-white font-bold text-xl rounded-2xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <span>이름 확인</span> <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </button>
+                </div>
+
+                <!-- 2단계: 분석 중 화면 -->
+                <div id="screen-loading" class="hidden flex-col items-center justify-center h-full text-center">
+                    <div class="relative w-32 h-32 mb-6 flex items-center justify-center">
+                        <!-- Orbiting particles -->
+                        <div class="absolute w-full h-full rounded-full border-4 border-dashed border-emerald-400 animate-spin"></div>
+                        <i class="fa-solid fa-dna text-5xl text-emerald-500 animate-pulse"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-emerald-950 mb-2">분석 중이야...</h3>
+                    <p class="text-sm text-emerald-800/80 mb-6 leading-relaxed">
+                        친구의 특징과 처음 만난 순간의<br>
+                        빛나는 온도와 소리를 조합하고 있어요!
+                    </p>
+                    <!-- Progress bar -->
+                    <div class="w-full max-w-[240px] h-3 bg-white rounded-full overflow-hidden border border-emerald-200/50 shadow-inner">
+                        <div id="loading-bar" class="w-0 h-full bg-emerald-500 rounded-full transition-all duration-300 ease-out"></div>
+                    </div>
+                    <span id="loading-percent" class="text-xs font-semibold text-emerald-600 mt-2">0% 완료</span>
+                </div>
+
+                <!-- 3단계: 이름 추천 결과 화면 -->
+                <div id="screen-results" class="hidden flex flex-col gap-4 pb-6">
+                    <div class="text-center py-2">
+                        <h2 class="text-xl font-bold text-emerald-950 flex items-center justify-center gap-1.5">
+                            ⭐ 이름 추천 ⭐
+                        </h2>
+                        <p class="text-xs text-emerald-800/70 mt-1">우리 아이에게 딱 어울리는 보물 같은 이름들이에요!</p>
+                    </div>
+
+                    <!-- 추천 이름 카드 리스트 -->
+                    <div id="results-list" class="flex flex-col gap-3">
+                        <!-- JS에서 동적으로 채워짐 -->
+                    </div>
+
+                    <!-- 뒤로가기 / 다시 지어보기 -->
+                    <button type="button" onclick="changeScreen('screen-form')" class="w-full mt-4 py-3 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold rounded-xl shadow-sm transition-all text-sm flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-rotate-left"></i> <span>다른 정보로 지어주기</span>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- 자체 토스트 팝업 (Alert 금지 우회용 고급 디자인) -->
+            <div id="toast" class="absolute bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-3 bg-slate-800/95 text-white text-xs rounded-xl shadow-lg flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-300 z-50 min-w-[280px] border border-slate-700">
+                <i class="fa-solid fa-circle-info text-amber-400 text-sm shrink-0"></i>
+                <span id="toast-message">알림 메시지</span>
+            </div>
+
+            <!-- 간이 정보 모달 팝업 -->
+            <div id="info-modal" class="hidden absolute inset-0 bg-black/40 z-50 flex items-center justify-center p-6 transition-all">
+                <div class="bg-white rounded-3xl p-6 w-full max-w-[300px] shadow-2xl border border-emerald-50 flex flex-col items-center text-center">
+                    <div class="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-lightbulb text-2xl text-emerald-500 animate-pulse"></i>
+                    </div>
+                    <h4 id="modal-title" class="text-base font-bold text-emerald-950 mb-2">도움말</h4>
+                    <p id="modal-desc" class="text-xs text-slate-600 leading-relaxed mb-6">설명 내용이 들어갑니다.</p>
+                    <button onclick="closeModal()" class="w-full py-2.5 bg-emerald-500 text-white font-semibold text-xs rounded-xl hover:bg-emerald-600 active:scale-95 transition-all shadow-sm">
+                        확인 완료
+                    </button>
+                </div>
+            </div>
+
+            <!-- 하단 네비게이션 바 [ ☰ (메뉴) | ⌂ (홈) | ◁ (뒤로가기) ] -->
+            <div id="nav-bar">
+                <button onclick="showMenuInfo()" class="nav-btn w-12 h-12 flex items-center justify-center text-slate-400 hover:text-emerald-700 rounded-full hover:bg-emerald-100/50 active:scale-90 transition-all">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <button onclick="goHomeDirectly()" class="nav-btn w-12 h-12 flex items-center justify-center text-emerald-600 hover:text-emerald-700 rounded-full hover:bg-emerald-100/50 active:scale-90 transition-all">
+                    <i class="fa-solid fa-house"></i>
+                </button>
+                <button onclick="navigateBack()" class="nav-btn w-12 h-12 flex items-center justify-center text-slate-400 hover:text-emerald-700 rounded-full hover:bg-emerald-100/50 active:scale-90 transition-all">
+                    <i class="fa-solid fa-angle-left"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // 현재 선택 상태 보관 객체
+        const state = {
+            petType: '',
+            gender: '',
+            currentScreen: 'screen-home'
+        };
+
+        // 추천 이름 데이터베이스 (실제적인 6학년 데이터 구성 + 유해 차단 데이터)
+        const nameData = {
+            "강아지": {
+                "과일": ["자두", "체리", "포도", "귤이", "살구", "레몬", "석류", "망고", "망고스틴", "라임"],
+                "음식": ["감자", "호두", "초코", "보리", "쿠키", "버터", "만두", "라떼", "모찌", "푸딩", "마카롱"],
+                "자연": ["구름", "이슬", "단비", "안개", "노을", "바람", "보름", "초록", "하늘", "햇살", "새벽"],
+                "일반": ["토토", "초롱", "행운", "몽치", "뭉치", "쫑이", "아리", "토리", "코코", "루이", "몽이", "초이"]
+            },
+            "고양이": {
+                "과일": ["체리", "포도", "메론", "자두", "살구", "자몽", "베리", "앵두", "망고", "레몬"],
+                "음식": ["치즈", "모찌", "만두", "쿠키", "크림", "라떼", "포도", "두부", "호두", "슈가", "보리", "코코아"],
+                "자연": ["나비", "네로", "달이", "별이", "루나", "여름", "노을", "하늘", "이슬", "단비", "바람", "새벽"],
+                "일반": ["미미", "나비", "코코", "루시", "레오", "릴리", "레이", "토끼", "야옹", "럭키", "해피"]
+            },
+            "기타": {
+                "과일": ["앵두", "포도", "자두", "메론", "살구", "참외", "베리", "블루베리"],
+                "음식": ["도토리", "호두", "보리", "땅콩", "모찌", "쿠키", "치즈", "푸딩"],
+                "자연": ["바람", "하늘", "별이", "달이", "햇살", "초록", "안개", "이슬"],
+                "일반": ["쫑긋이", "토리", "깜찍", "튼튼", "동글", "몽치", "새롬", "행운"]
+            }
+        };
+
+        window.onload = function() {
+            updateRealTimeClock();
+            setInterval(updateRealTimeClock, 1000);
+            fetchRealTimeWeatherAndLocation();
+        }
+
+        // 시계 정밀화
+        function updateRealTimeClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            let ampm = hours >= 12 ? '오후' : '오전';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // 0시일 경우 12시로 변경
+            
+            const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+            document.getElementById('current-time').innerText = timeStr;
+
+            // 폼 화면의 자동 생성 시간 동기화
+            const detailTimeStr = `${ampm} ${String(hours).padStart(2, '0')}시 ${String(minutes).padStart(2, '0')}분`;
+            const element = document.getElementById('auto-time');
+            if (element) element.innerText = detailTimeStr;
+
+            // 폼 화면의 날짜 동기화
+            const dateStr = `${now.getFullYear()}년 ${String(now.getMonth()+1).padStart(2, '0')}월 ${String(now.getDate()).padStart(2, '0')}일`;
+            const elementDate = document.getElementById('auto-date');
+            if (elementDate) elementDate.innerText = dateStr;
+        }
+
+        // 실시간 날씨 데이터 및 위치 가져오기 (Open-Meteo & Nominatim)
+        let weatherEmoji = "☀️";
+        let weatherStatusText = "맑음";
+        let locationName = "우리 동네";
+
+        function fetchRealTimeWeatherAndLocation() {
+            const weatherBadge = document.getElementById('weather-badge');
+            const autoWeather = document.getElementById('auto-weather');
+
+            if (!navigator.geolocation) {
+                setFallbackWeather();
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    // 1. 역지오코딩으로 지명 획득 시도
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`, {
+                        headers: { 'Accept-Language': 'ko' }
+                    })
+                    .then(res => res.json())
+                    .then(geoData => {
+                        if (geoData && geoData.address) {
+                            const addr = geoData.address;
+                            locationName = addr.city || addr.town || addr.borough || addr.village || "우리 도시";
+                        }
+                        return fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.current_weather) {
+                            const temp = Math.round(data.current_weather.temperature);
+                            const weatherCode = data.current_weather.weathercode;
+                            
+                            // 기후 코드 해석
+                            if ([0].includes(weatherCode)) {
+                                weatherEmoji = "☀️"; weatherStatusText = "맑은 날";
+                            } else if ([1, 2, 3].includes(weatherCode)) {
+                                weatherEmoji = "☁️"; weatherStatusText = "구름 조금";
+                            } else if ([45, 48].includes(weatherCode)) {
+                                weatherEmoji = "🌫️"; weatherStatusText = "안개 낀 날";
+                            } else if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(weatherCode)) {
+                                weatherEmoji = "🌧️"; weatherStatusText = "비 오는 날";
+                            } else if ([71, 73, 75, 77, 85, 86].includes(weatherCode)) {
+                                weatherEmoji = "❄️"; weatherStatusText = "눈 내리는 날";
+                            } else {
+                                weatherEmoji = "⛅"; weatherStatusText = "흐린 날";
+                            }
+
+                            const weatherLabel = `${locationName} ${weatherEmoji} ${temp}°C`;
+                            weatherBadge.innerHTML = `<span class="text-[10px]">${weatherEmoji}</span> ${temp}°C`;
+                            autoWeather.innerText = `${locationName} (${weatherStatusText})`;
+                        }
+                    })
+                    .catch(() => {
+                        setFallbackWeather();
+                    });
+                },
+                (error) => {
+                    // 권한 거부 시 "날씨 정보 없음" 출력
+                    weatherBadge.innerHTML = "❌ 정보 없음";
+                    autoWeather.innerText = "날씨 정보 없음 (권한 미동의)";
+                }
+            );
+        }
+
+        function setFallbackWeather() {
+            document.getElementById('weather-badge').innerHTML = "☀️ 20°C";
+            document.getElementById('auto-weather').innerText = "온화함 (맑은 날)";
+        }
+
+        // 종류 선택 함수
+        function selectPetType(type) {
+            state.petType = type;
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.classList.remove('border-emerald-500', 'bg-emerald-100/80');
+            });
+
+            const customInput = document.getElementById('input-pet-type-custom');
+            if (type === '강아지') {
+                document.getElementById('btn-type-dog').classList.add('border-emerald-500', 'bg-emerald-100/80');
+                customInput.classList.add('hidden');
+            } else if (type === '고양이') {
+                document.getElementById('btn-type-cat').classList.add('border-emerald-500', 'bg-emerald-100/80');
+                customInput.classList.add('hidden');
+            } else {
+                document.getElementById('btn-type-etc').classList.add('border-emerald-500', 'bg-emerald-100/80');
+                customInput.classList.remove('hidden');
+                customInput.focus();
+            }
+        }
+
+        // 성별 선택 함수
+        function selectGender(gender) {
+            state.gender = gender;
+            document.querySelectorAll('.gender-btn').forEach(btn => {
+                btn.classList.remove('border-emerald-500', 'bg-emerald-100/80');
+            });
+
+            if (gender === '남아') {
+                document.getElementById('btn-gender-male').classList.add('border-emerald-500', 'bg-emerald-100/80');
+            } else if (gender === '여아') {
+                document.getElementById('btn-gender-female').classList.add('border-emerald-500', 'bg-emerald-100/80');
+            } else {
+                document.getElementById('btn-gender-unknown').classList.add('border-emerald-500', 'bg-emerald-100/80');
+            }
+        }
+
+        // 화면 교체 함수 (모던하게 서서히 교체)
+        function changeScreen(screenId) {
+            state.currentScreen = screenId;
+            document.getElementById('screen-home').classList.add('hidden');
+            document.getElementById('screen-form').classList.add('hidden');
+            document.getElementById('screen-loading').classList.add('hidden');
+            document.getElementById('screen-results').classList.add('hidden');
+
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        // 자체 토스트 함수 (alert 금지)
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const msgSpan = document.getElementById('toast-message');
+            msgSpan.innerText = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        // 자체 모달 창 열기
+        function openModal(title, desc) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-desc').innerText = desc;
+            document.getElementById('info-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('info-modal').classList.add('hidden');
+        }
+
+        // 조건 제출 및 분석 로딩 단계 진행
+        function processAnalysis() {
+            // 종류 체크
+            let selectedType = state.petType;
+            if (!selectedType) {
+                showToast("1. 친구의 종류를 먼저 터치해 줘! 🐶🐱");
+                return;
+            }
+            if (selectedType === '기타') {
+                const customVal = document.getElementById('input-pet-type-custom').value.trim();
+                if (!customVal) {
+                    showToast("기타 친구의 귀여운 종류를 직접 써 줘! 🐹");
+                    return;
+                }
+            }
+
+            // 성별 체크
+            if (!state.gender) {
+                showToast("2. 친구의 예쁜 성별을 선택해 줘! ♀️♂️");
+                return;
+            }
+
+            // 색깔 체크
+            const colorVal = document.getElementById('input-pet-color').value.trim();
+            if (!colorVal) {
+                showToast("3. 친구의 털이나 눈 색깔을 간단히 적어줘! 🎨");
+                return;
+            }
+
+            // 특징 체크
+            const themeVal = document.getElementById('input-pet-theme').value.trim();
+            if (!themeVal) {
+                showToast("4. 희망하는 이름의 느낌이나 테마를 적어줘! ✨");
+                return;
+            }
+
+            // 로딩 화면 이동 후 모조 애니메이션 개시
+            changeScreen('screen-loading');
+            
+            let progress = 0;
+            const bar = document.getElementById('loading-bar');
+            const percentLabel = document.getElementById('loading-percent');
+            
+            const timer = setInterval(() => {
+                progress += Math.floor(Math.random() * 15) + 5;
+                if (progress >= 100) {
+                    progress = 100;
+                    bar.style.width = progress + '%';
+                    percentLabel.innerText = progress + '% 완료';
+                    clearInterval(timer);
+                    setTimeout(() => {
+                        generateRecommendedNames(selectedType, colorVal, themeVal);
+                    }, 600);
+                } else {
+                    bar.style.width = progress + '%';
+                    percentLabel.innerText = progress + '% 완료';
+                }
+            }, 150);
+        }
+
+        // 3단계 결과 데이터 추출 및 매칭 연산
+        function generateRecommendedNames(type, color, theme) {
+            const resultsList = document.getElementById('results-list');
+            resultsList.innerHTML = '';
+
+            let primaryCategory = '일반';
+            if (theme.includes('과일') || theme.includes('체리') || theme.includes('단맛')) {
+                primaryCategory = '과일';
+            } else if (theme.includes('음식') || theme.includes('식품') || theme.includes('먹는')) {
+                primaryCategory = '음식';
+            } else if (theme.includes('자연') || theme.includes('날씨') || theme.includes('하늘')) {
+                primaryCategory = '자연';
+            }
+
+            // 대상에 맞는 소스 풀 마련
+            const sourcePool = nameData[type] || nameData['기타'];
+            let basicList = sourcePool[primaryCategory] || sourcePool['일반'];
+            
+            // 날씨 연관 이름 병합
+            if (weatherStatusText.includes('비')) {
+                basicList = [...basicList, '단비', '미스트', '레이니'];
+            } else if (weatherStatusText.includes('안개')) {
+                basicList = [...basicList, '안개', '포그'];
+            } else if (weatherStatusText.includes('맑음')) {
+                basicList = [...basicList, '태양', '써니', '맑음'];
+            }
+
+            // 시간대 연관 이름 병합
+            const currentHour = new Date().getHours();
+            if (currentHour < 6) {
+                basicList = [...basicList, '새벽', '달이', '미드나잇'];
+            } else if (currentHour >= 18) {
+                basicList = [...basicList, '노을', '초저녁', '별이'];
+            } else {
+                basicList = [...basicList, '햇살', '오후'];
+            }
+
+            // 중복 제거 및 무작위 셔플
+            const uniqueList = Array.from(new Set(basicList));
+            const shuffled = uniqueList.sort(() => Math.random() - 0.5);
+
+            // 매번 무작위로 딱 3개만 선정
+            const selection = shuffled.slice(0, 3);
+
+            selection.forEach((name, i) => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-2xl border-2 border-emerald-100 shadow-sm hover:border-emerald-400 active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center group relative";
+                
+                // 각 결과마다 다양한 맞춤형 사유 제공
+                let reason = '';
+                if (i === 0) {
+                    reason = `오늘 만난 날의 소중한 분위기(${weatherStatusText})와 너무나 조화롭게 스며드는 예쁜 이름이에요.`;
+                } else if (i === 1) {
+                    reason = `우리 아이의 고운 '${color}' 눈빛이나 털결과 정말 딱 들어맞아 매력을 배로 돋보이게 해 줘요.`;
+                } else {
+                    reason = `요청하신 느낌인 '${theme}' 테마의 맑고 똑 부러지는 매력이 풍부히 느껴지는 특별한 이름이랍니다.`;
+                }
+
+                card.innerHTML = `
+                    <div class="flex-1 pr-3">
+                        <div class="flex items-center gap-1.5 mb-1">
+                            <span class="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] text-emerald-800 font-black">${i+1}</span>
+                            <span class="text-lg font-extrabold text-emerald-950">${name}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 leading-normal">${reason}</p>
+                    </div>
+                    <!-- 네이버 쇼핑 연결 쇼핑백 아이콘 -->
+                    <div class="w-10 h-10 bg-[#03C75A]/10 text-[#03C75A] rounded-full flex items-center justify-center font-black text-xs shrink-0 group-hover:bg-[#03C75A] group-hover:text-white transition-all shadow-xs" title="네이버 쇼핑에서 선물 검색">
+                        N🛒
+                    </div>
+                `;
+
+                // 클릭하면 안전망 봇 방지 옵션 적용 후 네이버 쇼핑 연결
+                card.onclick = () => {
+                    const queryStr = `${name} 인식표 강아지 고양이 선물`;
+                    const url = `https://search.shopping.naver.com/search/all?query=${encodeURIComponent(queryStr)}`;
+                    window.open(url, '_blank', 'noopener noreferrer');
+                };
+
+                resultsList.appendChild(card);
+            });
+
+            changeScreen('screen-results');
+        }
+
+        // 하단바 기능: ☰ (메뉴 정보)
+        function showMenuInfo() {
+            openModal("메뉴 정보 안내 💡", "이 앱은 댕냥이를 처음 입양한 순간을 기록하고 멋진 이름을 지어준 후, 첫 만남의 기념 선물을 안전하게 살펴볼 수 있도록 고안된 소중한 앱이에요!");
+        }
+
+        // 하단바 기능: 홈 이동 직접 구현
+        function goHomeDirectly() {
+            // 모든 폼 리셋
+            document.getElementById('input-pet-color').value = '';
+            document.getElementById('input-pet-theme').value = '';
+            document.getElementById('input-pet-type-custom').value = '';
+            state.petType = '';
+            state.gender = '';
+            document.querySelectorAll('.type-btn, .gender-btn').forEach(btn => {
+                btn.classList.remove('border-emerald-500', 'bg-emerald-100/80');
+            });
+            document.getElementById('input-pet-type-custom').classList.add('hidden');
+
+            changeScreen('screen-home');
+            showToast("처음 홈 화면으로 돌아왔어요! 🏠");
+        }
+
+        // 하단바 기능: 뒤로가기 논리 처리
+        function navigateBack() {
+            if (state.currentScreen === 'screen-form') {
+                changeScreen('screen-home');
+            } else if (state.currentScreen === 'screen-results') {
+                changeScreen('screen-form');
+            } else if (state.currentScreen === 'screen-loading') {
+                changeScreen('screen-form');
+            } else {
+                showToast("현재 첫 화면입니다. 😊");
+            }
+        }
+    </script>
+</body>
+</html>

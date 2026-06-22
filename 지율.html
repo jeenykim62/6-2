@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학교에서 필요한 학용품/물건</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', 'Gaegu', sans-serif;
+            background-color: #fffefb; /* 더욱 따뜻한 파스텔 미색 배경 */
+        }
+        /* 파스텔 옐로우 & 핑크 그라데이션 */
+        .pastel-yellow-pink {
+            background: linear-gradient(135deg, #fff5be 0%, #ffe1ec 100%);
+        }
+        /* 스마트폰 화면 전환 효과 */
+        .screen-transition {
+            transition: all 0.3s ease-in-out;
+        }
+        /* 귀여운 스크롤바 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fffcf8;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ffc9d8;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-4 sm:p-6 select-none">
+
+    <div class="relative w-full max-w-[410px] h-[820px] bg-[#fffdf9] rounded-[45px] shadow-[0_25px_50px_-12px_rgba(255,180,200,0.3)] border-[10px] border-slate-800 overflow-hidden flex flex-col">
+        
+        <!-- 스마트폰 상단 노치 및 카메라 데코 -->
+        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-6 bg-slate-800 rounded-b-2xl z-50 flex items-center justify-center">
+            <div class="w-12 h-1 bg-gray-600 rounded-full mr-2"></div>
+            <div class="w-2.5 h-2.5 bg-gray-700 rounded-full"></div>
+        </div>
+
+        <div class="pt-8 pb-3 px-4 pastel-yellow-pink text-center relative shadow-sm shrink-0">
+            <h1 class="text-xl font-bold text-slate-800 tracking-wide mt-1" style="font-family: 'Gaegu';">
+                🎒 학교에서 필요한 학용품/물건
+            </h1>
+            <!-- 실시간 날짜 정보 위젯 (시간은 제외되어 한층 더 깔끔함) -->
+            <div class="flex justify-between items-center bg-white/90 backdrop-blur-md rounded-full px-4 py-1.5 mt-2 text-[11px] text-slate-700 font-bold shadow-sm border border-pink-100">
+                <div class="flex items-center gap-1">
+                    <i class="fa-regular fa-calendar-check text-rose-400 animate-bounce"></i>
+                    <span id="live-time">날짜 로딩중...</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <span id="weather-location">📍 탐색중...</span>
+                    <span id="weather-info">☁️ --°C</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto bg-[#fffdf9] p-4 relative" id="screen-container">
+
+            <!-- ================= STEP 1: 시작 화면 (메인) ================= -->
+            <div id="step-1" class="screen-transition space-y-4">
+                
+                <!-- 사용자 정보 입력창 -->
+                <div class="bg-amber-50/70 p-3 rounded-2xl border border-amber-100/80 shadow-sm">
+                    <label class="block text-xs font-bold text-amber-600 mb-1">내 이름이나 학년을 적어줘! 👇</label>
+                    <input type="text" id="user-info-input" placeholder="예) 6학년 1반 예준이" 
+                           class="w-full px-3 py-2 text-sm bg-white border border-pink-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-200 transition-all text-slate-700 font-semibold shadow-inner">
+                </div>
+
+                <!-- 오늘 날짜 추천 버튼 -->
+                <button onclick="startRecommendation()" 
+                        class="w-full bg-gradient-to-r from-amber-200 via-pink-100 to-pink-200 text-slate-700 font-bold py-3.5 px-4 rounded-2xl shadow-md hover:shadow-lg active:scale-95 transition-all text-center flex items-center justify-center gap-2 border-2 border-white">
+                    <span class="animate-bounce">📅</span>
+                    <span>오늘 날짜 맞춤 학용품 쇼핑하기!</span>
+                </button>
+
+                <!-- 학용품 영역 (아이 그림 스케치를 완벽 반영한 아이콘 격자) -->
+                <div>
+                    <div class="flex justify-between items-center mb-2 px-1">
+                        <span class="text-sm font-bold text-rose-500 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-100">✏️ 학용품</span>
+                        <span class="text-[10px] text-slate-400 font-bold">클릭하면 네이버 쇼핑 연결!</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-3">
+                        <!-- 풀 (노랑-초록 딱풀 일러스트) -->
+                        <div onclick="searchOnShopping('딱풀')" class="bg-white p-3 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md active:scale-95 transition-all flex flex-col items-center justify-center cursor-pointer text-center group">
+                            <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                                <svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                                    <rect x="35" y="40" width="30" height="45" rx="5" fill="#FFF275" stroke="#374151" stroke-width="4"/>
+                                    <rect x="35" y="15" width="30" height="25" rx="5" fill="#4E9F3D" stroke="#374151" stroke-width="4"/>
+                                    <rect x="35" y="50" width="30" height="15" fill="#FFADAD"/>
+                                    <line x1="35" y1="50" x2="65" y2="50" stroke="#374151" stroke-width="4"/>
+                                    <line x1="35" y1="65" x2="65" y2="65" stroke="#374151" stroke-width="4"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700 mt-2">풀</span>
+                        </div>
+                        <!-- 가위 -->
+                        <div onclick="searchOnShopping('학용품 가위')" class="bg-white p-3 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md active:scale-95 transition-all flex flex-col items-center justify-center cursor-pointer text-center group">
+                            <div class="w-12 h-12 rounded-xl bg-pink-50 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                                <svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                                    <circle cx="35" cy="65" r="14" stroke="#374151" stroke-width="4" fill="#88D49E"/>
+                                    <circle cx="65" cy="65" r="14" stroke="#374151" stroke-width="4" fill="#88D49E"/>
+                                    <path d="M 35 52 L 45 15 L 51 15 Z" fill="#E2E8F0" stroke="#374151" stroke-width="4"/>
+                                    <path d="M 65 52 L 55 15 L 49 15 Z" fill="#E2E8F0" stroke="#374151" stroke-width="4"/>
+                                    <circle cx="50" cy="45" r="4" fill="#374151"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700 mt-2">가위</span>
+                        </div>
+                        <!-- 지우개 (핑크색 에인 지우개 스타일) -->
+                        <div onclick="searchOnShopping('문구 지우개')" class="bg-white p-3 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md active:scale-95 transition-all flex flex-col items-center justify-center cursor-pointer text-center group">
+                            <div class="w-12 h-12 rounded-xl bg-pink-100/50 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                                <svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                                    <rect x="20" y="30" width="60" height="40" rx="4" fill="#FFADAD" stroke="#374151" stroke-width="4"/>
+                                    <rect x="20" y="30" width="38" height="40" fill="#3D84B8" stroke="#374151" stroke-width="4"/>
+                                    <rect x="25" y="42" width="10" height="16" fill="#FFF" rx="2"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700 mt-2">지우개</span>
+                        </div>
+                        <!-- 연필/볼펜 -->
+                        <div onclick="searchOnShopping('학용품 연필 볼펜')" class="bg-white p-3 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md active:scale-95 transition-all flex flex-col items-center justify-center cursor-pointer text-center group">
+                            <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                                <svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                                    <path d="M 32 75 L 32 30 L 45 12 L 58 30 L 58 75 Z" fill="#FFD3B6" stroke="#374151" stroke-width="4"/>
+                                    <path d="M 32 30 L 58 30" stroke="#374151" stroke-width="4"/>
+                                    <path d="M 41 17 L 45 12 L 49 17 Z" fill="#374151"/>
+                                    <rect x="38" y="40" width="5" height="35" fill="#FFADAD"/>
+                                    <rect x="47" y="40" width="5" height="35" fill="#88D49E"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700 mt-1 line-clamp-1">연필/볼펜</span>
+                        </div>
+                        <!-- 색연필 -->
+                        <div onclick="searchOnShopping('어린이 색연필')" class="bg-white p-3 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md active:scale-95 transition-all flex flex-col items-center justify-center cursor-pointer text-center group">
+                            <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                                <svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                                    <path d="M 22 80 L 22 38 L 32 20 L 42 38 L 42 80 Z" fill="#FFADAD" stroke="#374151" stroke-width="4"/>
+                                    <path d="M 28 30 L 32 20 L 36 30 Z" fill="#FF5E7E"/>
+                                    <path d="M 50 80 L 50 38 L 60 20 L 70 38 L 70 80 Z" fill="#FFE3A8" stroke="#374151" stroke-width="4"/>
+                                    <path d="M 56 30 L 60 20 L 64 30 Z" fill="#FFB347"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700 mt-2">색연필</span>
+                        </div>
+                        <!-- 싸인펜 -->
+                        <div onclick="searchOnShopping('싸인펜 세트')" class="bg-white p-3 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md active:scale-95 transition-all flex flex-col items-center justify-center cursor-pointer text-center group">
+                            <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                                <svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                                    <rect x="35" y="35" width="30" height="50" rx="3" fill="#FFF" stroke="#374151" stroke-width="4"/>
+                                    <rect x="35" y="15" width="30" height="20" rx="4" fill="#FFADAD" stroke="#374151" stroke-width="4"/>
+                                    <rect x="42" y="48" width="16" height="22" fill="#FFADAD" rx="2"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700 mt-2">싸인펜</span>
+                        </div>
+                        <!-- 파일 -->
+                        <div onclick="searchOnShopping('L자 파일 폴더')" class="bg-white p-3 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md active:scale-95 transition-all flex flex-col items-center justify-center cursor-pointer text-center group">
+                            <div class="w-12 h-12 rounded-xl bg-yellow-50 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                                <svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                                    <path d="M 20 25 L 45 25 L 55 35 L 80 35 L 80 80 L 20 80 Z" fill="#A8DADC" stroke="#374151" stroke-width="4" stroke-linejoin="round"/>
+                                    <path d="M 20 35 L 80 35" stroke="#374151" stroke-width="4"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700 mt-2">파일</span>
+                        </div>
+                        <!-- 공책 -->
+                        <div onclick="searchOnShopping('초등학생 공책 노트')" class="bg-white p-3 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md active:scale-95 transition-all flex flex-col items-center justify-center cursor-pointer text-center group">
+                            <div class="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                                <svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                                    <rect x="25" y="18" width="50" height="68" rx="5" fill="#FFE082" stroke="#374151" stroke-width="4"/>
+                                    <line x1="25" y1="35" x2="75" y2="35" stroke="#374151" stroke-width="4"/>
+                                    <circle cx="35" cy="27" r="3" fill="#374151"/>
+                                    <line x1="35" y1="48" x2="65" y2="48" stroke="#FFADAD" stroke-width="3" stroke-linecap="round"/>
+                                    <line x1="35" y1="58" x2="65" y2="58" stroke="#FFADAD" stroke-width="3" stroke-linecap="round"/>
+                                    <line x1="35" y1="68" x2="65" y2="68" stroke="#FFADAD" stroke-width="3" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700 mt-2">공책</span>
+                        </div>
+                        <!-- 필통 -->
+                        <div onclick="searchOnShopping('초등학생 캐릭터 필통')" class="bg-white p-3 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md active:scale-95 transition-all flex flex-col items-center justify-center cursor-pointer text-center group">
+                            <div class="w-12 h-12 rounded-xl bg-yellow-50 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                                <svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                                    <rect x="15" y="35" width="70" height="35" rx="10" fill="#E2E8F0" stroke="#374151" stroke-width="4"/>
+                                    <line x1="15" y1="48" x2="85" y2="48" stroke="#374151" stroke-width="4"/>
+                                    <rect x="45" y="42" width="10" height="6" fill="#FFF" stroke="#374151" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700 mt-2">필통</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="mb-2 px-1">
+                        <span class="text-sm font-bold text-amber-500 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100">🥤 물건</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <!-- 물통 -->
+                        <div onclick="searchOnShopping('어린이 물통 텀블러')" class="bg-white p-3 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md active:scale-95 transition-all flex flex-col items-center justify-center cursor-pointer text-center group">
+                            <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                                <svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                                    <rect x="30" y="30" width="40" height="55" rx="8" fill="#FFC6FF" stroke="#374151" stroke-width="4"/>
+                                    <rect x="38" y="15" width="24" height="15" rx="3" fill="#FFADAD" stroke="#374151" stroke-width="4"/>
+                                    <rect x="44" y="38" width="10" height="25" fill="#FFF" rx="2" opacity="0.6"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700 mt-2">물통</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= STEP 2: 데이터 분석 로딩 화면 ================= -->
+            <div id="step-2" class="hidden screen-transition h-full flex flex-col items-center justify-center text-center py-20">
+                <div class="relative w-32 h-32 mb-6 animate-pulse">
+                    <div class="absolute inset-0 rounded-full border-4 border-dashed border-amber-300 animate-spin" style="animation-duration: 4s;"></div>
+                    <div class="absolute inset-2 rounded-full border-4 border-dotted border-pink-300 animate-spin" style="animation-duration: 2s; animation-direction: reverse;"></div>
+                    <div class="absolute inset-0 flex items-center justify-center text-4xl">
+                        🎒
+                    </div>
+                </div>
+                <h3 class="text-lg font-bold text-slate-700 mb-2" style="font-family: 'Gaegu';">
+                    <span id="loader-username" class="text-pink-500">친구</span>의 맞춤 가방 점검 중...
+                </h3>
+                <p class="text-xs text-slate-400 font-bold animate-pulse" id="loading-status-text">
+                    오늘 요일에 딱 맞는 필수 학용품을 찾고 있어요 ⚙️
+                </p>
+                <div class="w-48 bg-pink-50 h-2.5 rounded-full overflow-hidden mt-4 border border-pink-100">
+                    <div class="bg-gradient-to-r from-amber-300 to-pink-300 h-full animate-[progress_2s_ease-in-out_infinite]" style="width: 80%"></div>
+                </div>
+            </div>
+
+            <!-- ================= STEP 3: 추천 결과 화면 ================= -->
+            <div id="step-3" class="hidden screen-transition space-y-4">
+                <div class="bg-gradient-to-br from-amber-50 to-pink-50/80 p-4 rounded-2xl border border-pink-100 shadow-sm text-center">
+                    <span class="text-2xl">🎉</span>
+                    <h3 class="text-base font-bold text-slate-800 mt-1" style="font-family: 'Gaegu';">
+                        <span id="result-username" class="text-pink-500">지우</span>를 위한 맞춤 추천 결과 도착!
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1.5 font-bold" id="result-datetime-desc">
+                        월요일 추천 리스트
+                    </p>
+                </div>
+
+                <!-- 추천 카드 출력되는 공간 -->
+                <div id="recommendation-results" class="space-y-3">
+                    <!-- 자바스크립트에서 카드 2~3개 동적 생성 -->
+                </div>
+
+                <!-- 다시 하기 버튼 -->
+                <button onclick="goBackToHome()" 
+                        class="w-full mt-4 bg-amber-50/80 hover:bg-amber-100/80 text-amber-700 font-bold py-3 px-4 rounded-2xl transition-all active:scale-95 text-center text-sm shadow-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> 다른 가방도 검사해보기
+                </button>
+            </div>
+
+        </div>
+
+        <div id="side-drawer" class="absolute inset-0 bg-black/40 z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex justify-end">
+            <div class="w-4/5 max-w-[300px] h-full bg-white rounded-l-[30px] p-6 shadow-2xl flex flex-col justify-between transform translate-x-full transition-transform duration-300" id="drawer-content">
+                <div>
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="text-lg font-bold text-slate-700" style="font-family: 'Gaegu';">💡 정보 & 팁</h4>
+                        <button onclick="toggleDrawer()" class="text-slate-400 hover:text-slate-600 text-lg">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4 text-xs text-slate-600 font-bold leading-relaxed">
+                        <div class="p-3 bg-amber-50/75 rounded-xl border border-amber-100">
+                            <h5 class="font-bold text-amber-800 mb-1">🛍️ 네이버 쇼핑 공식 매칭</h5>
+                            <p class="text-slate-500 text-[11px]">아이템을 클릭하면 네이버 쇼핑으로 즉시 출발해 초저가로 가장 튼튼하고 예쁜 학용품을 구경할 수 있어요!</p>
+                        </div>
+                        <div class="p-3 bg-pink-50/75 rounded-xl border border-pink-100">
+                            <h5 class="font-bold text-pink-800 mb-1">📅 오직 날짜로만 큐레이션</h5>
+                            <p class="text-slate-500 text-[11px]">학교 등교 주간과 한가로운 주말에 맞춤 가방을 세팅하도록 오직 오늘의 날짜와 요일 정보만 사용해요.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center text-[10px] text-slate-400 border-t pt-4">
+                    학교에서 필요한 학용품/물건 v2.0<br>
+                    Made by 친절한 앱 개발 파트너
+                </div>
+            </div>
+        </div>
+
+        <div class="h-16 bg-white border-t border-slate-100 flex items-center justify-around px-4 shrink-0 z-40 shadow-lg">
+            <!-- 메뉴 버튼 -->
+            <button onclick="toggleDrawer()" class="flex flex-col items-center justify-center w-12 h-12 text-slate-500 hover:text-pink-500 active:scale-90 transition-all">
+                <i class="fa-solid fa-bars text-lg"></i>
+                <span class="text-[9px] font-bold mt-0.5">☰ 메뉴</span>
+            </button>
+            
+            <!-- 홈 버튼 -->
+            <button onclick="goBackToHome()" class="flex flex-col items-center justify-center w-14 h-14 -mt-3 bg-gradient-to-tr from-amber-200 to-pink-300 text-white rounded-full shadow-md hover:shadow-lg active:scale-90 transition-all border-4 border-[#fffdf9]">
+                <i class="fa-solid fa-house text-base"></i>
+                <span class="text-[8px] font-bold mt-0.5">⌂ 홈</span>
+            </button>
+            
+            <!-- 뒤로가기 버튼 -->
+            <button onclick="navigateBack()" class="flex flex-col items-center justify-center w-12 h-12 text-slate-500 hover:text-pink-500 active:scale-90 transition-all">
+                <i class="fa-solid fa-chevron-left text-lg"></i>
+                <span class="text-[9px] font-bold mt-0.5">◁ 뒤로</span>
+            </button>
+        </div>
+
+    </div>
+
+    <div id="custom-modal" class="fixed inset-0 bg-black/50 z-[99] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300 text-center border-2 border-pink-100" id="modal-content">
+            <div class="flex justify-center mb-3" id="modal-icon-container">
+                <!-- 동적으로 아이콘 주입 -->
+            </div>
+            <h4 class="text-base font-bold text-slate-800 mb-2" id="modal-title">알림</h4>
+            <p class="text-xs text-slate-500 font-bold mb-5 leading-relaxed" id="modal-message">상세 정보 메시지가 여기에 나타납니다.</p>
+            <button onclick="closeModal()" class="w-full bg-gradient-to-r from-amber-200 to-pink-300 text-white font-bold py-2.5 px-4 rounded-xl shadow-md active:scale-95 transition-transform text-sm">
+                쇼핑몰 구경가기!
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 현재 스크린 히스토리 스택
+        let screenHistory = ['step-1'];
+        let currentScreen = 'step-1';
+
+        // 10종의 정교하게 수정된 학교 물품 데이터베이스 (풀과 지우개 완벽 반영!)
+        const itemsDatabase = [
+            { 
+                name: "딱풀", 
+                displayName: "풀", 
+                category: "학용품", 
+                desc: "미술 시간이나 종이접기 할 때 꼭 챙겨야 하는 끈적끈적 풀! 딱풀을 미리 꼼꼼히 점검하고 사두자.",
+                icon: `<svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                    <rect x="35" y="40" width="30" height="45" rx="5" fill="#FFF275" stroke="#374151" stroke-width="4"/>
+                    <rect x="35" y="15" width="30" height="25" rx="5" fill="#4E9F3D" stroke="#374151" stroke-width="4"/>
+                    <rect x="35" y="50" width="30" height="15" fill="#FFADAD"/>
+                    <line x1="35" y1="50" x2="65" y2="50" stroke="#374151" stroke-width="4"/>
+                    <line x1="35" y1="65" x2="65" y2="65" stroke="#374151" stroke-width="4"/>
+                </svg>`
+            },
+            { 
+                name: "문구 지우개", 
+                displayName: "지우개", 
+                category: "학용품", 
+                desc: "글씨를 쓰다 틀렸을 때 깔끔하게 지워주는 지우개! 잘 부러지지 않는 예쁜 지우개를 골라보자.",
+                icon: `<svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                    <rect x="20" y="30" width="60" height="40" rx="4" fill="#FFADAD" stroke="#374151" stroke-width="4"/>
+                    <rect x="20" y="30" width="38" height="40" fill="#3D84B8" stroke="#374151" stroke-width="4"/>
+                    <rect x="25" y="42" width="10" height="16" fill="#FFF" rx="2"/>
+                </svg>`
+            },
+            { 
+                name: "학용품 가위", 
+                displayName: "가위", 
+                category: "학용품", 
+                desc: "안전하게 날을 덮어주는 안전캡 가위! 다칠 염려가 없어서 준비물 필수템으로 추천해요.",
+                icon: `<svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                    <circle cx="35" cy="65" r="14" stroke="#374151" stroke-width="4" fill="#88D49E"/>
+                    <circle cx="65" cy="65" r="14" stroke="#374151" stroke-width="4" fill="#88D49E"/>
+                    <path d="M 35 52 L 45 15 L 51 15 Z" fill="#E2E8F0" stroke="#374151" stroke-width="4"/>
+                    <path d="M 65 52 L 55 15 L 49 15 Z" fill="#E2E8F0" stroke="#374151" stroke-width="4"/>
+                    <circle cx="50" cy="45" r="4" fill="#374151"/>
+                </svg>`
+            },
+            { 
+                name: "학용품 연필 볼펜", 
+                displayName: "연필/볼펜", 
+                category: "학용품", 
+                desc: "수업 시간에 귀를 쫑긋 세우고 바른 글씨를 적을 수 있는 마법의 필기도구 꾸러미!",
+                icon: `<svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                    <path d="M 32 75 L 32 30 L 45 12 L 58 30 L 58 75 Z" fill="#FFD3B6" stroke="#374151" stroke-width="4"/>
+                    <path d="M 32 30 L 58 30" stroke="#374151" stroke-width="4"/>
+                    <path d="M 41 17 L 45 12 L 49 17 Z" fill="#374151"/>
+                    <rect x="38" y="40" width="5" height="35" fill="#FFADAD"/>
+                    <rect x="47" y="40" width="5" height="35" fill="#88D49E"/>
+                </svg>`
+            },
+            { 
+                name: "어린이 색연필", 
+                displayName: "색연필", 
+                category: "학용품", 
+                desc: "풍부한 색깔들로 상상력을 마음껏 종이에 수놓아 줄 다채롭고 단단한 색연필 세트!",
+                icon: `<svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                    <path d="M 22 80 L 22 38 L 32 20 L 42 38 L 42 80 Z" fill="#FFADAD" stroke="#374151" stroke-width="4"/>
+                    <path d="M 28 30 L 32 20 L 36 30 Z" fill="#FF5E7E"/>
+                    <path d="M 50 80 L 50 38 L 60 20 L 70 38 L 70 80 Z" fill="#FFE3A8" stroke="#374151" stroke-width="4"/>
+                    <path d="M 56 30 L 60 20 L 64 30 Z" fill="#FFB347"/>
+                </svg>`
+            },
+            { 
+                name: "싸인펜 세트", 
+                displayName: "싸인펜", 
+                category: "학용품", 
+                desc: "굵고 선명한 선이 필요할 때 아주 최고! 모둠 발표나 포스터 그리기에 최고예요.",
+                icon: `<svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                    <rect x="35" y="35" width="30" height="50" rx="3" fill="#FFF" stroke="#374151" stroke-width="4"/>
+                    <rect x="35" y="15" width="30" height="20" rx="4" fill="#FFADAD" stroke="#374151" stroke-width="4"/>
+                    <rect x="42" y="48" width="16" height="22" fill="#FFADAD" rx="2"/>
+                </svg>`
+            },
+            { 
+                name: "L자 파일 폴더", 
+                displayName: "파일", 
+                category: "학용품", 
+                desc: "구겨지기 쉬운 가정통신문이나 학습 유인물을 아주 깔끔하게 보관해주는 구원투수 파일!",
+                icon: `<svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                    <path d="M 20 25 L 45 25 L 55 35 L 80 35 L 80 80 L 20 80 Z" fill="#A8DADC" stroke="#374151" stroke-width="4" stroke-linejoin="round"/>
+                    <path d="M 20 35 L 80 35" stroke="#374151" stroke-width="4"/>
+                </svg>`
+            },
+            { 
+                name: "초등학생 공책 노트", 
+                displayName: "공책", 
+                category: "학용품", 
+                desc: "국어, 수학, 받아쓰기 등 다양한 과목들의 정리를 성실하게 이끌어줄 영리한 공책!",
+                icon: `<svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                    <rect x="25" y="18" width="50" height="68" rx="5" fill="#FFE082" stroke="#374151" stroke-width="4"/>
+                    <line x1="25" y1="35" x2="75" y2="35" stroke="#374151" stroke-width="4"/>
+                    <circle cx="35" cy="27" r="3" fill="#374151"/>
+                    <line x1="35" y1="48" x2="65" y2="48" stroke="#FFADAD" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="35" y1="58" x2="65" y2="58" stroke="#FFADAD" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="35" y1="68" x2="65" y2="68" stroke="#FFADAD" stroke-width="3" stroke-linecap="round"/>
+                </svg>`
+            },
+            { 
+                name: "초등학생 캐릭터 필통", 
+                displayName: "필통", 
+                category: "학용품", 
+                desc: "우리의 소중한 연필과 지우개, 풀이 상처나지 않게 한곳에 예쁘게 담아두는 필통!",
+                icon: `<svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                    <rect x="15" y="35" width="70" height="35" rx="10" fill="#E2E8F0" stroke="#374151" stroke-width="4"/>
+                    <line x1="15" y1="48" x2="85" y2="48" stroke="#374151" stroke-width="4"/>
+                    <rect x="45" y="42" width="10" height="6" fill="#FFF" stroke="#374151" stroke-width="2"/>
+                </svg>`
+            },
+            { 
+                name: "어린이 물통 텀블러", 
+                displayName: "물통", 
+                category: "물건", 
+                desc: "열심히 뛰어놀고 갈증을 해결할 신선하고 건강한 개인 필수 텀블러 물통!",
+                icon: `<svg class="w-10 h-10" viewBox="0 0 100 100" fill="none">
+                    <rect x="30" y="30" width="40" height="55" rx="8" fill="#FFC6FF" stroke="#374151" stroke-width="4"/>
+                    <rect x="38" y="15" width="24" height="15" rx="3" fill="#FFADAD" stroke="#374151" stroke-width="4"/>
+                    <rect x="44" y="38" width="10" height="25" fill="#FFF" rx="2" opacity="0.6"/>
+                </svg>`
+            }
+        ];
+
+        // 페이지 온로드
+        window.onload = function() {
+            startLiveClock();
+            fetchLocationAndWeather();
+        };
+
+        function startLiveClock() {
+            function updateClock() {
+                const now = new Date();
+                const month = String(now.getMonth() + 1);
+                const date = String(now.getDate());
+                const days = ["일", "월", "화", "수", "목", "금", "토"];
+                const dayStr = days[now.getDay()];
+                
+                // 깔끔하게 날짜와 요일만 표시되도록 조절 완료!
+                document.getElementById('live-time').innerText = `${month}월 ${date}일 (${dayStr})`;
+            }
+            updateClock();
+        }
+
+        function fetchLocationAndWeather() {
+            if (!navigator.geolocation) {
+                setWeatherUnavailable();
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    try {
+                        const geoUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ko`;
+                        const geoRes = await fetch(geoUrl, {
+                            headers: { 'User-Agent': 'SchoolSupplyAppProject' }
+                        });
+                        const geoData = await geoRes.json();
+                        let addressName = "내 주변";
+                        if (geoData.address) {
+                            addressName = geoData.address.quarter || geoData.address.suburb || geoData.address.city || "내 주변";
+                        }
+                        document.getElementById('weather-location').innerText = `📍 ${addressName}`;
+
+                        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+                        const weatherRes = await fetch(weatherUrl);
+                        const weatherData = await weatherRes.json();
+                        
+                        if (weatherData && weatherData.current_weather) {
+                            const temp = Math.round(weatherData.current_weather.temperature);
+                            const code = weatherData.current_weather.weathercode;
+                            const emoji = getWeatherEmoji(code);
+                            document.getElementById('weather-info').innerText = `${emoji} ${temp}°C`;
+                        } else {
+                            document.getElementById('weather-info').innerText = `☁️ --°C`;
+                        }
+                    } catch (error) {
+                        console.error("날씨 정보 에러:", error);
+                        setWeatherUnavailable();
+                    }
+                },
+                (error) => {
+                    console.warn("위치 제한됨:", error);
+                    setWeatherUnavailable();
+                }
+            );
+        }
+
+        function setWeatherUnavailable() {
+            document.getElementById('weather-location').innerText = "📍 위치 탐색 안됨";
+            document.getElementById('weather-info').innerText = "☀️ 맑음";
+        }
+
+        function getWeatherEmoji(code) {
+            if (code === 0) return "☀️";
+            if (code >= 1 && code <= 3) return "⛅";
+            if (code >= 45 && code <= 48) return "🌫️";
+            if (code >= 51 && code <= 67) return "🌧️";
+            if (code >= 71 && code <= 77) return "❄️";
+            if (code >= 80 && code <= 82) return "🌦️";
+            return "☁️";
+        }
+
+        function showScreen(screenId) {
+            const screens = ['step-1', 'step-2', 'step-3'];
+            screens.forEach(s => {
+                const el = document.getElementById(s);
+                if (s === screenId) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+            
+            if (screenHistory[screenHistory.length - 1] !== screenId) {
+                screenHistory.push(screenId);
+            }
+            currentScreen = screenId;
+        }
+
+        function goBackToHome() {
+            showScreen('step-1');
+            screenHistory = ['step-1'];
+        }
+
+        function navigateBack() {
+            if (screenHistory.length > 1) {
+                screenHistory.pop();
+                const prevScreen = screenHistory[screenHistory.length - 1];
+                showScreen(prevScreen);
+            } else {
+                showCustomModal("⚠️ 알림", "더 이상 뒤로갈 수 있는 이전 페이지가 없습니다!", `
+                    <svg class="w-12 h-12" viewBox="0 0 100 100" fill="none">
+                        <circle cx="50" cy="50" r="40" fill="#FFADAD" stroke="#374151" stroke-width="4"/>
+                        <path d="M 50 30 L 50 55" stroke="#374151" stroke-width="6" stroke-linecap="round"/>
+                        <circle cx="50" cy="70" r="5" fill="#374151"/>
+                    </svg>
+                `);
+            }
+        }
+
+        function toggleDrawer() {
+            const drawer = document.getElementById('side-drawer');
+            const content = document.getElementById('drawer-content');
+            
+            if (drawer.classList.contains('opacity-0')) {
+                drawer.classList.remove('opacity-0', 'pointer-events-none');
+                content.classList.remove('translate-x-full');
+            } else {
+                drawer.classList.add('opacity-0', 'pointer-events-none');
+                content.classList.add('translate-x-full');
+            }
+        }
+
+        function startRecommendation() {
+            const nameInput = document.getElementById('user-info-input').value.trim();
+            const displayName = nameInput ? nameInput : "귀여운 학생 친구";
+            
+            document.getElementById('loader-username').innerText = displayName;
+            document.getElementById('result-username').innerText = displayName;
+
+            showScreen('step-2');
+
+            const phrases = [
+                "오늘의 요일에 어울리는 환상의 아이템 선별 중...",
+                "우리 반 친구가 가장 많이 추천하는 꿀템 분석 중! 📝",
+                "네이버 쇼핑 공식 데이터와 안전 매칭 중... 🛍️",
+                "성공! 준비 완료된 완벽 큐레이션 결과를 확인하세요! ✨"
+            ];
+            
+            let i = 0;
+            const phraseInterval = setInterval(() => {
+                if (i < phrases.length) {
+                    document.getElementById('loading-status-text').innerText = phrases[i];
+                    i++;
+                }
+            }, 550);
+
+            setTimeout(() => {
+                clearInterval(phraseInterval);
+                generateResults();
+                showScreen('step-3');
+            }, 2200);
+        }
+
+        function generateResults() {
+            const now = new Date();
+            const days = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+            const currentDayStr = days[now.getDay()];
+            const month = now.getMonth() + 1;
+            const date = now.getDate();
+            
+            let recommendReasonSuffix = "";
+            const dayIndex = now.getDay();
+            
+            if (dayIndex === 1 || dayIndex === 2) { 
+                recommendReasonSuffix = "활기찬 새로운 한 주의 출발 요일이에요! 이번 주 수업시간에 후회 없이 열공할 수 있도록 미리 든든하게 챙겨둡시다.";
+            } else if (dayIndex === 3 || dayIndex === 4) { 
+                recommendReasonSuffix = "요일의 딱 중간에 서 있어서 피로가 쌓이기 쉬워요! 귀엽고 깜찍한 필살 아이템으로 가방 안을 장식해 기운을 내 볼까요?";
+            } else if (dayIndex === 5) { 
+                recommendReasonSuffix = "주말이 한걸음 다가와서 마음이 들뜨는 행복한 요일이에요! 월요일날 당황하지 않게 가방 문을 닫기 전 콕 확인해요.";
+            } else { 
+                recommendReasonSuffix = "기분 좋은 즐거운 주말이에요! 다가올 신나는 학교생활을 완벽히 수호할 수 있도록 지금 한 박자 빨리 세팅해요.";
+            }
+
+            document.getElementById('result-datetime-desc').innerText = `📅 ${month}월 ${date}일 (${currentDayStr}) 맞춤 꿀템 추천`;
+
+            const shuffled = [...itemsDatabase].sort(() => 0.5 - Math.random());
+            const selectedItems = shuffled.slice(0, 3);
+
+            const resultsContainer = document.getElementById('recommendation-results');
+            resultsContainer.innerHTML = "";
+
+            selectedItems.forEach(item => {
+                const displayName = item.displayName || item.name;
+                const searchName = item.name;
+
+                const cardHTML = `
+                    <div class="bg-white p-4 rounded-2xl border border-pink-50 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                                ${item.icon}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] font-bold text-pink-500 bg-pink-50 px-2 py-0.5 rounded-full">${item.category}</span>
+                                    <span class="text-[10px] text-amber-500 font-bold flex items-center gap-1">🛍️ 안전한 네이버 쇼핑</span>
+                                </div>
+                                <h4 class="text-sm font-bold text-slate-800 mt-0.5">${displayName}</h4>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-500 font-bold mt-3.5 leading-relaxed bg-amber-50/20 p-2.5 rounded-xl border border-dashed border-amber-100">
+                            🎈 ${item.desc} <span class="text-pink-500">${recommendReasonSuffix}</span>
+                        </p>
+                        <div class="mt-3 flex justify-end">
+                            <a href="https://search.shopping.naver.com/search/all?query=${encodeURIComponent(searchName)}" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="bg-gradient-to-r from-amber-100 to-rose-100 hover:from-amber-200 hover:to-rose-200 text-rose-700 text-[11px] font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all active:scale-95 shadow-sm">
+                                <i class="fa-solid fa-cart-shopping"></i> 네이버 쇼핑에서 최저가 검색하기
+                            </a>
+                        </div>
+                    </div>
+                `;
+                resultsContainer.innerHTML += cardHTML;
+            });
+        }
+
+        function searchOnShopping(query) {
+            const shoppingUrl = `https://search.shopping.naver.com/search/all?query=${encodeURIComponent(query)}`;
+            
+            // 귀여운 관련 SVG 아이콘 탐색
+            const selectedItem = itemsDatabase.find(x => x.name === query) || itemsDatabase.find(x => x.displayName === query);
+            const iconHtml = selectedItem ? selectedItem.icon : `<svg class="w-12 h-12" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="40" fill="#FFC6FF" stroke="#374151" stroke-width="4"/></svg>`;
+
+            showCustomModal(
+                "🛍️ 문구 쇼핑 이동 알림", 
+                `"${selectedItem ? selectedItem.displayName : query}"을(를) 집에서 저렴하게 구경하고 부모님과 안전하게 비교 쇼핑해 볼까요? 즉시 공식 네이버 쇼핑 페이지로 출발할게요! ✨`, 
+                iconHtml, 
+                () => {
+                    window.open(shoppingUrl, '_blank', 'noopener,noreferrer');
+                }
+            );
+        }
+
+        let currentModalConfirmAction = null;
+
+        function showCustomModal(title, msg, iconSvg, confirmCallback = null) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerText = msg;
+            
+            const iconContainer = document.getElementById('modal-icon-container');
+            iconContainer.innerHTML = iconSvg;
+            
+            currentModalConfirmAction = confirmCallback;
+
+            const modal = document.getElementById('custom-modal');
+            const content = document.getElementById('modal-content');
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 50);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('custom-modal');
+            const content = document.getElementById('modal-content');
+
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                if (currentModalConfirmAction) {
+                    currentModalConfirmAction();
+                    currentModalConfirmAction = null;
+                }
+            }, 300);
+        }
+    </script>
+</body>
+</html>

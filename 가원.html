@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>코디추천 - 나만의 스마트 옷장</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Cute and Clean Korean Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Pen+Script&family=Gowun+Dodum&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Gowun Dodum', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* 스마트폰 물리 프레임 스타일 */
+        .phone-container {
+            width: 390px;
+            height: 844px;
+            background: white;
+            border: 12px solid #222;
+            border-radius: 48px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 스마트폰 상단 노치/스피커 */
+        .phone-notch {
+            width: 150px;
+            height: 25px;
+            background: #222;
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        /* 커스텀 스크롤바 감추기 */
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scroll-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 애니메이션 효과 */
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body>
+
+<div class="phone-container">
+    <!-- 상단 노치 -->
+    <div class="phone-notch"></div>
+
+    <!-- 스마트폰 내부 상태 표시줄 -->
+    <div class="flex justify-between items-center px-6 pt-3 pb-2 text-xs font-semibold bg-white/80 backdrop-blur-md z-50 border-b border-gray-100" id="statusBar">
+        <span id="liveTime">10:25</span>
+        <div class="flex items-center space-x-1.5">
+            <span class="text-[10px] text-green-600">LTE</span>
+            <span id="batteryPercent" class="flex items-center">🔋 17%</span>
+        </div>
+    </div>
+
+    <!-- 주 메인 콘텐츠 영역 -->
+    <div id="appBody" class="flex-1 overflow-y-auto scroll-hide pb-20 bg-slate-50 transition-colors duration-500">
+        
+        <!-- 테마 설정 플로팅 버튼 -->
+        <div class="p-3 flex justify-between items-center bg-white border-b border-gray-100 shadow-sm">
+            <span class="text-xs font-bold text-gray-500">🎨 테마 선택하기:</span>
+            <div class="flex space-x-1">
+                <button onclick="changeTheme('rainbow')" class="w-6 h-6 rounded-full bg-gradient-to-r from-yellow-300 via-pink-400 to-blue-400 border border-gray-300" title="알록달록 테마"></button>
+                <button onclick="changeTheme('dark')" class="w-6 h-6 rounded-full bg-slate-800 border border-gray-300" title="시크 다크"></button>
+                <button onclick="changeTheme('pink')" class="w-6 h-6 rounded-full bg-pink-300 border border-gray-300" title="러블리 핑크"></button>
+                <button onclick="changeTheme('beige')" class="w-6 h-6 rounded-full bg-orange-100 border border-gray-300" title="따뜻한 베이지"></button>
+            </div>
+        </div>
+
+        <!-- ==================== 1단계: 검색 및 입력 화면 ==================== -->
+        <div id="step1Screen" class="p-5 space-y-6">
+            
+            <!-- 날씨 요약 카드 (GPS 수신 결과 반영) -->
+            <div id="weatherCard" class="bg-gradient-to-br from-blue-400 to-indigo-500 text-white rounded-2xl p-4 shadow-md transition-all duration-300">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-[11px] opacity-90 font-medium" id="currentDateStr">오늘의 날짜 로딩중...</p>
+                        <h3 class="text-base font-bold flex items-center gap-1">
+                            <span id="weatherLocation">위치 찾는 중... 📍</span>
+                        </h3>
+                    </div>
+                    <div class="text-right">
+                        <span id="weatherEmoji" class="text-3xl block">⏳</span>
+                        <span id="weatherTemp" class="text-xs font-semibold">정보 수집중..</span>
+                    </div>
+                </div>
+                <p class="text-[11px] mt-2 pt-2 border-t border-white/20" id="weatherTip">
+                    💡 기온에 딱 맞는 옷을 추천하기 위해 하늘 분석기 가동 중!
+                </p>
+            </div>
+
+            <!-- 알록달록 '코디추천' 타이틀 (구상도 속 손글씨 느낌 재현) -->
+            <div class="text-center py-2">
+                <h1 class="text-4xl font-extrabold tracking-wider select-none flex justify-center gap-1 drop-shadow-md" id="appMainTitle">
+                    <span class="text-orange-500">코</span>
+                    <span class="text-emerald-500">디</span>
+                    <span class="text-pink-500">추</span>
+                    <span class="text-blue-500">천</span>
+                </h1>
+                <p class="text-xs text-gray-500 mt-1" id="appSubTitle">내 옷장의 보물로 만드는 완벽한 하루 스타일링</p>
+            </div>
+
+            <!-- 구상도 검색창 -->
+            <div class="space-y-2">
+                <label class="text-sm font-bold text-gray-700 flex items-center gap-1">
+                    🔍 어디에 갈지, 혹은 어떤 옷을 입고 싶은지 적어줘!
+                </label>
+                <div class="relative">
+                    <input type="text" id="searchInput" 
+                           placeholder="바닷가 가서 입기 좋은 옷 추천해줘" 
+                           value="바닷가 가서 입기 좋은 옷 추천해줘"
+                           class="w-full pl-12 pr-4 py-3.5 bg-white border-2 border-slate-300 rounded-full shadow-inner focus:outline-none focus:border-indigo-400 text-sm font-medium transition-all">
+                    <button onclick="startAnalysis()" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-2xl hover:scale-110 active:scale-95 transition-all">
+                        🔍
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-1.5 pt-1">
+                    <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-1 rounded-full cursor-pointer hover:bg-indigo-100 transition" onclick="setPresetKeyword('학교 갈 때 편하게 입기 좋은 옷')">🏫 학교 편한 옷</span>
+                    <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-1 rounded-full cursor-pointer hover:bg-indigo-100 transition" onclick="setPresetKeyword('바닷가 가서 입기 좋은 옷 추천해줘')">🌊 바닷가 인생샷</span>
+                    <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-1 rounded-full cursor-pointer hover:bg-indigo-100 transition" onclick="setPresetKeyword('결혼식이나 격식 있는 자리 옷')">👔 단정한 룩</span>
+                    <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-1 rounded-full cursor-pointer hover:bg-indigo-100 transition" onclick="setPresetKeyword('비오는 날 입기 좋은 패션')">☔ 비오는 날 대비</span>
+                </div>
+            </div>
+
+            <!-- 계절 및 기본 무드 수동 보정 (추천 정확도 업그레이드) -->
+            <div class="grid grid-cols-2 gap-3 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1.5">🍁 계절 선택</label>
+                    <select id="seasonSelect" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-400">
+                        <option value="spring">봄 (따뜻하고 설레는)</option>
+                        <option value="summer" selected>여름 (시원하고 청량한)</option>
+                        <option value="autumn">가을 (낙엽과 쓸쓸한)</option>
+                        <option value="winter">겨울 (따뜻하고 두꺼운)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1.5">✨ 원하는 코디 무드</label>
+                    <select id="styleSelect" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-400">
+                        <option value="casual" selected>편안한 캐주얼</option>
+                        <option value="sporty">신나는 스포티룩</option>
+                        <option value="lovely">러블리 데이트룩</option>
+                        <option value="dandy">멋쟁이 클래식</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 신체 정보 및 원하는 핏감 입력 섹션 추가 (초개인화 추천 시스템) -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+                <h4 class="text-xs font-extrabold text-indigo-600 flex items-center gap-1">
+                    📏 나만의 신체 정보 & 맞춤 핏 설정
+                </h4>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 mb-1">내 키 (cm)</label>
+                        <input type="number" id="heightInput" placeholder="예: 155" value="155"
+                               class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 mb-1">원하는 옷 핏</label>
+                        <select id="fitSelect" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-400">
+                            <option value="over">여유로운 오버핏 👕</option>
+                            <option value="regular" selected>딱 맞는 정사이즈 👔</option>
+                            <option value="crop">귀여운 숏/크롭핏 👗</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 내 옷장 데이터베이스 체크리스트 (있는 옷 vs 없는 옷 매칭용) -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+                <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                    <h4 class="text-xs font-extrabold text-indigo-600 flex items-center gap-1">
+                        👕 내 옷장 똑똑이 점검표
+                    </h4>
+                    <span class="text-[9px] text-gray-400">가지고 있는 옷을 체크해 주세요!</span>
+                </div>
+                
+                <p class="text-[11px] text-gray-500 leading-relaxed">
+                    체크한 옷은 <b>"내 옷장에 있어요"</b>로 추천되고, 체크하지 않은 옷은 <b>"네이버 쇼핑 연결"</b>로 찰떡 쇼핑 링크를 만들어줄게요!
+                </p>
+
+                <div class="grid grid-cols-2 gap-2 text-xs" id="closetCheckboxes">
+                    <!-- JS로 다이내믹하게 생성되거나 기본값을 배치합니다 -->
+                    <label class="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded cursor-pointer">
+                        <input type="checkbox" id="item_tshirt" checked class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-400">
+                        <span>반팔 티셔츠</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded cursor-pointer">
+                        <input type="checkbox" id="item_shorts" checked class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-400">
+                        <span>반바지</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded cursor-pointer">
+                        <input type="checkbox" id="item_jeans" checked class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-400">
+                        <span>청바지</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded cursor-pointer">
+                        <input type="checkbox" id="item_sneakers" checked class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-400">
+                        <span>스니커즈</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded cursor-pointer">
+                        <input type="checkbox" id="item_hat" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-400">
+                        <span>볼캡 모자</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded cursor-pointer">
+                        <input type="checkbox" id="item_linen" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-400">
+                        <span>린넨 셔츠</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded cursor-pointer">
+                        <input type="checkbox" id="item_cardigan" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-400">
+                        <span>가디건</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded cursor-pointer">
+                        <input type="checkbox" id="item_padding" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-400">
+                        <span>패딩 점퍼</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 분석 실행 버튼 -->
+            <button onclick="startAnalysis()" 
+                    class="w-full py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-full font-bold shadow-lg transform active:scale-95 transition-all text-sm animate-pulse-slow">
+                🪄 추천 코디 마법 부리기!
+            </button>
+        </div>
+
+
+        <!-- ==================== 2단계: 분석 로딩 화면 ==================== -->
+        <div id="step2Screen" class="hidden p-8 flex flex-col items-center justify-center min-h-[500px] text-center space-y-6">
+            <div class="relative w-24 h-24">
+                <!-- 원형 스피너 -->
+                <div class="absolute inset-0 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin"></div>
+                <!-- 내부 아이콘 깜빡임 -->
+                <div class="absolute inset-0 flex items-center justify-center text-4xl animate-bounce">
+                    👕
+                </div>
+            </div>
+            
+            <div class="space-y-2">
+                <h3 class="text-lg font-black text-gray-800" id="loadingTitle">오늘 어울리는 코디 탐색 중...</h3>
+                <p class="text-xs text-gray-500" id="loadingSub">현재 날씨 데이터와 옷장 정보를 비교 분석하고 있어요.</p>
+            </div>
+
+            <!-- 재미있는 랜덤 분석 코멘트 -->
+            <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-700 w-full max-w-[280px]" id="loadingTip">
+                "사용자님의 멋진 패션 감각을 불러오는 중..."
+            </div>
+        </div>
+
+
+        <!-- ==================== 3단계: 코디 결과 화면 ==================== -->
+        <div id="step3Screen" class="hidden p-5 space-y-5">
+            <!-- 분석 완료 팝업 효과 타이틀 -->
+            <div class="text-center bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
+                <span class="text-2xl">🎉</span>
+                <h3 class="text-base font-extrabold text-emerald-800 mt-1">사용자 맞춤형 인생 코디 도착!</h3>
+                <p class="text-[10px] text-emerald-600 mt-0.5">입력해주신 스타일과 오늘의 상황을 분석해 찾아낸 아이템이에요.</p>
+            </div>
+
+            <!-- 검색 정보 및 조건 요약 -->
+            <div class="bg-white p-3.5 rounded-xl shadow-sm border border-gray-100 text-xs text-gray-600 space-y-1">
+                <div class="flex justify-between">
+                    <span class="font-bold text-gray-500">입력한 소원:</span>
+                    <span class="font-bold text-indigo-600" id="resultQuery">"바닷가 가서 입기 좋은 옷"</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-bold text-gray-500">매칭된 분위기:</span>
+                    <span class="font-bold text-gray-800" id="resultMood">여름 ☀️ | 편안한 캐주얼 룩</span>
+                </div>
+                <div class="flex justify-between pt-1 border-t border-gray-100 text-[10px]">
+                    <span class="font-bold text-gray-400">입력된 신체 정보:</span>
+                    <span class="font-bold text-emerald-600" id="resultBodyInfo">키 155cm | 정사이즈 핏</span>
+                </div>
+            </div>
+
+            <!-- 추천 코디 세트 결과 리스트 -->
+            <div class="space-y-4" id="recommendationList">
+                <!-- JS 동적 생성 영역 -->
+            </div>
+
+            <!-- 똑똑한 옷 분석 전문가 한마디 -->
+            <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-100 rounded-2xl p-4 space-y-2">
+                <h4 class="text-xs font-bold text-orange-800 flex items-center gap-1">
+                    👩‍🏫 패션 어드바이저 쌤의 원포인트 코멘트!
+                </h4>
+                <p class="text-[11px] text-orange-900 leading-relaxed" id="advisorComment">
+                    오늘 기온과 바닷가라는 특별한 날에는 시원하고 편하게 움직일 수 있는 바디 코디가 정석이에요! 가지고 있는 청바지와 스니커즈에 매치하기만 하면 인생샷 바로 건질 수 있어요!
+                </p>
+            </div>
+
+            <!-- 다시 코디 추천 받기 -->
+            <button onclick="goToHome()" 
+                    class="w-full py-3.5 bg-slate-800 text-white rounded-full font-bold shadow-md hover:bg-slate-700 active:scale-95 transition-all text-xs">
+                🔄 다른 코디 찾아보기 (처음으로)
+            </button>
+        </div>
+
+    </div>
+
+    <!-- 스마트폰 하단 고정 소프트웨어 네비게이션 바 -->
+    <div class="absolute bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 flex justify-around items-center px-4 z-50">
+        <!-- ☰ 메뉴 버튼 (설정 드로워 트리거) -->
+        <button onclick="toggleMenuDrawer()" class="flex flex-col items-center justify-center w-12 h-12 text-gray-600 hover:text-indigo-600 active:scale-90 transition">
+            <span class="text-lg">☰</span>
+            <span class="text-[9px] font-bold">메뉴</span>
+        </button>
+        
+        <!-- ⌂ 홈 버튼 (1단계로 귀환) -->
+        <button onclick="goToHome()" class="flex flex-col items-center justify-center w-12 h-12 text-gray-600 hover:text-indigo-600 active:scale-90 transition">
+            <span class="text-lg">⌂</span>
+            <span class="text-[9px] font-bold">홈</span>
+        </button>
+        
+        <!-- ◁ 뒤로가기 버튼 -->
+        <button onclick="goBackStep()" class="flex flex-col items-center justify-center w-12 h-12 text-gray-600 hover:text-indigo-600 active:scale-90 transition">
+            <span class="text-lg">◁</span>
+            <span class="text-[9px] font-bold">뒤로가기</span>
+        </button>
+    </div>
+
+    <!-- 메뉴 드로워 모달 (화면 왼쪽에서 열림) -->
+    <div id="menuDrawer" class="absolute inset-y-0 left-0 w-64 bg-white/95 backdrop-blur-md shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between">
+        <div class="p-5 space-y-6 pt-12">
+            <div class="flex justify-between items-center border-b pb-3">
+                <span class="font-extrabold text-gray-800 text-sm">👔 옷장 가이드 메뉴</span>
+                <button onclick="toggleMenuDrawer()" class="text-gray-400 hover:text-red-500 font-bold text-xs">닫기 ✕</button>
+            </div>
+            
+            <div class="space-y-4 text-xs">
+                <div class="p-3 bg-indigo-50 rounded-lg text-indigo-700">
+                    <p class="font-bold">📱 어플 이름</p>
+                    <p class="mt-1 font-medium">코디추천 (버전 1.0)</p>
+                </div>
+
+                <div class="space-y-2">
+                    <p class="font-bold text-gray-500">🔍 추천 기획 히스토리</p>
+                    <ul class="space-y-1 text-gray-600 pl-1 list-disc list-inside">
+                        <li>계절별 자동 세분화</li>
+                        <li>옷장 보유 필터링 제공</li>
+                        <li>네이버 쇼핑 빠른 연동</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 bg-slate-100 text-[10px] text-gray-500 text-center">
+            <p>만든이: 친절한 앱 개발 파트너 gems</p>
+            <p class="mt-1">© 2026 코디추천 App Co.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 전역 상태 변수 관리
+    let currentStep = 1;
+    let selectedTheme = 'rainbow';
+    let localWeatherData = { temp: 24, text: '맑음', emoji: '☀️', location: '경기도 남양주시' };
+
+    // 10개 이상의 풍부하고 무해한(미성년자 안전) 의류 아이템 데이터베이스 구축
+    const CLOTHES_DATABASE = {
+        spring: {
+            casual: [
+                { name: "편안한 가디건", emoji: "🧥", desc: "봄바람 부는 날 가볍게 걸쳐서 온도를 조절해 보세요." },
+                { name: "슬림핏 청바지", emoji: "👖", desc: "봄 햇살 아래 어디든 잘 어울리는 기본 청 데님 아이템이에요." },
+                { name: "컬러풀 스니커즈", emoji: "👟", desc: "화창한 봄날 걷기 편하고 발을 보호해 주는 신발이랍니다." }
+            ],
+            lovely: [
+                { name: "파스텔 블라우스", emoji: "👚", desc: "화사한 봄 꽃나들이 갈 때 러블리한 감성을 극대화해 줍니다." },
+                { name: "샤랄라 롱스커트", emoji: "👗", desc: "하늘하늘 날려 봄 분위기를 완전히 장악할 수 있는 스커트!" },
+                { name: "플랫 슈즈", emoji: "🥿", desc: "가벼운 발걸음으로 예쁜 사진을 많이 남길 수 있게 도와줍니다." }
+            ],
+            sporty: [
+                { name: "루즈핏 맨투맨", emoji: "👕", desc: "야외에서 신나게 뛰어놀기 편하고 스타일도 챙기는 만능 셔츠." },
+                { name: "조거 팬츠", emoji: "👖", desc: "다리 움직임이 정말 편안해서 운동장을 뛸 때 꼭 필요해요." },
+                { name: "러닝화", emoji: "👟", desc: "미끄럼을 방지하고 충격을 막아 안전하게 활동할 수 있어요." }
+            ],
+            dandy: [
+                { name: "봄 트렌치코트", emoji: "🧥", desc: "봄에 댄디하고 멋스러운 분위기를 연출하기에 최고인 아우터." },
+                { name: "치노 슬랙스 바지", emoji: "👖", desc: "단정하고 깔끔한 실루엣을 살려 신뢰감을 주는 슬랙스." },
+                { name: "가죽 로퍼", emoji: "👞", desc: "격식 있는 장소나 단정하게 보이고 싶은 날 완성하는 로퍼 슈즈." }
+            ]
+        },
+        summer: {
+            casual: [
+                { name: "시원한 반팔 티셔츠", emoji: "👕", desc: "가장 기본이면서 땀 흡수력이 뛰어나 시원한 티셔츠입니다." },
+                { name: "데님 반바지", emoji: "🩳", desc: "통풍이 잘 되고 활동성이 매우 뛰어난 여름철 필수 동반자입니다." },
+                { name: "통풍 샌들", emoji: "👡", desc: "발이 답답하지 않고 물놀이 시에도 빠르게 마르는 여름 슈즈예요." }
+            ],
+            lovely: [
+                { name: "린넨 원피스", emoji: "👗", desc: "한 장만 걸쳐도 사랑스럽고 가벼운 소재로 정말 시원한 원피스예요." },
+                { name: "라피아 밀짚모자", emoji: "👒", desc: "강한 여름 자외선을 막아주면서 바닷가 휴양지 느낌을 가득 줘요." },
+                { name: "선글라스", emoji: "🕶️", desc: "소중한 내 눈을 햇빛으로부터 지키고 멋진 코디 포인트가 되는 안경." }
+            ],
+            sporty: [
+                { name: "기능성 민소매", emoji: "🎽", desc: "땀 배출과 통풍이 극대화된 스포티 아이템입니다." },
+                { name: "트레이닝 숏팬츠", emoji: "🩳", desc: "여름철 스포츠 활동 시 다리 걸림 없이 완전한 자유를 보장해요." },
+                { name: "메쉬 캡모자", emoji: "🧢", desc: "햇볕을 효과적으로 막으면서 뒷면 그물망으로 머리가 쾌적해요." }
+            ],
+            dandy: [
+                { name: "카라 반팔 니트", emoji: "👕", desc: "여름에도 더워 보이지 않고 단정해 보여 중요한 모임에 아주 제격입니다." },
+                { name: "린넨 셔츠", emoji: "👔", desc: "고급스러운 린넨 소재로, 소매를 살짝 접어 세련되게 입기 좋아요." },
+                { name: "화이트 단화", emoji: "👟", desc: "여름 캐주얼 수트나 린넨 바지 아래 신으면 정갈함을 주는 신발." }
+            ]
+        },
+        autumn: {
+            casual: [
+                { name: "체크 남방 셔츠", emoji: "👔", desc: "가을 단풍 색과 어우러져 빈티지하고 자연스러운 매력이 돋보여요." },
+                { name: "스트레이트 면바지", emoji: "👖", desc: "가을철 쌀쌀한 가을바람을 막아주는 탄탄한 코튼 바지." },
+                { name: "캔버스 슈즈", emoji: "👟", desc: "어떤 빈티지 코디에도 스며드는 가을철 최고의 정석 단화입니다." }
+            ],
+            lovely: [
+                { name: "니트 베스트 조끼", emoji: "🎽", desc: "블라우스나 셔츠 위에 레이어드하여 귀엽고 따스한 느낌을 연출해요." },
+                { name: "베이지 가죽 백", emoji: "👜", desc: "가을 감성이 고스란히 담긴 따스한 베이지 컬러의 가방 아이템." },
+                { name: "스웨이드 슈즈", emoji: "👞", desc: "포근하고 부드러운 가을의 따뜻한 느낌을 물씬 풍기는 신발." }
+            ],
+            sporty: [
+                { name: "오버핏 후드티", emoji: "🧥", desc: "가장 보편적이면서 바람 부는 계절 귀여운 스포티 감성을 줍니다." },
+                { name: "스웨트 츄리닝 바지", emoji: "👖", desc: "언제 어디서든 활동할 수 있는 편한 가을 기본 조거 팬츠." },
+                { name: "어글리 스니커즈", emoji: "👟", desc: "굽이 두툼해 발목 무리를 덜고 개성 넘치는 가을 스트릿 패션 완성." }
+            ],
+            dandy: [
+                { name: "가을 체크 자켓", emoji: "🧥", desc: "선선한 가을 날씨에 아주 적합하고 품격 있는 무드를 자랑하는 자켓." },
+                { name: "옥스포드 클래식 셔츠", emoji: "👔", desc: "깃이 빳빳하고 깔끔하게 떨어져 가을 댄디 코디의 베이스가 됩니다." },
+                { name: "가죽 벨트", emoji: "ベルト", emoji: "🏷️", desc: "전체적인 코디 톤을 정돈하고 완성도 있는 룩을 세팅해 줍니다." }
+            ]
+        },
+        winter: {
+            casual: [
+                { name: "보온 패딩 점퍼", emoji: "🧥", desc: "차가운 겨울 시베리아 바람도 거뜬히 견뎌내는 든든한 보호막!" },
+                { name: "기모 청바지", emoji: "👖", desc: "안쪽에 따스한 솜털이 들어있어 다리를 따끈따끈하게 유지해 줍니다." },
+                { name: "방한 비니 모자", emoji: "🧢", desc: "귀와 머리의 온도를 지켜 한겨울 감기를 완벽 차단하는 모자." }
+            ],
+            lovely: [
+                { name: "떡볶이 단추 코트", emoji: "🧥", desc: "학창 시절 추억을 돋우는 귀여운 스타일로 사랑스러움이 한가득해요." },
+                { name: "양가죽 털 목도리", emoji: "🧣", desc: "목으로 들어오는 바람을 포근하게 차단하고 시각적 포인트가 됩니다." },
+                { name: "겨울 털 장갑", emoji: "🧤", desc: "손이 시리지 않도록 눈사람을 만들어도 든든하게 손을 보호해 줘요." }
+            ],
+            sporty: [
+                { name: "기모 윈드브레이커", emoji: "🧥", desc: "안감이 기모 처리되어 겨울 야외 운동 중에도 체온을 안전하게 유지해요." },
+                { name: "트레이닝 아노락", emoji: "👕", desc: "바람막이와 스웨터의 하이브리드로 활동성과 패션을 결합한 겨울 스포츠웨어." },
+                { name: "안전 하이탑 방한화", emoji: "👟", desc: "겨울철 눈길이나 언 바닥에서 발목이 뒤틀리는 걸 방지해 줍니다." }
+            ],
+            dandy: [
+                { name: "캐시미어 울 코트", emoji: "🧥", desc: "슬림하고 똑 부러지는 핏으로 차가운 겨울에도 세련됨을 잃지 않는 장치." },
+                { name: "스탠다드 스웨터 니트", emoji: "🧶", desc: "터틀넥이나 단정하게 입어 남녀노소 최고의 포근함을 전달합니다." },
+                { name: "어그 첼시 부츠", emoji: "🥾", desc: "발끝까지 신사적이면서 눈에 미끄러지지 않도록 가죽 코팅 처리가 장점." }
+            ]
+        }
+    };
+
+    window.onload = function() {
+        // 실시간 날짜 출력
+        updateLiveDate();
+        setInterval(updateLiveDate, 1000);
+
+        // 배터리 잔량 시뮬레이션
+        updateBattery();
+
+        // 실시간 사용자 스마트폰 GPS 위치/날씨 가져오기 실행
+        fetchLocationAndWeather();
+    };
+
+    // 실시간 날짜 및 시간 업데이트
+    function updateLiveDate() {
+        const now = new Date();
+        
+        // 상단 스마트폰 시계 
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('liveTime').innerText = `${hours}:${minutes}`;
+
+        // 오늘 날짜 한글 출력
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        const date = now.getDate();
+        const dayArr = ['일', '월', '화', '수', '목', '금', '토'];
+        const day = dayArr[now.getDay()];
+        
+        document.getElementById('currentDateStr').innerText = `${year}년 ${month}월 ${date}일 (${day}요일)`;
+    }
+
+    // 배터리 가짜 표시
+    function updateBattery() {
+        // 자연스럽게 17% 주변으로 출력되도록 구성
+        const targetPercent = 17;
+        document.getElementById('batteryPercent').innerText = `🔋 ${targetPercent}%`;
+    }
+
+    // 위치 획득 및 Open-Meteo 연동
+    function fetchLocationAndWeather() {
+        const locText = document.getElementById('weatherLocation');
+        const tempText = document.getElementById('weatherTemp');
+        const emojiText = document.getElementById('weatherEmoji');
+        const tipText = document.getElementById('weatherTip');
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    try {
+                        // 1. 역지오코딩 API로 주소 이름 알아오기
+                        const geoUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=ko`;
+                        const geoRes = await fetch(geoUrl);
+                        const geoData = await geoRes.json();
+                        
+                        let regionName = "내 주변 동네";
+                        if (geoData && geoData.address) {
+                            regionName = geoData.address.city || geoData.address.province || geoData.address.borough || geoData.address.village || "우리집 주변";
+                            // 너무 긴 동네 이름 축약
+                            if (regionName.length > 8) regionName = regionName.substring(0, 8) + "..";
+                        }
+
+                        // 2. Open-Meteo API로 날씨 가져오기
+                        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+                        const weatherRes = await fetch(weatherUrl);
+                        const weatherData = await weatherRes.json();
+                        
+                        if (weatherData && weatherData.current_weather) {
+                            const curTemp = Math.round(weatherData.current_weather.temperature);
+                            const weatherCode = weatherData.current_weather.weathercode;
+                            
+                            // 날씨 코드에 맞춰 이모지 세팅
+                            let weatherEmoji = '☀️';
+                            let weatherStr = '맑음';
+                            if ([1, 2, 3].includes(weatherCode)) {
+                                weatherEmoji = '⛅';
+                                weatherStr = '구름 조금';
+                            } else if ([45, 48].includes(weatherCode)) {
+                                weatherEmoji = '🌫️';
+                                weatherStr = '안개';
+                            } else if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(weatherCode)) {
+                                weatherEmoji = '🌧️';
+                                weatherStr = '비';
+                            } else if ([71, 73, 75, 77, 85, 86].includes(weatherCode)) {
+                                weatherEmoji = '❄️';
+                                weatherStr = '눈';
+                            } else if ([95, 96, 99].includes(weatherC3ode)) {
+                                weatherEmoji = '⚡';
+                                weatherStr = '천둥번개';
+                            }
+
+                            localWeatherData = {
+                                temp: curTemp,
+                                text: weatherStr,
+                                emoji: weatherEmoji,
+                                location: regionName
+                            };
+
+                            // 화면 반영
+                            locText.innerText = `${regionName} 📍`;
+                            tempText.innerText = `${curTemp}°C (${weatherStr})`;
+                            emojiText.innerText = weatherEmoji;
+                            
+                            // 온도로 추천 계절 사전 설정 유도하기
+                            autoPreSelectSeason(curTemp);
+                            tipText.innerText = `💡 현재 기온은 ${curTemp}°C네요! 기온에 맞추어 예쁜 옷을 추천해드릴게요.`;
+                        }
+                    } catch (error) {
+                        console.log("주변 데이터 호출 실패: ", error);
+                        fallbackWeather();
+                    }
+                },
+                (error) => {
+                    console.log("위치 차단됨: ", error);
+                    fallbackWeather();
+                }
+            );
+        } else {
+            fallbackWeather();
+        }
+    }
+
+    // 날씨 획득 실패 시 "날씨 정보 없음" 및 서울 기본 세팅이 아닌 순수한 안전망 동작
+    function fallbackWeather() {
+        document.getElementById('weatherLocation').innerText = "날씨 정보 없음 📍";
+        document.getElementById('weatherTemp').innerText = "--°C";
+        document.getElementById('weatherEmoji').innerText = "⚠️";
+        document.getElementById('weatherTip').innerText = "💡 위치 권한이 승인되지 않아 날씨 추천 팁 대신 기본 추천 세팅으로 대체해요.";
+    }
+
+    // 온도에 맞춰 계절 실시간 자동 보정 설정
+    function autoPreSelectSeason(temp) {
+        const seasonSelect = document.getElementById('seasonSelect');
+        if (temp >= 23) {
+            seasonSelect.value = "summer";
+        } else if (temp >= 15) {
+            seasonSelect.value = "spring";
+        } else if (temp >= 8) {
+            seasonSelect.value = "autumn";
+        } else {
+            seasonSelect.value = "winter";
+        }
+    }
+
+    // 프리셋 키워드 클릭 시 검색창에 채워주기
+    function setPresetKeyword(text) {
+        document.getElementById('searchInput').value = text;
+    }
+
+    // 테마 실시간 스위치 변경 로직
+    function changeTheme(themeName) {
+        selectedTheme = themeName;
+        const appBody = document.getElementById('appBody');
+        const mainTitle = document.getElementById('appMainTitle');
+        const statusBar = document.getElementById('statusBar');
+
+        // 기본 클래스 초기화
+        appBody.className = "flex-1 overflow-y-auto scroll-hide pb-20 transition-all duration-500 ";
+
+        if (themeName === 'rainbow') {
+            appBody.classList.add("bg-slate-50");
+            mainTitle.innerHTML = `
+                <span class="text-orange-500">코</span>
+                <span class="text-emerald-500">디</span>
+                <span class="text-pink-500">추</span>
+                <span class="text-blue-500">천</span>
+            `;
+            statusBar.className = "flex justify-between items-center px-6 pt-3 pb-2 text-xs font-semibold bg-white/80 backdrop-blur-md z-50 border-b border-gray-100 text-black";
+        } else if (themeName === 'dark') {
+            appBody.classList.add("bg-slate-900", "text-white");
+            mainTitle.innerHTML = `
+                <span class="text-white">코</span>
+                <span class="text-gray-400">디</span>
+                <span class="text-white">추</span>
+                <span class="text-gray-400">천</span>
+            `;
+            statusBar.className = "flex justify-between items-center px-6 pt-3 pb-2 text-xs font-semibold bg-slate-800 backdrop-blur-md z-50 border-b border-slate-700 text-white";
+        } else if (themeName === 'pink') {
+            appBody.classList.add("bg-pink-50");
+            mainTitle.innerHTML = `
+                <span class="text-pink-600">코</span>
+                <span class="text-rose-400">디</span>
+                <span class="text-pink-600">추</span>
+                <span class="text-rose-400">천</span>
+            `;
+            statusBar.className = "flex justify-between items-center px-6 pt-3 pb-2 text-xs font-semibold bg-pink-100 backdrop-blur-md z-50 border-b border-pink-200 text-pink-800";
+        } else if (themeName === 'beige') {
+            appBody.classList.add("bg-amber-50/50");
+            mainTitle.innerHTML = `
+                <span class="text-amber-800">코</span>
+                <span class="text-orange-600">디</span>
+                <span class="text-amber-800">추</span>
+                <span class="text-orange-600">천</span>
+            `;
+            statusBar.className = "flex justify-between items-center px-6 pt-3 pb-2 text-xs font-semibold bg-orange-100/50 backdrop-blur-md z-50 border-b border-orange-200 text-amber-900";
+        }
+    }
+
+    // 분석 프로세스 가동 (2초 대기 화면 연출)
+    function startAnalysis() {
+        const query = document.getElementById('searchInput').value.trim();
+        if(!query) {
+            alertMessage("앗! 검색창에 입고 싶은 코디나 목적지를 적어줘!");
+            return;
+        }
+
+        // 1단계 화면 숨기고 2단계 분석 화면 노출
+        document.getElementById('step1Screen').classList.add('hidden');
+        document.getElementById('step2Screen').classList.remove('hidden');
+        document.getElementById('step3Screen').classList.add('hidden');
+        currentStep = 2;
+
+        // 로딩 멘트 재미있게 롤링하기
+        const loadingTexts = [
+            "위치 기반 대기 온도 분석 중...",
+            "사용자의 내 옷장 옷가지 검문하는 중...",
+            "오늘 어울릴 패션 아이콘 골라내는 중...",
+            "인생 사진을 위한 코디 조합 최적화 중!"
+        ];
+        let index = 0;
+        const intervalId = setInterval(() => {
+            if(index < loadingTexts.length) {
+                document.getElementById('loadingTip').innerText = `"${loadingTexts[index]}"`;
+                index++;
+            }
+        }, 500);
+
+        // 2초 뒤 분석완료 및 3단계 이동
+        setTimeout(() => {
+            clearInterval(intervalId);
+            renderRecommendationResult(query);
+        }, 2000);
+    }
+
+    // 사용자 옷장 보유 여부 체크 확인 함수
+    function checkUserHasItem(itemName) {
+        // 기본 맵핑 데이터 정의
+        const mappingId = {
+            "반팔 티셔츠": "item_tshirt",
+            "반바지": "item_shorts",
+            "청바지": "item_jeans",
+            "스니커즈": "item_sneakers",
+            "볼캡 모자": "item_hat",
+            "린넨 셔츠": "item_linen",
+            "가디건": "item_cardigan",
+            "패딩 점퍼": "item_padding"
+        };
+
+        const id = mappingId[itemName];
+        if (id) {
+            const checkbox = document.getElementById(id);
+            return checkbox ? checkbox.checked : false;
+        }
+        return false; // 없으면 디폴트로 '없음' 처리
+    }
+
+    // 3단계 결과 렌더링
+    function renderRecommendationResult(query) {
+        document.getElementById('step2Screen').classList.add('hidden');
+        document.getElementById('step3Screen').classList.remove('hidden');
+        currentStep = 3;
+
+        // 사용자가 선택한 시즌과 무드 분석
+        const season = document.getElementById('seasonSelect').value;
+        const style = document.getElementById('styleSelect').value;
+
+        const seasonLabel = document.getElementById('seasonSelect').options[document.getElementById('seasonSelect').selectedIndex].text.split(' ')[0];
+        const styleLabel = document.getElementById('styleSelect').options[document.getElementById('styleSelect').selectedIndex].text;
+
+        // 사용자가 입력한 신체 정보 가져오기 (예외처리 포함)
+        const heightVal = document.getElementById('heightInput').value || "150";
+        const fitSelect = document.getElementById('fitSelect');
+        const fitLabel = fitSelect.options[fitSelect.selectedIndex].text;
+
+        // 결과 상단에 쿼리 및 매칭 조건 전시
+        document.getElementById('resultQuery').innerText = `"${query}"`;
+        document.getElementById('resultMood').innerText = `${seasonLabel} | ${styleLabel}`;
+        document.getElementById('resultBodyInfo').innerText = `키 ${heightVal}cm | ${fitLabel}`;
+
+        // 옷 데이터베이스로부터 전체 풀 가져오기
+        const itemPool = CLOTHES_DATABASE[season][style] || CLOTHES_DATABASE['summer']['casual'];
+        
+        // 데이터 풀에서 자바스크립트 랜덤 함수(Math.random)를 이용해 2~3개 추출
+        // 이미 넉넉한 풀에서 복원/비복원 추출로 2~3개 세트 구성
+        let shuffled = [...itemPool].sort(() => 0.5 - Math.random());
+        let selectedItems = shuffled.slice(0, 3); // 항상 신선하게 2~3개 추천
+
+        const listContainer = document.getElementById('recommendationList');
+        listContainer.innerHTML = '';
+
+        // 동적으로 결과 코디 카드 생성
+        selectedItems.forEach(item => {
+            const hasItem = checkUserHasItem(item.name);
+            
+            // 옷장 여부에 따른 카드 색감 및 링크 설계
+            let badgeHTML = '';
+            let actionButtonHTML = '';
+
+            // 네이버 쇼핑 다이렉트 쿼리 주소 적용 (안전망 및 봇 방지 타겟블랭크 필수적용)
+            const shoppingLink = `https://search.shopping.naver.com/search/all?query=${encodeURIComponent(item.name)}`;
+
+            if (hasItem) {
+                badgeHTML = `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">내 옷장에 있어요 😄</span>`;
+                actionButtonHTML = `
+                    <div class="mt-2 text-[10px] text-emerald-600 font-semibold">
+                        👍 이미 가지고 있는 옷을 활용하면 돈을 아낄 수 있어요!
+                    </div>
+                `;
+            } else {
+                badgeHTML = `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">내 옷장에 없어요 🛍️</span>`;
+                actionButtonHTML = `
+                    <a href="${shoppingLink}" target="_blank" rel="noopener noreferrer" 
+                       class="mt-2.5 inline-flex items-center gap-1 text-[11px] bg-indigo-600 text-white font-bold py-1.5 px-3 rounded-lg hover:bg-indigo-700 transition active:scale-95">
+                        🛍️ 네이버 쇼핑에서 크기/디자인 보기
+                    </a>
+                `;
+            }
+
+            const itemCard = `
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex gap-3 transform hover:-translate-y-1 transition duration-200">
+                    <div class="w-14 h-14 bg-slate-50 border rounded-xl flex items-center justify-center text-3xl shrink-0">
+                        ${item.emoji}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-1 mb-1">
+                            <h4 class="font-extrabold text-gray-800 text-sm truncate">${item.name}</h4>
+                            ${badgeHTML}
+                        </div>
+                        <p class="text-[11px] text-gray-500 leading-tight">${item.desc}</p>
+                        ${actionButtonHTML}
+                    </div>
+                </div>
+            `;
+            listContainer.innerHTML += itemCard;
+        });
+
+        // 키와 선호 핏 스타일에 맞춘 똑똑한 조언 생성하기
+        let personalizedTip = "";
+        const fitVal = fitSelect.value;
+        
+        if (fitVal === "over") {
+            personalizedTip = `현재 키 ${heightVal}cm에서 여유로운 오버핏 스타일을 연출하기 위해, 상의는 평소 사이즈보다 한 사이즈(1up) 크게 주문하시는 걸 추천해요! 하의는 발목을 살짝 덮는 긴 바지로 흐르는 느낌을 주면 최고랍니다.`;
+        } else if (fitVal === "crop") {
+            personalizedTip = `현재 키 ${heightVal}cm를 아주 귀엽고 커 보이게 만들어주는 숏/크롭핏 코디예요! 상의 길이는 골반 뼈 라인 정도의 짧은 스타일로 고르고, 하의는 허리선이 높은 '하이웨스트' 옷을 매치하면 다리가 2배로 길어 보인답니다!`;
+        } else {
+            personalizedTip = `정사이즈 핏을 좋아하시는 사용자님을 위한 맞춤형 조언이에요! 어깨선과 소매 길이가 사용자님의 몸에 자로 잰 듯이 똑 떨어지도록, 네이버 쇼핑 상세 페이지의 실측 사이즈 표를 꼭 비교해 보고 골라보세요!`;
+        }
+
+        const tempSummary = localWeatherData.temp !== '--' ? `오늘 기온은 ${localWeatherData.temp}°C이고` : "오늘 날씨의 포근한 흐름과";
+        document.getElementById('advisorComment').innerText = `
+            ${tempSummary} 사용자가 선택한 '${styleLabel}' 느낌은 정말 환상적인 짝꿍이에요!
+            구상하신 "${query}" 테마에 완벽하게 녹아드는 코디로, 내 옷장에 소장 중인 아이템과 비교하여 입어보세요.
+            
+            📏 [신체 정보 맞춤 핏 가이드]:
+            ${personalizedTip}
+        `;
+    }
+
+    // 커스텀 알림 모달 출력 함수 (alert() 대용 보안 장치)
+    function alertMessage(msg) {
+        // 스마트폰 내부에 깔끔한 임시 커스텀 토스트로 띄워주기
+        const appBody = document.getElementById('appBody');
+        const toast = document.createElement('div');
+        toast.className = "absolute top-16 left-1/2 transform -translate-x-1/2 bg-slate-800/90 text-white text-xs py-2 px-4 rounded-full shadow-md z-50 text-center w-4/5 animate-bounce";
+        toast.innerText = msg;
+        appBody.appendChild(toast);
+        setTimeout(() => {
+            toast.remove();
+        }, 2500);
+    }
+
+    // 처음 홈 화면으로 원복
+    function goToHome() {
+        document.getElementById('step1Screen').classList.remove('hidden');
+        document.getElementById('step2Screen').classList.add('hidden');
+        document.getElementById('step3Screen').classList.add('hidden');
+        currentStep = 1;
+    }
+
+    // ◁ 뒤로가기 동작 (이동 기록 상태 추적 제어)
+    function goBackStep() {
+        if (currentStep === 3) {
+            goToHome();
+        } else if (currentStep === 2) {
+            goToHome();
+        } else {
+            alertMessage("이곳이 메인 화면(첫 페이지)이에요! 😊");
+        }
+    }
+
+    // 왼쪽 메뉴 드로워 상태 토글러
+    function toggleMenuDrawer() {
+        const drawer = document.getElementById('menuDrawer');
+        if (drawer.classList.contains('-translate-x-full')) {
+            drawer.classList.remove('-translate-x-full');
+        } else {
+            drawer.classList.add('-translate-x-full');
+        }
+    }
+</script>
+</body>
+</html>

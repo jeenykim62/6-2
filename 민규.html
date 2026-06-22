@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>궁금한것을 알려줄게</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tone.js for Retro Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Nanum+Pen+Script&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* 별들이 깜빡이는 효과를 주는 부드러운 애니메이션 */
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+        .star {
+            animation: twinkle 3s infinite ease-in-out;
+        }
+        .star-fast {
+            animation: twinkle 1.5s infinite ease-in-out;
+        }
+        
+        /* 럭키 박스 흔들림 애니메이션 */
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-8deg); }
+            75% { transform: rotate(8deg); }
+        }
+        .wiggle-effect:hover {
+            animation: wiggle 0.5s ease infinite;
+        }
+
+        /* 스크롤바 숨기기 */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 min-h-screen flex items-center justify-center p-4 font-sans selection:bg-amber-500 selection:text-slate-900">
+
+    <!-- 스마트폰 모형 컨테이너 -->
+    <div class="relative w-full max-w-[390px] h-[820px] bg-[#070b19] rounded-[55px] shadow-[0_0_50px_rgba(245,204,0,0.15)] border-[12px] border-[#16203d] overflow-hidden flex flex-col text-slate-100">
+        
+        <!-- 상단 스피커 & 카메라 노치 -->
+        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-6 bg-[#16203d] rounded-b-2xl z-50 flex items-center justify-center">
+            <div class="w-12 h-1 bg-slate-700 rounded-full"></div>
+        </div>
+
+        <!-- 폰 내부 화면 영역 -->
+        <div class="flex-1 flex flex-col pt-8 pb-14 relative overflow-hidden">
+            
+            <!-- 배경 우주별 장식 -->
+            <div class="absolute inset-0 pointer-events-none opacity-25">
+                <div class="star absolute top-12 left-10 text-xs text-amber-300">★</div>
+                <div class="star-fast absolute top-24 right-16 text-sm text-yellow-200">✦</div>
+                <div class="star absolute top-48 left-32 text-xs text-white">★</div>
+                <div class="star-fast absolute top-72 left-8 text-sm text-amber-200">✦</div>
+                <div class="star absolute bottom-40 right-12 text-xs text-yellow-100">★</div>
+                <div class="star-fast absolute bottom-20 left-20 text-sm text-white">✦</div>
+                <div class="star absolute bottom-64 right-32 text-xs text-pink-300">✦</div>
+            </div>
+
+            <!-- -------------------------------------------------- -->
+            <!-- [화면 1] 시작 화면 -->
+            <!-- -------------------------------------------------- -->
+            <div id="screen-start" class="flex-1 flex flex-col justify-between p-5 z-10 overflow-y-auto">
+                <div class="flex-1 flex flex-col items-center justify-center text-center mt-4">
+                    <!-- 메인 로고 및 사운드 온 안내 -->
+                    <div class="w-20 h-20 bg-gradient-to-tr from-amber-400 to-yellow-300 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(245,204,0,0.4)] mb-4 animate-bounce relative">
+                        <i class="fa-solid fa-lightbulb text-3xl text-slate-900"></i>
+                        <span class="absolute -top-1 -right-1 bg-rose-500 text-[9px] px-1.5 py-0.5 rounded-full text-white font-bold animate-pulse">SOUND ON</span>
+                    </div>
+                    
+                    <h1 class="text-3xl font-extrabold tracking-tight mb-1 text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-white">
+                        궁금한것을<br>알려줄게!
+                    </h1>
+                    <p class="text-slate-400 text-[11px] leading-relaxed px-4 mb-4">
+                        머릿속을 맴도는 세상의 온갖 신비로운 비밀! ⭐<br>
+                        소리를 켜고 똑똑하게 정답을 찾아가봐!
+                    </p>
+
+                    <!-- [NEW] 미니게임 영역: 행운의 호기심 상자 뽑기 -->
+                    <div class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-3 mb-4 flex items-center justify-between gap-2 shadow-inner">
+                        <div class="flex-1 text-left pl-1">
+                            <span class="text-[9px] text-yellow-400 font-bold block">💡 미니 게임 팝업</span>
+                            <h4 class="text-xs font-bold text-slate-100">오늘의 행운 질문 뽑기!</h4>
+                            <p class="text-[10px] text-slate-400">상자를 탭해서 신기한 상식 열기</p>
+                        </div>
+                        <button onclick="drawLuckyBox()" class="w-14 h-14 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center text-2xl wiggle-effect shadow-md transition-transform active:scale-90" title="랜덤 뽑기">
+                            🎁
+                        </button>
+                    </div>
+
+                    <!-- 직접 질문 입력창 영역 -->
+                    <div class="w-full bg-slate-900/80 border border-slate-800 rounded-2xl p-4 mb-4 text-left">
+                        <label class="block text-amber-300 text-xs font-bold mb-1.5">
+                            <i class="fa-solid fa-pen-fancy mr-1"></i> 지금 어떤 게 가장 궁금해?
+                        </label>
+                        <input type="text" id="custom-question" placeholder="예시: 구름은 왜 하얗게 보일까?" 
+                               class="w-full bg-slate-950 text-slate-100 text-xs px-3 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-400 placeholder:text-slate-600 transition-all">
+                        <button onclick="startCustomAnalysis()" class="w-full mt-2.5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md">
+                            <i class="fa-solid fa-paper-plane"></i> 이 질문 해답 찾기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 분석 시작 버튼 -->
+                <button onclick="startAnalysis()" class="w-full py-3.5 bg-gradient-to-r from-indigo-700 via-indigo-600 to-indigo-800 text-amber-300 border border-amber-400/30 font-bold rounded-2xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all text-xs flex items-center justify-center gap-2">
+                    🚀 <span>내 주변 환경 맞춤형 분석 시작!</span>
+                </button>
+            </div>
+
+
+            <!-- -------------------------------------------------- -->
+            <!-- [화면 2] 분석 중 로딩 화면 -->
+            <!-- -------------------------------------------------- -->
+            <div id="screen-loading" class="hidden flex-1 flex flex-col items-center justify-center p-6 z-10 text-center">
+                <div class="relative w-32 h-32 mb-8">
+                    <!-- 스피너 회전 이펙트 -->
+                    <div class="absolute inset-0 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                    <div class="absolute inset-3 border-4 border-purple-500 border-b-transparent rounded-full animate-spin [animation-direction:reverse]"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i class="fa-solid fa-atom text-3xl text-amber-300 animate-pulse"></i>
+                    </div>
+                </div>
+
+                <h2 class="text-lg font-bold mb-4 text-amber-300" id="loading-status">실시간 데이터 수집 중...</h2>
+                
+                <!-- 로딩 바 세팅 -->
+                <div class="w-full max-w-[220px] h-3 bg-slate-900 rounded-full overflow-hidden mb-6 border border-slate-800">
+                    <div id="loading-bar" class="w-0 h-full bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full transition-all duration-300"></div>
+                </div>
+
+                <div class="space-y-2.5 text-slate-400 text-[11px] font-mono text-left w-max mx-auto">
+                    <div id="log-gps" class="opacity-40">📍 GPS 인공위성 신호 탐색 완료</div>
+                    <div id="log-weather" class="opacity-40">☁️ 실시간 날씨 데이터 가공 완료</div>
+                    <div id="log-time" class="opacity-40">🕒 오늘 날짜와 현재 시간 맞춤 조합</div>
+                </div>
+            </div>
+
+
+            <!-- -------------------------------------------------- -->
+            <!-- [화면 3] 결과 및 큐레이션 화면 -->
+            <!-- -------------------------------------------------- -->
+            <div id="screen-result" class="hidden flex-1 flex flex-col p-4 z-10 overflow-y-auto">
+                <!-- 상단 실시간 데이터 배너 -->
+                <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-4 mb-3.5 border border-slate-800 shadow-md">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[9px] font-bold text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                            <i class="fa-solid fa-circle-nodes mr-1 animate-ping"></i> LIVE ANALYSIS
+                        </span>
+                        <span id="display-date" class="text-[10px] text-slate-400 font-mono">2026. 06. 22</span>
+                    </div>
+                    
+                    <!-- 위치 및 기온 표시부 -->
+                    <div class="flex items-center justify-between mt-3">
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-location-arrow text-emerald-400 text-xs"></i>
+                            <span id="display-location" class="font-extrabold text-xs">탐색 중...</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-xs font-mono">
+                            <span id="display-weather-icon" class="text-sm">☁️</span>
+                            <span id="display-temp" class="font-bold text-amber-200">-°C</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 안내 멘트 -->
+                <h3 class="text-base font-bold mb-1.5 px-1 text-yellow-100" id="result-title">
+                    💡 지금 딱 궁금할 만한 상식!
+                </h3>
+                <p class="text-[10px] text-slate-400 px-1 mb-4 leading-relaxed" id="result-intro-text">
+                    네가 처한 시간과 날씨, 주변 환경을 딱 조합해서 네가 가장 놀라워할 꿀지식을 골라왔어! 별을 눌러 저장해봐! ⭐
+                </p>
+
+                <!-- 직접 질문 결과 영역 -->
+                <div id="custom-answer-container" class="hidden mb-4"></div>
+
+                <!-- 랜덤 큐레이션 카드 목록이 렌더링될 영역 -->
+                <div id="curation-list" class="space-y-3.5 flex-1"></div>
+
+                <!-- 다시 분석하기 버튼 -->
+                <button onclick="goToScreen('screen-start'); playSystemSound('click');" class="mt-6 w-full py-3 bg-slate-900 hover:bg-slate-800 active:scale-95 text-amber-400 font-bold rounded-xl border border-amber-400/20 transition-all text-xs">
+                    🔄 다른 궁금증도 풀어보기
+                </button>
+            </div>
+
+            <!-- -------------------------------------------------- -->
+            <!-- [화면 4] 나만의 보물함 (북마크) 화면 -->
+            <!-- -------------------------------------------------- -->
+            <div id="screen-bookmarks" class="hidden flex-1 flex flex-col p-5 z-10 overflow-y-auto">
+                <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+                    <h3 class="text-lg font-extrabold text-amber-300">
+                        <i class="fa-solid fa-star text-yellow-400 mr-1"></i> 나만의 호기심 보물함
+                    </h3>
+                    <span class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2.5 py-0.5 rounded-full font-bold" id="bookmark-count">0개</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mb-4">
+                    네가 별표(⭐)를 눌러 저장해 놓은 소중한 상식 정보들이야! 언제든지 복습하면서 척척박사가 되어보자!
+                </p>
+
+                <!-- 북마크 리스트 렌더링 영역 -->
+                <div id="bookmark-list" class="space-y-3.5 flex-1">
+                    <!-- 비어있을 때 메시지 -->
+                    <div class="text-center py-12 text-slate-500 text-xs">
+                        <i class="fa-regular fa-star text-3xl mb-3 block opacity-30"></i>
+                        아직 담긴 상식이 없어요.<br>결과 화면에서 별표를 눌러 저장해 봐!
+                    </div>
+                </div>
+
+                <button onclick="goToScreen('screen-start'); playSystemSound('click');" class="mt-4 w-full py-3 bg-slate-900 text-slate-300 font-bold rounded-xl border border-slate-800 text-xs">
+                    🏠 메인화면으로 돌아가기
+                </button>
+            </div>
+
+        </div>
+
+        <!-- -------------------------------------------------- -->
+        <!-- 스마트폰 하단 고정 네비게이션 바 -->
+        <!-- -------------------------------------------------- -->
+        <div class="absolute bottom-0 left-0 right-0 h-14 bg-[#0a1024]/95 backdrop-blur-md border-t border-slate-800/80 flex items-center justify-around text-slate-400 text-lg z-50">
+            <!-- ☰ 메뉴 버튼 -->
+            <button onclick="toggleSideMenu(); playSystemSound('click');" class="hover:text-amber-400 active:scale-90 transition-all px-4 py-2" title="메뉴">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <!-- ⌂ 홈 버튼 -->
+            <button onclick="goHome(); playSystemSound('click');" class="hover:text-amber-400 active:scale-90 transition-all px-4 py-2" title="홈으로">
+                <i class="fa-solid fa-house"></i>
+            </button>
+            <!-- ◁ 뒤로가기 버튼 -->
+            <button onclick="goBack(); playSystemSound('click');" class="hover:text-amber-400 active:scale-90 transition-all px-4 py-2" title="뒤로가기">
+                <i class="fa-solid fa-caret-left text-xl"></i>
+            </button>
+        </div>
+
+        <!-- -------------------------------------------------- -->
+        <!-- 사이드 메뉴 모달 -->
+        <!-- -------------------------------------------------- -->
+        <div id="side-menu" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 transform translate-x-full transition-transform duration-300 flex justify-end">
+            <div onclick="toggleSideMenu(); playSystemSound('click');" class="flex-1 h-full"></div>
+            <div class="w-2/3 h-full bg-[#0a1128] p-6 shadow-2xl flex flex-col justify-between border-l border-slate-800">
+                <div>
+                    <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-800">
+                        <span class="font-bold text-amber-400"><i class="fa-solid fa-circle-info mr-2"></i>메뉴 목록</span>
+                        <button onclick="toggleSideMenu(); playSystemSound('click');" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <ul class="space-y-4">
+                        <li>
+                            <!-- [NEW] 보물함 가기 추가 -->
+                            <button onclick="goToBookmarks(); toggleSideMenu(); playSystemSound('click');" class="w-full text-left py-2.5 px-3 rounded-lg bg-indigo-950/40 hover:bg-indigo-950 text-indigo-300 transition-colors text-xs flex items-center gap-2 font-bold border border-indigo-900/40">
+                                <i class="fa-solid fa-star text-amber-400"></i> ⭐ 나만의 보물함
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="showAppModal('💡 앱 소개', '궁금한것을 알려줄게 앱은 기상청 날씨, GPS 위치, 현재 시간 등을 총동원해 대장님을 위한 맞춤식 호기심 상식을 선물하는 똑똑한 비서입니다! 💖')" class="w-full text-left py-2 px-3 rounded-lg hover:bg-slate-900 transition-colors text-xs flex items-center gap-2">
+                                <i class="fa-solid fa-circle-question text-amber-400 text-[11px]"></i> 앱 소개
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="showAppModal('🤖 개발진 안내', '상상력이 대단한 우리 멋진 꼬마 대장 개발자와 세계에서 최고로 친절한 AI 개발 파트너가 힘을 모아 빚어낸 호기심 탐험기입니다! ✨')" class="w-full text-left py-2 px-3 rounded-lg hover:bg-slate-900 transition-colors text-xs flex items-center gap-2">
+                                <i class="fa-solid fa-user-astronaut text-amber-400 text-[11px]"></i> 개발진 정보
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="showAppModal('🔊 사운드 기능 안내', '이 어플은 Web Audio 기술이 작동하도록 설계되었습니다! 버튼을 누르거나 성공했을 때 신나는 효과음을 직접 감상해 보세요!🎵')" class="w-full text-left py-2 px-3 rounded-lg hover:bg-slate-900 transition-colors text-xs flex items-center gap-2">
+                                <i class="fa-solid fa-volume-high text-amber-400 text-[11px]"></i> 효과음 팁
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-4">
+                    © 2026 궁금한것을 알려줄게 v1.5
+                </div>
+            </div>
+        </div>
+
+        <!-- -------------------------------------------------- -->
+        <!-- [안전망] alert 대체용 인앱 모달 안내창 -->
+        <!-- -------------------------------------------------- -->
+        <div id="custom-alert-modal" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+            <div class="bg-[#0e1735] w-full max-w-[280px] rounded-2xl p-5 border border-amber-400/30 text-center shadow-2xl">
+                <h4 id="alert-title" class="text-sm font-bold text-amber-400 mb-2">안내</h4>
+                <p id="alert-message" class="text-xs text-slate-200 leading-relaxed mb-5">여기에 메시지가 표시됩니다.</p>
+                <button onclick="closeAppModal(); playSystemSound('click');" class="w-full py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs rounded-xl transition-colors">
+                    확인완료!
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- -------------------------------------------------- -->
+    <!-- 자바스크립트 로직 영역 -->
+    <script>
+        // 화면 전환 히스토리 관리용
+        let screenHistory = ['screen-start'];
+        let currentScreen = 'screen-start';
+
+        // 실시간 날씨 및 위치 데이터 상태 저장용 변수
+        let userLatitude = null;
+        let userLongitude = null;
+        let currentTemp = "??";
+        let weatherEmoji = "☁️";
+        let locationName = "우리 동네";
+        
+        // 사용자가 직접 묻는 질문 상태 변수
+        let customQuestionText = "";
+
+        // 15가지 상세한 조건별 궁금증 데이터 뱅크 (원인과 과학적 이유를 완벽 보강)
+        const curiosityPool = [
+            {
+                id: 1,
+                title: "비가 오면 왜 지글지글 부침개가 땡길까? 🌧️",
+                desc: "비 오는 날 지글거리는 소리와 기름 냄새는 우리 뇌와 호르몬에 숨겨진 신비로운 과학이에요.",
+                reason: "두 가지 놀라운 비밀이 있어! 첫째는 '소리의 비밀'이야. 부침개가 프라이팬에서 튀겨지는 지글지글 소리의 주파수(Hz)가 하늘에서 내리는 빗소리 주파수와 거의 완벽하게 일치한대! 그래서 우리 뇌가 빗소리를 들으면 자동으로 이 부침개 소리를 떠올려 침을 고이게 만드는 거지. 둘째는 '호르몬의 비밀'이야. 비가 와서 하늘이 흐려지면 해를 못 봐서 기분을 좋게 만드는 '세로토닌' 호르몬이 줄어들어. 이때 우리 몸은 에너지를 빠르게 채워 기분을 높이려고 탄수화물이 가득한 밀가루 음식을 본능적으로 원하게 된단다!",
+                keyword: "부침개 맛집",
+                category: "rainy"
+            },
+            {
+                id: 2,
+                title: "구름은 엄청 무거울 텐데 어떻게 하늘에 둥둥 뜰까? ☁️",
+                desc: "엄청나게 무거운 구름이 땅으로 추락하지 않고 상공에 머무는 신기한 물리 법칙입니다.",
+                reason: "구름 한 개에 들어있는 물의 무게는 수십만 톤(점보비행기 수백 대 무게)에 달할 정도로 아주 무거워! 하지만 구름은 커다란 물 덩어리가 아니라 먼지만큼 아주 작고 미세한 물방울들이 흩어져 있는 상태란다. 이 미세 물방울들은 날개 깃털보다 가벼워서 아주 약한 바람에도 쉽게 떠받쳐져. 게다가 땅이 태양 빛을 받아 뜨거워지면 공기가 위로 솟구쳐 올라가는 '상승기류(위로 부는 바람)'가 생기는데, 이 상승기류가 밑에서 가벼운 물방울들을 하늘 위로 끊임없이 둥둥 밀어 올려 주기 때문에 하늘에 머무를 수 있는 거야!",
+                keyword: "루프탑 예쁜 카페",
+                category: "cloudy"
+            },
+            {
+                id: 3,
+                title: "눈(Snow)의 결정 모양은 왜 한 개도 똑같은 게 없을까? ❄️",
+                desc: "수억 개의 눈송이 중 완벽하게 일치하는 보석 모양이 존재할 수 없는 자연의 신비입니다.",
+                reason: "눈은 구름 속 아주 차가운 미세 먼지에 수증기가 달라붙어 얼면서 자라나. 수증기가 부착될 때 기온이 영하 몇 도인지, 주변 습도가 얼마나 높은지에 따라 육각형 판 모양, 바늘 모양, 별 모양 등 얼어붙는 방향이 정밀하게 결정돼. 눈송이가 구름에서 출발해 땅까지 떨어지는 동안 부딪히는 수많은 바람과 온도, 습도의 변화 조합은 우주의 별 개수보다도 훨씬 다양하단다. 즉, 떨어지는 길(경로)이 미세하게 전부 다르기 때문에 지구상에 내리는 눈송이 모양은 단 하나도 똑같지 않고 자신만의 고유한 기하학적 무늬를 지니게 되는 거야!",
+                keyword: "겨울 풍경 예쁜 명소",
+                category: "snowy"
+            },
+            {
+                id: 4,
+                title: "햇빛을 가득 쬐면 왜 기분이 금세 행복해질까? ☀️",
+                desc: "따스한 햇살을 피부와 눈으로 받아들일 때 생기는 뇌 속의 신경물질 변화입니다.",
+                reason: "우리 뇌 속에는 기분을 조절하고 마음에 평화를 가져다주는 신경 물질인 '세로토닌(Serotonin)'이 있어. 눈의 망막을 통해 햇빛이 들어오면, 뇌는 즉각 이 세로토닌을 공장처럼 마구 찍어내기 시작해! 이 물질이 온몸에 돌면 우울하거나 불안한 감정이 눈 녹듯 사라지고 활력과 행복감이 솟아나게 된단다. 반대로 밤이나 어두운 방에만 있으면 이 호르몬이 나오지 않아 축 처지게 되지. 그래서 하루에 최소 15분 이상 햇볕을 쬐는 것은 뇌가 직접 먹는 천연 행복 영양제와 다름없어!",
+                keyword: "산책하기 좋은 공원",
+                category: "sunny"
+            },
+            {
+                id: 5,
+                title: "밤 10시가 지나면 왜 유독 매콤하고 야비한 야식이 생각날까? 🌙",
+                desc: "야심한 밤에 우리의 식욕 조절 장치가 무력화되며 생기는 호르몬의 배신입니다.",
+                reason: "낮 동안 우리 몸은 음식물 섭취를 억제하고 에너지를 소비하게 만드는 '렙틴'이라는 호르몬을 많이 분비해. 하지만 어두운 밤이 되고 잘 시간이 다가오면 이 렙틴 분비량이 뚝 떨어지고, 대신 배고픔을 느끼게 만드는 굶주림 호르몬인 '그렐린'이 폭발하기 시작한단다! 게다가 낮 동안 공부나 일로 피로와 스트레스를 잔뜩 받은 뇌는 보상 작용으로 가장 빠르게 쾌락을 느낄 수 있는 짜고 자극적인 음식을 강하게 원하게 돼. 즉, 몸의 호르몬 변화와 뇌의 피로가 힘을 합쳐 야식 본능을 깨우는 거지!",
+                keyword: "맛있는 야식집",
+                category: "night"
+            },
+            {
+                id: 6,
+                title: "점심 1시가 넘으면 왜 눈꺼풀이 천근만근 무거울까? 🥱",
+                desc: "맛있게 밥을 먹은 뒤 어김없이 찾아오는 식곤증에 얽힌 소화 기관의 과학입니다.",
+                reason: "점심을 먹고 나면 위장 속에 들어온 많은 양의 음식을 부수고 소화하기 위해 평소 몸속을 돌던 혈액과 산소, 에너지가 위장과 소화기 쪽으로 집중 포화하듯 확 쏠리게 돼! 상대적으로 뇌로 공급되어야 할 혈류량과 산소가 순간적으로 평소보다 크게 줄어들게 되지. 게다가 음식에 들어있던 트립토판이라는 아미노산 성분이 체내에서 수면을 유도하는 멜라토닌 물질로 변하면서 몸 전체를 릴랙스시켜 나른하게 만들어. 이 과정이 겹치면서 정신력과 상관없이 자연스럽게 눈꺼풀이 무거워지는 깊은 식곤증이 찾아오게 되는 거란다!",
+                keyword: "잠 깨는 맛있는 디저트 카페",
+                category: "afternoon"
+            },
+            {
+                id: 7,
+                title: "아침 기상 직후 마시는 차가운 물 한 잔이 진짜 건강에 좋을까? 🌅",
+                desc: "잠에서 깨어나자마자 공복에 위장으로 물을 흘려보낼 때 생기는 신체 정화 원리입니다.",
+                reason: "우리가 깊은 잠을 자는 7~8시간 동안 호흡과 땀을 통해 대략 500ml 이상의 엄청난 수분이 몸 밖으로 배출되면서 잠에서 깬 직후의 피는 아주 끈적끈적하고 노폐물이 가득 찬 상태야. 이때 시원한 물 한 잔을 쭉 들이켜면 끈적하던 혈액의 농도가 즉각 묽어지며 순환이 원활해지고 세포 속 노폐물이 씻겨나가. 또한 물이 빈 위장 벽을 시원하게 자극하면서 잠자고 있던 대장과 소화기관에 '이제 아침이니까 깨어나서 움직여라!' 하는 신경 신호(위대장 반사)를 보내서, 변비를 예방하고 온몸의 대사 스위치를 켜주게 되지!",
+                keyword: "아침 식사 가능한 식당",
+                category: "morning"
+            },
+            {
+                id: 8,
+                title: "추운 날 뜨끈한 국물을 마실 때 '시원하다'고 말하는 이유는? 🥶",
+                desc: "어른들이 보글보글 뜨거운 국밥을 드시고 '어우 시원해!'라고 하는 신비로운 감각입니다.",
+                reason: "여기엔 신경 생리학적 반사 작용이 숨겨져 있어! 추운 날씨에 오래 노출되면 우리 몸은 체온을 빼앗기지 않기 위해 척추 주변 근육과 위장관 벽을 아주 팽팽하고 단단하게 수축시켜 방어 태세를 갖춰. 이 상태에서 뜨끈하고 영양가 높은 국물이 식도를 타고 내려가면 잔뜩 얼어붙어 긴장해 있던 내장 세포와 자율 신경계 근육이 순식간에 노곤노곤하게 이완되며 풀어진단다. 이때 뇌가 온몸이 쫙 풀리면서 느끼는 깊은 쾌감과 안락함을 시원하고 개운하다는 언어로 번역해서 내뱉는 현상이야!",
+                keyword: "국밥 전문점 맛집",
+                category: "cold"
+            },
+            {
+                id: 9,
+                title: "무더운 폭염 속에 오히려 이열치열로 매운 음식이 당기는 이유! 🥵",
+                desc: "뜨겁고 매운 음식을 땀 흘리며 먹은 뒤 찾아오는 기분 좋은 해방감의 메커니즘입니다.",
+                reason: "매운맛은 혀가 느끼는 단맛, 짠맛 같은 '미각'이 아니라, 세포가 화상을 입을 정도로 뜨거운 상태라고 착각해 뇌에 통보하는 일종의 '통증(아픔)' 감각이야! 매운 고추의 캡사이신 성분이 혀에 닿으면, 우리 뇌는 비상사태를 선포하고 이 가짜 뜨거움과 고통을 진정시키기 위해 몸 안에 강력한 천연 진통 호르몬인 '엔도르핀'을 분비해 기분을 짜릿하게 만들어 줘. 더불어 혈액순환이 폭발하며 온몸에 흐른 땀방울이 바람에 증발할 때 주변의 열기를 뺏아가기 때문에 결과적으로 몸이 시원해지는 과학적 이득을 얻는단다!",
+                keyword: "매콤한 떡볶이 맛집",
+                category: "hot"
+            },
+            {
+                id: 10,
+                title: "우리 동네에서 백 년 넘게 살아온 수호 나무는 어떻게 버텼을까? 🌳",
+                desc: "웅장한 보호수들이 수 세기의 모진 비바람과 태풍을 이겨내고 생존한 비결입니다.",
+                reason: "나무가 수백 년 동안 쓰러지지 않는 비밀은 땅속 뿌리의 소통과 나이테의 과학에 있어! 보호수들은 바람이 부는 방향으로 버티는 지지 뿌리를 일반 나무보다 수배 이상 넓고 깊게 뻗어 땅을 마치 거대한 발톱처럼 움켜잡아. 또한 수백 년 동안 계절을 버티며 축적된 촘촘한 '나이테'는 가뭄이나 한파를 버틴 생존 기록인데, 나무가 한쪽으로 기울어지면 쓰러지지 않으려고 그 반대쪽 나이테 부위의 섬유질을 아주 비정상적일 정도로 단단하게 팽창시켜 굳히는 놀라운 적응력을 발휘한단다! 오늘 수목원의 울창한 나무를 보며 강인한 생명력을 느껴봐!",
+                keyword: "근처 수목원 및 식물원",
+                category: "general"
+            },
+            {
+                id: 11,
+                title: "낮의 하늘은 왜 푸르고, 해질녘 저녁 노을은 붉게 물들까? 🌇",
+                desc: "지구를 감싸고 있는 대기층과 태양빛의 각도가 부딪혀 만드는 빛의 산란 예술입니다.",
+                reason: "태양에서 오는 백색광은 빨주노초파남보 모든 색이 섞인 빛이야. 지구 대기권에 이 빛이 도달하면 질소와 산소 같은 미세 기체 분자들과 부딪혀 산란(사방으로 튕겨 나감)되는데, 파장이 짧은 파란색 계열의 빛이 가장 먼저 사방으로 격렬하게 튕겨 나가서 낮에는 하늘이 온통 푸르게 보여! 반면 해가 지는 저녁에는 해의 각도가 낮아져 빛이 대기층을 뚫고 들어오는 통로가 낮보다 훨씬 길어지게 돼. 이 때문에 파란빛은 도중에 다 튕겨 나가 소멸하고, 파장이 길어 끝까지 살아남은 오렌지색과 붉은빛만이 우리 눈에 닿아 아름다운 노을로 빛나는 거란다!",
+                keyword: "전망대 노을 뷰 명소",
+                category: "sunset"
+            },
+            {
+                id: 12,
+                title: "두꺼운 글자 책을 읽으면 뇌 속에서 영화가 상영되는 이유는? 📚",
+                desc: "글을 해독할 때 뇌의 연상 영역들이 총동원되어 입체 비디오를 제작하는 원리입니다.",
+                reason: "스마트폰 동영상을 볼 때 뇌는 수동적으로 화면 정보를 단순히 받아들이기만 해서 뇌 활동이 거의 멈춰 서게 돼. 하지만 종이책의 까만 글자를 볼 때 뇌는 바쁘게 돌아간단다! 뇌의 전두엽은 단어를 해석하고, 측두엽은 네가 살면서 보았던 사물들의 기억을 보관창고에서 끄집어내. 그리고 시각 피질이 이 기억 파편들을 순식간에 조각조각 조립해서 가상현실 3D 비디오처럼 입체 이미지를 머릿속에 투영해 내지. 즉, 네 뇌세포가 스스로 감독이 되어 단 한 편밖에 없는 실감 나는 가상 다큐멘터리 영화를 뇌 속 극장에 띄워 올리기 때문이야!",
+                keyword: "근처 공공도서관",
+                category: "general"
+            },
+            {
+                id: 13,
+                title: "컴퓨터나 모바일 게임을 할 때는 시간이 왜 빛의 속도로 흐를까? 🎮",
+                desc: "즐거운 디지털 가상 세계에 푹 빠져 있을 때 작동하는 두뇌 시간 인지 바이어스입니다.",
+                reason: "우리 뇌 안에는 시간을 재는 내부 타이머 시스템인 '신경 조절 시계'가 존재해. 지루하거나 힘든 일을 할 때는 시선과 감각이 갈 곳을 잃어 '언제 끝나지?' 하며 끊임없이 시간 자체를 계속 의식하므로 시간이 길게 늘어져 느껴져. 하지만 화려하고 짜릿한 게임을 시작하면 도파민 호르몬이 폭발하며 뇌의 전두엽 주의력이 게임 화면 속에 완전히 몰입되어 포획당한단다. 이 상태에서는 내부 시간 타이머가 측정 연산을 아예 일시 중단해 버려! 그래서 머리는 겨우 20분 흘렀다고 느끼지만 실제 현실 시계는 벌써 2시간이 가 버리게 되는 거야!",
+                keyword: "친구와 노는 실내 오락시설",
+                category: "general"
+            },
+            {
+                id: 14,
+                title: "피자는 둥근 원형인데 담는 박스는 굳이 왜 사각형 상자일까? 🍕",
+                desc: "둥근 형태의 음식을 안전하게 보호하며 운송비를 아끼기 위한 패키지 경제학입니다.",
+                reason: "여기에는 매우 현실적이고 명쾌한 수학과 기하학 경제 원리가 숨어 있어! 첫째, 원형 상자는 펼쳐진 도면에서 입체로 접을 때 구조가 매우 복잡해서 정밀 기계로 여러 번 깎고 풀칠을 해야 하므로 제작 비용이 엄청나게 비싸져. 반면 사각형 상자는 한 장의 두꺼운 골판지를 단 4번 만에 뚝딱 접어 고정할 수 있어 제작 단가가 엄청 저렴하지. 둘째, 피자의 네 모서리에 생기는 빈 공간 덕분에 손가락을 쏙 넣어 뜨거운 피자 조각을 꺼내기 매우 쉽고, 피자 상자들을 차곡차곡 위로 겹쳐 쌓아 배달할 때 사각형 상자가 하중을 고르게 분산하여 구겨지지 않고 튼튼하게 배달되기 때문이란다!",
+                keyword: "화덕 피자 맛집",
+                category: "general"
+            },
+            {
+                id: 15,
+                title: "우리가 화날 때 우는 눈물과 슬플 때 눈물은 맛이 정말 다를까? 😢",
+                desc: "감정의 성격과 신경 흥분 물질 농도에 따라 성분이 달라지는 눈물의 화학입니다.",
+                reason: "놀랍게도 눈물의 맛은 100% 진짜 달라! 화가 머리끝까지 나서 억울해 흘리는 눈물은 자율신경 중 교감신경이 아주 극도로 자극되어 흥분 물질이 폭발하면서 수분은 적고 염화나트륨(소금 성분)이 아주 조밀하게 꽉 들어찬 '아주 맵고 짠맛'의 눈물이 흘러나와. 반대로 슬프거나 가슴 아플 때는 부교감신경이 작용해 심장을 진정시키기 위해 수분이 많고 산성 성분이 약간 덜 함유된 '싱겁고 맑은 미지근한 눈물'이 나오지. 심지어 기쁘고 행복해서 우는 눈물은 약간 단맛이 맴돈다고 할 정도로 감정 성태에 따라 우리 눈물샘 공장은 성분을 완벽히 재조합한단다!",
+                keyword: "기분 풀기 좋은 노래방",
+                category: "general"
+            }
+        ];
+
+        // Tone.js를 활용한 사운드 이펙터 구현 (오디오 합성 엔진)
+        let polySynth = null;
+        function getSynth() {
+            if (!polySynth) {
+                polySynth = new Tone.PolySynth().toDestination();
+                polySynth.set({
+                    envelope: { attack: 0.01, decay: 0.1, sustain: 0.3, release: 0.5 },
+                    volume: -10
+                });
+            }
+            return polySynth;
+        }
+
+        // 특정 오디오 사운드 재생기
+        function playSystemSound(type) {
+            try {
+                // 브라우저 AudioContext 안전 가동 보조
+                if (Tone.context.state !== 'running') {
+                    Tone.context.resume();
+                }
+                
+                const synth = getSynth();
+                const now = Tone.now();
+
+                if (type === 'click') {
+                    // 귀여운 오락기 버튼음
+                    synth.triggerAttackRelease("C5", "16n", now);
+                } else if (type === 'success') {
+                    // 경쾌하고 성공적인 아르페지오 (라-도-미-솔)
+                    synth.triggerAttackRelease("A4", "16n", now);
+                    synth.triggerAttackRelease("C5", "16n", now + 0.1);
+                    synth.triggerAttackRelease("E5", "16n", now + 0.2);
+                    synth.triggerAttackRelease("A5", "8n", now + 0.3);
+                } else if (type === 'bookmark') {
+                    // 샤방샤방한 별빛 소리
+                    synth.triggerAttackRelease("G5", "32n", now);
+                    synth.triggerAttackRelease("B5", "32n", now + 0.05);
+                    synth.triggerAttackRelease("D6", "16n", now + 0.1);
+                } else if (type === 'pop') {
+                    // 행운상자가 팡 열리는 상큼한 음
+                    synth.triggerAttackRelease("E5", "32n", now);
+                    synth.triggerAttackRelease("G#5", "16n", now + 0.05);
+                    synth.triggerAttackRelease("B5", "8n", now + 0.1);
+                }
+            } catch (err) {
+                console.warn("오디오 지원 에러:", err);
+            }
+        }
+
+        // --------------------------------------------------
+        // [NEW] 북마크(보물함) 시스템 (localStorage 탑재)
+        // --------------------------------------------------
+        function getSavedBookmarks() {
+            const data = localStorage.getItem('curiosity_bookmarks');
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveBookmarks(arr) {
+            localStorage.setItem('curiosity_bookmarks', JSON.stringify(arr));
+        }
+
+        // 북마크 추가/해제 스위칭 함수
+        function toggleBookmark(itemId) {
+            playSystemSound('bookmark');
+            const targetItem = curiosityPool.find(i => i.id === itemId);
+            if (!targetItem) return;
+
+            let currentList = getSavedBookmarks();
+            const index = currentList.findIndex(i => i.id === itemId);
+
+            if (index > -1) {
+                // 이미 보물함에 있으면 꺼내기
+                currentList.splice(index, 1);
+                showAppModal("⭐ 보물함 알림", "해당 호기심 상식이 보물함에서 살그머니 이사갔어요!");
+            } else {
+                // 없으면 보물함에 영구 저장하기
+                currentList.push(targetItem);
+                showAppModal("💖 보물함 보관", "우와! 머리식 상식을 내 마음속 보물함에 안전하게 고이 담았어요! 🎁");
+            }
+
+            saveBookmarks(currentList);
+            
+            // 결과 화면 재렌더링하여 별 활성화 여부 반영
+            renderCuration();
+            updateBookmarkBadge();
+        }
+
+        // 북마크 총 개수 뱃지 반영
+        function updateBookmarkBadge() {
+            const list = getSavedBookmarks();
+            const badge = document.getElementById('bookmark-count');
+            if (badge) {
+                badge.innerText = list.length + "개";
+            }
+        }
+
+        // 보물함 페이지 이동 및 카드 그리기
+        function goToBookmarks() {
+            goToScreen('screen-bookmarks');
+            const bookmarkListDiv = document.getElementById('bookmark-list');
+            const savedList = getSavedBookmarks();
+
+            updateBookmarkBadge();
+
+            if (savedList.length === 0) {
+                bookmarkListDiv.innerHTML = `
+                    <div class="text-center py-16 text-slate-500 text-xs">
+                        <i class="fa-regular fa-star text-4xl mb-3 block opacity-30 animate-spin"></i>
+                        아직 보물함이 깨끗이 비어있어요.<br>호기심 카드에 불을 켜줘! ✨
+                    </div>
+                `;
+                return;
+            }
+
+            bookmarkListDiv.innerHTML = "";
+            savedList.forEach(item => {
+                const mapUrl = `https://map.naver.com/v5/search/${encodeURIComponent(item.keyword)}`;
+                const itemHtml = `
+                    <div class="bg-indigo-950/30 border border-indigo-900/40 rounded-2xl p-4 shadow-sm hover:border-amber-400/30 transition-all duration-200">
+                        <div class="flex items-start justify-between gap-1 mb-2">
+                            <h4 class="font-bold text-amber-300 text-xs flex items-start gap-1.5 leading-snug">
+                                <i class="fa-solid fa-lightbulb mt-0.5 text-xs text-yellow-300 flex-shrink-0 animate-pulse"></i>
+                                <span>${item.title}</span>
+                            </h4>
+                            <button onclick="toggleBookmark(${item.id}); goToBookmarks();" class="text-amber-400 text-xs p-1" title="보물함에서 빼기">
+                                <i class="fa-solid fa-star"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-relaxed mb-3 pl-4 font-normal">
+                            ${item.desc}
+                        </p>
+                        <!-- 상세 이유(이유 제대로 보여주기 영역) -->
+                        <div class="mb-4 ml-4 bg-amber-500/10 border border-amber-400/20 rounded-xl p-3 text-slate-200">
+                            <span class="text-[10px] font-bold text-amber-400 block mb-1">
+                                <i class="fa-solid fa-seedling mr-1"></i> 왜 그럴까? 진짜 이유!
+                            </span>
+                            <p class="text-[11px] leading-relaxed text-slate-300 font-normal">${item.reason}</p>
+                        </div>
+                        <div class="flex justify-end">
+                            <a href="${mapUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-[10px] bg-indigo-900/60 hover:bg-indigo-900 text-amber-400 font-bold px-3 py-1.5 rounded-lg border border-amber-400/20 transition-colors">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                                <span>내 주변 ${item.keyword} 찾기</span>
+                            </a>
+                        </div>
+                    </div>
+                `;
+                bookmarkListDiv.innerHTML += itemHtml;
+            });
+        }
+
+        // --------------------------------------------------
+        // [NEW] 🎁 미니게임: 행운의 럭키드로우 뽑기 기능
+        // --------------------------------------------------
+        function drawLuckyBox() {
+            playSystemSound('pop');
+            // 전체 카드 중 임의의 무작위 1개 전적으로 초이스!
+            const randomPick = curiosityPool[Math.floor(Math.random() * curiosityPool.length)];
+            const mapUrl = `https://map.naver.com/v5/search/${encodeURIComponent(randomPick.keyword)}`;
+
+            // 모달창에 미니 상식 띄워주기
+            const dialogMsg = `
+                <div class="text-left mt-2 bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-xs max-h-[300px] overflow-y-auto">
+                    <span class="text-amber-400 font-extrabold block text-[10px] mb-1">🎁 오늘의 당첨 호기심</span>
+                    <strong class="text-slate-100 text-xs block mb-1">${randomPick.title}</strong>
+                    <p class="text-slate-400 text-[10px] leading-relaxed mb-3">${randomPick.desc}</p>
+                    
+                    <div class="bg-amber-400/10 border border-amber-400/20 rounded-lg p-2.5 mb-3 text-slate-200">
+                        <span class="text-[9px] font-bold text-amber-300 block mb-0.5">🔍 왜 그럴까? 진짜 이유!</span>
+                        <p class="text-[10px] leading-relaxed text-slate-300">${randomPick.reason}</p>
+                    </div>
+                    
+                    <a href="${mapUrl}" target="_blank" rel="noopener noreferrer" class="w-full text-center block bg-amber-400 text-slate-900 py-1.5 rounded-lg text-[10px] font-extrabold hover:bg-amber-300">
+                        🗺️ 내 근처 ${randomPick.keyword} 가보기
+                    </a>
+                </div>
+            `;
+            
+            showAppModal("🍀 럭키 드로우 성공!", "오늘의 비밀 보물 상자에서 꺼낸 특별 지식이야!" + dialogMsg);
+        }
+
+        // --------------------------------------------------
+        // 기본 화면 네비게이션 제어
+        // --------------------------------------------------
+        function showAppModal(title, msg) {
+            document.getElementById('alert-title').innerHTML = title;
+            document.getElementById('alert-message').innerHTML = msg;
+            document.getElementById('custom-alert-modal').classList.remove('hidden');
+        }
+
+        function closeAppModal() {
+            document.getElementById('custom-alert-modal').classList.add('hidden');
+        }
+
+        function getWeatherEmoji(code) {
+            if (code === undefined) return "☁️";
+            if (code === 0) return "☀️"; // 맑음
+            if ([1, 2, 3].includes(code)) return "⛅"; // 구름 조금
+            if ([45, 48].includes(code)) return "🌫️"; // 안개
+            if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return "🌧️"; // 비
+            if ([71, 73, 75, 77, 85, 86].includes(code)) return "❄️"; // 눈
+            if ([95, 96, 99].includes(code)) return "⛈️"; // 천둥번개
+            return "☁️";
+        }
+
+        function goToScreen(screenId) {
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('screen-loading').classList.add('hidden');
+            document.getElementById('screen-result').classList.add('hidden');
+            document.getElementById('screen-bookmarks').classList.add('hidden');
+
+            document.getElementById(screenId).classList.remove('hidden');
+
+            if (screenHistory[screenHistory.length - 1] !== screenId) {
+                screenHistory.push(screenId);
+            }
+            currentScreen = screenId;
+        }
+
+        function goHome() {
+            screenHistory = ['screen-start'];
+            document.getElementById('custom-question').value = "";
+            customQuestionText = "";
+            goToScreen('screen-start');
+        }
+
+        function goBack() {
+            if (screenHistory.length > 1) {
+                screenHistory.pop();
+                const prevScreen = screenHistory[screenHistory.length - 1];
+                
+                document.getElementById('screen-start').classList.add('hidden');
+                document.getElementById('screen-loading').classList.add('hidden');
+                document.getElementById('screen-result').classList.add('hidden');
+                document.getElementById('screen-bookmarks').classList.add('hidden');
+                
+                document.getElementById(prevScreen).classList.remove('hidden');
+                currentScreen = prevScreen;
+            } else {
+                showAppModal("💡 처음 화면", "여기가 시작 화면이야! 더 뒤로 갈 수 없어 😊");
+            }
+        }
+
+        function toggleSideMenu() {
+            const menu = document.getElementById('side-menu');
+            if (menu.classList.contains('translate-x-full')) {
+                menu.classList.remove('translate-x-full');
+            } else {
+                menu.classList.add('translate-x-full');
+            }
+        }
+
+        function startCustomAnalysis() {
+            const questionInput = document.getElementById('custom-question');
+            const qText = questionInput.value.trim();
+
+            if (!qText) {
+                playSystemSound('click');
+                showAppModal("✍️ 잠깐만요!", "호기심 가득한 궁금 질문을 한마디라도 적고 출동해줘! 💖");
+                return;
+            }
+
+            customQuestionText = qText;
+            startAnalysis(true);
+        }
+
+        // 분석 과정 시작 및 GPS 연동
+        function startAnalysis(isCustom = false) {
+            playSystemSound('click');
+            goToScreen('screen-loading');
+            
+            const loadingStatus = document.getElementById('loading-status');
+            const loadingBar = document.getElementById('loading-bar');
+            const logGps = document.getElementById('log-gps');
+            const logWeather = document.getElementById('log-weather');
+            const logTime = document.getElementById('log-time');
+
+            loadingBar.style.width = '0%';
+            logGps.style.opacity = '0.3';
+            logWeather.style.opacity = '0.3';
+            logTime.style.opacity = '0.3';
+
+            if (isCustom) {
+                logGps.innerText = "🔍 질문 단어 키워드 분석 완료";
+                logWeather.innerText = "🌐 지식 도서관 데이터베이스 매칭 성공";
+                logTime.innerText = "✏️ 너만을 위한 맞춤식 대답 조합 완료";
+            } else {
+                logGps.innerText = "📍 GPS 인공위성 신호 탐색 완료";
+                logWeather.innerText = "☁️ 실시간 날씨 데이터 가공 완료";
+                logTime.innerText = "🕒 오늘 날짜와 현재 시간 맞춤 조합";
+                customQuestionText = "";
+            }
+
+            // 로딩 흐름 제어
+            setTimeout(() => {
+                loadingBar.style.width = '33%';
+                loadingStatus.innerText = isCustom ? "💡 질문의 키워드를 열심히 해석하고 있어..." : "📍 전 우주 통신선으로 GPS 실시간 좌표 찾는 중...";
+                logGps.style.opacity = '1';
+                logGps.classList.add('text-amber-400');
+                playSystemSound('click');
+            }, 600);
+
+            // 지오로케이션으로 실제 기온 탐색
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    userLatitude = position.coords.latitude;
+                    userLongitude = position.coords.longitude;
+
+                    setTimeout(() => {
+                        loadingBar.style.width = '66%';
+                        loadingStatus.innerText = "☁️ 현재 동네 기상상태와 구름지수 측정 중...";
+                        logWeather.style.opacity = '1';
+                        logWeather.classList.add('text-amber-400');
+                        playSystemSound('click');
+                    }, 1300);
+
+                    try {
+                        // 1. Open-Meteo API
+                        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${userLatitude}&longitude=${userLongitude}&current_weather=true`);
+                        const weatherData = await weatherRes.json();
+                        currentTemp = Math.round(weatherData.current_weather.temperature);
+                        const weatherCode = weatherData.current_weather.weathercode;
+                        weatherEmoji = getWeatherEmoji(weatherCode);
+
+                        // 2. OpenStreetMap reverse geocoding API
+                        const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLatitude}&lon=${userLongitude}&zoom=14&addressdetails=1`, {
+                            headers: { 'Accept-Language': 'ko' }
+                        });
+                        const geoData = await geoRes.json();
+                        const addr = geoData.address;
+                        locationName = addr.city || addr.town || addr.borough || addr.suburb || addr.village || addr.county || "우리 동네";
+                        if (locationName.length > 8) locationName = locationName.substring(0, 7) + "..";
+                    } catch (error) {
+                        console.error("통신 에러, 기본값 처리:", error);
+                        currentTemp = "21";
+                        weatherEmoji = "☀️";
+                        locationName = "우리 동네";
+                    }
+
+                    finishLoading(loadingBar, loadingStatus, logTime, isCustom);
+                },
+                (error) => {
+                    console.warn("위치 정보 활용 거부, 기본값 우회 구동");
+                    setTimeout(() => {
+                        loadingBar.style.width = '66%';
+                        loadingStatus.innerText = "기상 데이터 우회 통신 가동 중...";
+                        logWeather.style.opacity = '1';
+                        logWeather.classList.add('text-rose-400');
+                    }, 1300);
+
+                    currentTemp = "??";
+                    weatherEmoji = "❓";
+                    locationName = "날씨 정보 없음";
+
+                    finishLoading(loadingBar, loadingStatus, logTime, isCustom);
+                }
+            );
+        }
+
+        function finishLoading(loadingBar, loadingStatus, logTime, isCustom) {
+            setTimeout(() => {
+                loadingBar.style.width = '100%';
+                loadingStatus.innerText = isCustom ? "🎉 대장님만을 위한 명쾌한 상식이 준비됐어요!" : "🕒 현재 실시간 상태 분석에 알맞는 상식 추출 완료!";
+                logTime.style.opacity = '1';
+                logTime.classList.add('text-amber-400');
+                playSystemSound('success');
+            }, 2300);
+
+            setTimeout(() => {
+                renderCuration();
+                goToScreen('screen-result');
+            }, 3200);
+        }
+
+        // --------------------------------------------------
+        // 상식 데이터 큐레이션 알고리즘 연산 및 화면 렌더링
+        // --------------------------------------------------
+        function renderCuration() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
+            const hours = now.getHours();
+            
+            document.getElementById('display-date').innerText = `${year}. ${month}. ${date}`;
+            document.getElementById('display-location').innerText = locationName;
+            document.getElementById('display-temp').innerText = `${currentTemp}°C`;
+            document.getElementById('display-weather-icon').innerText = weatherEmoji;
+
+            const customAnswerContainer = document.getElementById('custom-answer-container');
+            const resultTitle = document.getElementById('result-title');
+            const resultIntroText = document.getElementById('result-intro-text');
+
+            if (customQuestionText) {
+                resultTitle.innerHTML = "💬 네가 던진 최고의 호기심 질문!";
+                resultIntroText.innerHTML = "입력한 귀여운 의문점에 대답하기 위해 내가 최고의 인공지능 쇼핑 및 지도 지름길을 만들었어! 클릭해 봐! ✨";
+                
+                customAnswerContainer.classList.remove('hidden');
+                
+                const encodedMapKeyword = encodeURIComponent(customQuestionText);
+                const encodedSearchKeyword = encodeURIComponent(customQuestionText);
+
+                customAnswerContainer.innerHTML = `
+                    <div class="bg-gradient-to-tr from-amber-400 via-yellow-300 to-amber-200 text-slate-900 rounded-2xl p-5 shadow-lg border border-amber-300 relative overflow-hidden">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="bg-slate-950 text-amber-300 text-[9px] font-bold px-2 py-0.5 rounded-full">USER Q&A</span>
+                            <span class="text-[10px] font-bold text-slate-800">탐험지 준비 완료</span>
+                        </div>
+                        <h4 class="font-extrabold text-xs mb-2 text-slate-950 leading-snug">
+                            " ${customQuestionText} "
+                        </h4>
+                        <p class="text-[11px] text-slate-800 leading-relaxed mb-4 font-semibold">
+                            우와! 아주 멋지고 번뜩이는 호기심이야! 🧠 인터넷 우주 정거장에서 어서 정보를 꺼내보도록 검색 지도를 열어줄게! 아래 버튼들을 눌러봐! 👇
+                        </p>
+                        <div class="grid grid-cols-2 gap-2 relative z-10">
+                            <a href="https://search.shopping.naver.com/search/all?query=${encodedSearchKeyword}" target="_blank" rel="noopener noreferrer" class="bg-slate-950 hover:bg-slate-900 text-white font-extrabold text-[10px] py-2.5 rounded-xl text-center shadow-md transition-colors block">
+                                🛍️ 네이버 쇼핑 찾기
+                            </a>
+                            <a href="https://map.naver.com/v5/search/${encodedMapKeyword}" target="_blank" rel="noopener noreferrer" class="bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-[10px] py-2.5 rounded-xl text-center shadow-md transition-colors block">
+                                🗺️ 네이버 지도 탐색
+                            </a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                resultTitle.innerHTML = "💡 지금 딱 궁금할 만한 상식!";
+                resultIntroText.innerHTML = `현재 날짜와 시간, 날씨 정보를 조합해 네가 흥미로워할 꿀지식을 골라냈어! 별을 눌러서 보물함에 저장해볼까?`;
+                customAnswerContainer.classList.add('hidden');
+                customAnswerContainer.innerHTML = "";
+            }
+
+            // 실시간 상태 매칭 데이터 추출
+            let matchedItems = [];
+
+            if (weatherEmoji === "🌧️" || weatherEmoji === "⛈️") {
+                matchedItems.push(...curiosityPool.filter(i => i.category === 'rainy'));
+            } else if (weatherEmoji === "⛅" || weatherEmoji === "☁️") {
+                matchedItems.push(...curiosityPool.filter(i => i.category === 'cloudy'));
+            } else if (weatherEmoji === "☀️") {
+                matchedItems.push(...curiosityPool.filter(i => i.category === 'sunny'));
+            } else if (weatherEmoji === "❄️") {
+                matchedItems.push(...curiosityPool.filter(i => i.category === 'snowy'));
+            }
+
+            if (hours >= 6 && hours < 12) {
+                matchedItems.push(...curiosityPool.filter(i => i.category === 'morning'));
+            } else if (hours >= 12 && hours < 18) {
+                matchedItems.push(...curiosityPool.filter(i => i.category === 'afternoon'));
+                matchedItems.push(...curiosityPool.filter(i => i.category === 'sunset' && hours >= 16));
+            } else {
+                matchedItems.push(...curiosityPool.filter(i => i.category === 'night'));
+            }
+
+            if (currentTemp !== "??" && Number(currentTemp) < 10) {
+                matchedItems.push(...curiosityPool.filter(i => i.category === 'cold'));
+            } else if (currentTemp !== "??" && Number(currentTemp) > 28) {
+                matchedItems.push(...curiosityPool.filter(i => i.category === 'hot'));
+            }
+
+            // 부족시 일반 상식 수혈
+            if (matchedItems.length < 4) {
+                matchedItems.push(...curiosityPool.filter(i => i.category === 'general'));
+            }
+
+            // 중복 제거 및 무작위 뒤섞어 3개 선정
+            const uniqueMatches = Array.from(new Set(matchedItems));
+            const shuffled = uniqueMatches.sort(() => 0.5 - Math.random());
+            const selectedResults = shuffled.slice(0, 3);
+
+            // 저장된 북마크 목록 불러오기
+            const savedBookmarks = getSavedBookmarks();
+
+            const curationListDiv = document.getElementById('curation-list');
+            curationListDiv.innerHTML = "";
+
+            selectedResults.forEach(item => {
+                const isBookmarked = savedBookmarks.some(b => b.id === item.id);
+                const starIconClass = isBookmarked ? "fa-solid fa-star text-yellow-400" : "fa-regular fa-star text-slate-400 hover:text-yellow-400";
+                const naverMapUrl = `https://map.naver.com/v5/search/${encodeURIComponent(item.keyword)}`;
+
+                const cardHtml = `
+                    <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-4 shadow-sm hover:border-amber-400/40 transition-all duration-200">
+                        <div class="flex items-start justify-between gap-1 mb-2">
+                            <h4 class="font-bold text-amber-300 text-xs flex items-start gap-1.5 leading-snug">
+                                <i class="fa-solid fa-lightbulb mt-0.5 text-xs text-yellow-300 flex-shrink-0 animate-pulse"></i>
+                                <span>${item.title}</span>
+                            </h4>
+                            <button onclick="toggleBookmark(${item.id})" class="p-1 focus:outline-none" title="보물함에 담기">
+                                <i class="${starIconClass}"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-relaxed mb-3 pl-4 font-normal">
+                            ${item.desc}
+                        </p>
+                        <!-- 진짜 이유를 속시원히 설명해주는 주황빛 강조 영역 -->
+                        <div class="mb-4 ml-4 bg-amber-500/10 border border-amber-400/20 rounded-xl p-3 text-slate-200">
+                            <span class="text-[10px] font-bold text-amber-400 block mb-1">
+                                <i class="fa-solid fa-magnifying-glass-chart mr-1"></i> 왜 그럴까? 진짜 이유!
+                            </span>
+                            <p class="text-[11px] leading-relaxed text-slate-300 font-normal">${item.reason}</p>
+                        </div>
+                        <div class="flex justify-end">
+                            <a href="${naverMapUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-[10px] bg-slate-950 hover:bg-slate-800 text-amber-400 font-bold px-3 py-1.5 rounded-lg border border-amber-400/20 transition-colors">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                                <span>내 주변 ${item.keyword} 탐색</span>
+                            </a>
+                        </div>
+                    </div>
+                `;
+                curationListDiv.innerHTML += cardHtml;
+            });
+        }
+
+        // 앱 초기 가동 시 북마크 개수 미리 세팅
+        window.onload = function() {
+            updateBookmarkBadge();
+        };
+    </script>
+</body>
+</html>

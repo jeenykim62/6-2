@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>유찾지피티 - 2026 유행 식품 매니저</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter & Noto Sans KR -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Noto Sans KR', 'Inter', sans-serif;
+      background-color: #0f172a;
+    }
+    /* Square styling custom rules to reinforce the user's design preference */
+    .btn-square {
+      border-radius: 0px !important; /* Strictly square as requested */
+    }
+    .card-square {
+      border-radius: 0px !important;
+    }
+    /* Simple custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #10b981;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-4 overflow-hidden">
+
+  <!-- Smart phone UI frame in rich emerald-green tones -->
+  <div class="relative w-full max-w-[410px] h-[820px] bg-slate-900 text-white shadow-2xl overflow-hidden border-8 border-emerald-800 flex flex-col">
+    
+    <!-- Top Notch & Status Bar -->
+    <div class="bg-emerald-950 px-5 pt-3 pb-2 flex justify-between items-center text-xs text-emerald-200 border-b border-emerald-900">
+      <div id="status-time" class="font-bold">09:54 AM</div>
+      <!-- Smartphone Camera Notch -->
+      <div class="w-20 h-4 bg-black rounded-b-md absolute top-0 left-1/2 -translate-x-1/2"></div>
+      <div class="flex items-center space-x-2">
+        <span class="text-[10px] bg-emerald-800 px-1.5 py-0.5 font-bold tracking-widest text-emerald-300">2026 TREND</span>
+        <i class="fas fa-wifi"></i>
+        <i class="fas fa-battery-three-quarters"></i>
+      </div>
+    </div>
+
+    <!-- MAIN APP SCREEN WRAPPER -->
+    <div class="flex-1 overflow-y-auto p-5 pb-20 bg-gradient-to-b from-emerald-950 via-slate-950 to-emerald-950 relative">
+      
+      <!-- [STEP 1] START SCREEN -->
+      <div id="step-1" class="space-y-6">
+        <!-- App Title and Brand Header -->
+        <div class="text-center py-6">
+          <div class="inline-block bg-emerald-500 text-slate-950 font-black px-3 py-1 text-xs mb-3 uppercase tracking-wider card-square">
+            <i class="fas fa-robot mr-1"></i> AI TREND FINDER
+          </div>
+          <h1 class="text-4xl font-black text-emerald-400 tracking-tight">유찾지피티</h1>
+          <p class="text-emerald-300 text-sm mt-1">2026 실시간 유행 식품 탐색 비서</p>
+        </div>
+
+        <!-- Realtime Info Panel (Time, Weather, Location) -->
+        <div class="bg-emerald-900/30 border-2 border-emerald-700/60 p-4 card-square space-y-3">
+          <div class="flex items-center justify-between text-xs border-b border-emerald-800/80 pb-2">
+            <span class="text-emerald-400 font-bold"><i class="far fa-calendar-alt mr-1"></i> 현재 날짜/시간</span>
+            <span id="realtime-clock" class="text-emerald-200">2026. 06. 22 (월)</span>
+          </div>
+          
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-emerald-400 font-bold"><i class="fas fa-map-marker-alt mr-1"></i> 나의 탐색 위치</span>
+            <span id="realtime-location" class="text-emerald-200 flex items-center">
+              <i class="fas fa-spinner fa-spin mr-1"></i> GPS 확인 중
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-emerald-400 font-bold"><i class="fas fa-cloud-sun mr-1"></i> 위성 동조 날씨</span>
+            <span id="realtime-weather" class="text-emerald-200 flex items-center">
+              <i class="fas fa-spinner fa-spin mr-1"></i> 날씨 분석 중
+            </span>
+          </div>
+        </div>
+
+        <!-- Category/Preference Select Card -->
+        <div class="space-y-3">
+          <label class="text-emerald-400 text-xs font-bold tracking-wider uppercase"><i class="fas fa-utensils mr-1"></i> 어떤 유행 카테고리를 찾고 싶니?</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="selectCategory('all', this)" class="category-btn py-3 px-2 border-2 border-emerald-500 bg-emerald-950 text-emerald-400 font-bold text-xs hover:bg-emerald-800 hover:text-white transition duration-200 btn-square active-cat">
+              ⚡ 전체 트렌드
+            </button>
+            <button onclick="selectCategory('dessert', this)" class="category-btn py-3 px-2 border-2 border-emerald-800/80 bg-slate-900/80 text-slate-300 font-bold text-xs hover:bg-emerald-800 hover:text-white transition duration-200 btn-square">
+              🍮 디저트/푸딩
+            </button>
+            <button onclick="selectCategory('drink', this)" class="category-btn py-3 px-2 border-2 border-emerald-800/80 bg-slate-900/80 text-slate-300 font-bold text-xs hover:bg-emerald-800 hover:text-white transition duration-200 btn-square">
+              🥤 이색 음료/사고
+            </button>
+            <button onclick="selectCategory('snack', this)" class="category-btn py-3 px-2 border-2 border-emerald-800/80 bg-slate-900/80 text-slate-300 font-bold text-xs hover:bg-emerald-800 hover:text-white transition duration-200 btn-square">
+              🍪 스낵/크런치
+            </button>
+          </div>
+        </div>
+
+        <!-- Start Analysis Button -->
+        <div class="pt-4">
+          <button onclick="startAnalysis()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-4 px-4 shadow-lg flex items-center justify-center space-x-2 transition duration-200 btn-square border-2 border-emerald-300 transform active:scale-95">
+            <span class="text-base">유찾지피티 트렌드 분석 시작</span>
+            <i class="fas fa-angle-double-right text-lg"></i>
+          </button>
+          <p class="text-[10px] text-emerald-500/80 text-center mt-2 font-medium">※ 실시간 GPS 기반 날씨 데이터와 연동하여 큐레이션합니다.</p>
+        </div>
+
+        <!-- Decorative Info Card -->
+        <div class="bg-slate-900 border border-emerald-900 p-3 card-square text-[11px] text-slate-400 leading-relaxed">
+          <h4 class="text-emerald-400 font-bold mb-1"><i class="fas fa-info-circle"></i> 유찾지피티 이용 규칙</h4>
+          미성년자 유해 품목(술, 담배 등)은 철저히 필터링되어 안전하게 맛있는 정보만 제공해요. 클릭 시 실시간 장소 파악을 위해 <span class="text-emerald-300 font-bold">네이버 지도</span>로 즉시 도킹됩니다!
+        </div>
+      </div>
+
+      <!-- [STEP 2] LOADING / SCANNING SCREEN -->
+      <div id="step-2" class="hidden h-full flex flex-col justify-center items-center py-20 space-y-8">
+        <!-- Neural network loader graphic -->
+        <div class="relative w-32 h-32 flex items-center justify-center">
+          <!-- Pulse animation concentric squares -->
+          <div class="absolute inset-0 border-4 border-emerald-500/30 animate-ping card-square"></div>
+          <div class="absolute inset-2 border-2 border-emerald-400/60 animate-pulse card-square"></div>
+          <div class="absolute inset-6 border border-emerald-300/80 card-square flex items-center justify-center">
+            <i class="fas fa-robot text-4xl text-emerald-400 animate-bounce"></i>
+          </div>
+        </div>
+
+        <div class="text-center space-y-3">
+          <h2 class="text-2xl font-black text-emerald-400 tracking-wide animate-pulse">실시간 트렌드 분석 중...</h2>
+          <p class="text-xs text-slate-400 max-w-[280px] mx-auto leading-relaxed">
+            유찾지피티 AI가 2026년 식품 데이터베이스 및 인근 재고 시간 현황판을 동기화하고 있습니다.
+          </p>
+        </div>
+
+        <!-- Mini scanning details logs -->
+        <div class="w-full bg-slate-950 border border-emerald-900 p-3 font-mono text-[10px] text-emerald-500/80 space-y-1 card-square h-24 overflow-hidden">
+          <div id="log-line-1">&gt; GPS 위치 획득 동조 완료...</div>
+          <div id="log-line-2" class="opacity-0">&gt; 기온/날씨 맞춤형 레시피 검색 중...</div>
+          <div id="log-line-3" class="opacity-0">&gt; 유행 품목 재고 카운팅 확인 및 신호 동기화...</div>
+          <div id="log-line-4" class="opacity-0">&gt; 완료! 2~3개의 실시간 추천 리스트 큐레이션 완료.</div>
+        </div>
+      </div>
+
+      <!-- [STEP 3] RESULT SCREEN -->
+      <div id="step-3" class="hidden space-y-6">
+        <div class="text-center">
+          <div class="inline-block bg-emerald-500 text-slate-950 font-black px-2.5 py-0.5 text-[10px] mb-2 card-square">
+            MATCHING RESULT
+          </div>
+          <h2 class="text-2xl font-black text-white">유찾지피티 추천 가이드</h2>
+          <p id="result-summary-text" class="text-emerald-400 text-xs mt-1">오늘같이 따뜻한 오후 날씨에 먹기 좋은 베스트 유행 식품!</p>
+        </div>
+
+        <!-- Recommendation List Container -->
+        <div id="recommendation-list" class="space-y-4">
+          <!-- JS Dynamic Content will append here -->
+        </div>
+
+        <!-- Bottom action buttons inside results -->
+        <div class="pt-4 space-y-2">
+          <button onclick="goToStep(1)" class="w-full bg-emerald-950 border-2 border-emerald-500 hover:bg-emerald-900 text-emerald-400 font-bold py-3 px-4 text-sm transition duration-150 btn-square flex items-center justify-center space-x-2">
+            <i class="fas fa-undo"></i>
+            <span>조건 다시 선택하기</span>
+          </button>
+          
+          <button onclick="regenerateRecommendations()" class="w-full bg-emerald-500 text-slate-950 hover:bg-emerald-400 font-extrabold py-3.5 px-4 text-sm transition duration-150 btn-square flex items-center justify-center space-x-2 border border-emerald-300">
+            <i class="fas fa-random"></i>
+            <span>새로운 조합으로 재추천</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Custom Navigation Modal (triggered by ☰ Menu Button) -->
+    <div id="menu-modal" class="hidden absolute inset-0 bg-slate-950/95 z-40 p-6 flex flex-col justify-between">
+      <div class="space-y-6">
+        <div class="flex justify-between items-center border-b border-emerald-800 pb-3">
+          <h3 class="text-lg font-black text-emerald-400"><i class="fas fa-bars mr-1"></i> 유찾지피티 메뉴</h3>
+          <button onclick="toggleMenu()" class="text-slate-400 hover:text-white text-lg"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <div class="space-y-4">
+          <div class="p-3 bg-emerald-900/20 border border-emerald-800 card-square">
+            <h4 class="text-xs font-bold text-emerald-400 mb-1"><i class="fas fa-user-graduate"></i> 앱 제작자 정보</h4>
+            <p class="text-[11px] text-slate-300 leading-relaxed">
+              아이들의 무한한 상상력과 2026 트렌드가 융합하여 기획된 스마트 매니저입니다.
+            </p>
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-emerald-400 tracking-wider"><i class="fas fa-rocket"></i> 적용된 핵심 테크놀로지</h4>
+            <ul class="text-[11px] text-slate-400 space-y-1 list-disc pl-4">
+              <li>실시간 디바이스 브라우저 Geolocation API 연동</li>
+              <li>Open-Meteo 전지구 위성 기상 정보 API 연동</li>
+              <li>2026 트렌디 푸드 가치 큐레이션 알고리즘</li>
+              <li>안전 필터링 (청소년 유해 물질 원천 차단)</li>
+              <li>네이버 지도(Naver Map) 길찾기 좌표 동조</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <button onclick="toggleMenu(); goToStep(1);" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 text-xs btn-square">
+          <i class="fas fa-home mr-1"></i> 메인 홈으로 가기
+        </button>
+        <button onclick="toggleMenu()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 text-xs btn-square">
+          닫기
+        </button>
+      </div>
+    </div>
+
+    <!-- SmartPhone Bottom Navigation Bar -->
+    <div class="absolute bottom-0 inset-x-0 h-14 bg-slate-950 border-t border-emerald-950 flex justify-around items-center text-xs z-30">
+      <!-- ☰ (Menu) -->
+      <button onclick="toggleMenu()" class="flex flex-col items-center justify-center w-20 h-full text-slate-400 hover:text-emerald-400 transition active:scale-90">
+        <i class="fas fa-bars text-base"></i>
+        <span class="text-[9px] mt-0.5 font-bold">메뉴</span>
+      </button>
+
+      <!-- ⌂ (Home) -->
+      <button onclick="goToHome()" class="flex flex-col items-center justify-center w-20 h-full text-emerald-400 hover:text-emerald-300 transition active:scale-90">
+        <div class="bg-emerald-950 p-1.5 border border-emerald-800 card-square -mt-4 shadow-lg">
+          <i class="fas fa-home text-lg"></i>
+        </div>
+        <span class="text-[9px] mt-0.5 font-bold">홈</span>
+      </button>
+
+      <!-- ◁ (Back) -->
+      <button onclick="goBack()" class="flex flex-col items-center justify-center w-20 h-full text-slate-400 hover:text-emerald-400 transition active:scale-90">
+        <i class="fas fa-caret-left text-lg"></i>
+        <span class="text-[9px] mt-0.5 font-bold">뒤로가기</span>
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    // Global Application State Variables
+    let currentStep = 1;
+    let selectedCategory = 'all';
+    let userLocation = { lat: null, lon: null, name: "내 주변 위치" };
+    let weatherInfo = { temp: "--", desc: "분석 중", icon: "🌡️" };
+
+    // Interactive 2026 Trend Database (10 items) - Alcohol, tobacco, harmful substances are completely excluded
+    const FOOD_DATABASE = [
+      {
+        id: 1,
+        name: "두바이식 아삭 피스타치오 크레이프",
+        category: "dessert",
+        emoji: "🥞",
+        store: "트렌디 편의점 세븐 역삼점",
+        stock: "안전", // 안전(Green), 임박(Yellow), 품절(Red)
+        stockCount: 8,
+        updateTime: "2분 전",
+        reason: "바삭함의 정석! 아삭한 초코 카다이프 면과 고급 피스타치오가 최고 조화예요."
+      },
+      {
+        id: 2,
+        name: "제로 말차 카스테라 수플레 푸딩",
+        category: "dessert",
+        emoji: "🍮",
+        store: "카페 푸딩랜드 가로수길본점",
+        stock: "임박",
+        stockCount: 1,
+        updateTime: "12분 전",
+        reason: "2026년 대세 제로 트렌드! 입안에서 사르르 녹아내리는 부드러운 단맛이에요."
+      },
+      {
+        id: 3,
+        name: "황치즈 콰작 딥 쿠키 슈",
+        category: "snack",
+        emoji: "🥯",
+        store: "델리 베이커리 서교점",
+        stock: "안전",
+        stockCount: 12,
+        updateTime: "방금 전",
+        reason: "완전 꾸덕하고 바삭 짭조름한 황치즈 가득! 한번 씹으면 멈출 수 없어요."
+      },
+      {
+        id: 4,
+        name: "무설탕 망고 사고 젤리 라떼",
+        category: "drink",
+        emoji: "🥭",
+        store: "요거앤사고 홍대직영점",
+        stock: "안전",
+        stockCount: 15,
+        updateTime: "5분 전",
+        reason: "쫀득쫀득 알알이 씹히는 사고 펄에 생망고가 듬뿍 들어가 상큼함 폭발!"
+      },
+      {
+        id: 5,
+        name: "스머지 블루베리 요거트 아이스크림",
+        category: "dessert",
+        emoji: "🍦",
+        store: "요아정 강남역중앙점",
+        stock: "품절",
+        stockCount: 0,
+        updateTime: "1분 전",
+        reason: "2026년 리뉴얼 요아정 인기작! 건강하고 시원하게 더위를 확 날려줘요."
+      },
+      {
+        id: 6,
+        name: "크루아상 누룽지 카라멜 소금 콘",
+        category: "snack",
+        emoji: "🥐",
+        store: "베이커리 바사삭 안국점",
+        stock: "안전",
+        stockCount: 5,
+        updateTime: "10분 전",
+        reason: "바삭함의 극한! 누룽지처럼 바짝 구워낸 단짠카라멜 소금빵이에요."
+      },
+      {
+        id: 7,
+        name: "제로 타피오카 흑당 코코넛 워터",
+        category: "drink",
+        emoji: "🥥",
+        store: "스위트 버블 이태원점",
+        stock: "임박",
+        stockCount: 2,
+        updateTime: "8분 전",
+        reason: "몸에 좋은 수분 보충 코코넛 베이스에 쫀득한 버블이 이색적이에요."
+      },
+      {
+        id: 8,
+        name: "체리 팝핑 버블 밀크 쉐이크",
+        category: "drink",
+        emoji: "🍒",
+        store: "스트릿밀크 대학로점",
+        stock: "안전",
+        stockCount: 9,
+        updateTime: "4분 전",
+        reason: "톡톡 터지는 팝핑 버블이 크리미한 체리 쉐이크 속에서 춤추는 맛이에요."
+      },
+      {
+        id: 9,
+        name: "초코 솔티드 비건 치즈 크래커",
+        category: "snack",
+        emoji: "🍪",
+        store: "헬시 유기농 라이프 신촌점",
+        stock: "안전",
+        stockCount: 7,
+        updateTime: "15분 전",
+        reason: "칼로리는 가볍고, 깊은 초콜릿 짭조름함은 그대로 꽉 채운 2026 최고의 간식!"
+      },
+      {
+        id: 10,
+        name: "마시멜로 오븐 초코 브라우니 바",
+        category: "dessert",
+        emoji: "🍫",
+        store: "마시멜로 팩토리 성수점",
+        stock: "품절",
+        stockCount: 0,
+        updateTime: "3분 전",
+        reason: "구운 마시멜로와 꾸덕 브라우니의 극한 조합! 아쉽게도 지금 전량 품절이네요."
+      }
+    ];
+
+    window.onload = function() {
+      // Setup dynamic digital clock
+      updateClock();
+      setInterval(updateClock, 1000);
+      
+      // Initialize Location and Weather APIs
+      fetchLocationAndWeather();
+    };
+
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // 0 should be 12
+      const timeStr = `${hours}:${minutes} ${ampm}`;
+      
+      const statusTime = document.getElementById('status-time');
+      if (statusTime) statusTime.innerText = timeStr;
+      
+      const year = now.getFullYear();
+      const month = (now.getMonth() + 1).toString().padStart(2, '0');
+      const date = now.getDate().toString().padStart(2, '0');
+      const week = ['일', '월', '화', '수', '목', '금', '토'][now.getDay()];
+      
+      const realtimeClock = document.getElementById('realtime-clock');
+      if (realtimeClock) {
+        realtimeClock.innerText = `${year}. ${month}. ${date} (${week})`;
+      }
+    }
+
+    async function fetchLocationAndWeather() {
+      const locDisplay = document.getElementById('realtime-location');
+      const weatherDisplay = document.getElementById('realtime-weather');
+
+      if (!navigator.geolocation) {
+        locDisplay.innerHTML = "위치 정보 미지원";
+        weatherDisplay.innerHTML = "날씨 정보 없음 ☁️";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          userLocation.lat = lat;
+          userLocation.lon = lon;
+
+          try {
+            // Reverse Geocoding via OSM Open Street Map Free API
+            const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+            if (geoRes.ok) {
+              const geoData = await geoRes.json();
+              const addr = geoData.address;
+              // Extract best locality display
+              userLocation.name = addr.city || addr.town || addr.borough || addr.suburb || addr.quarter || "우리 동네";
+              locDisplay.innerHTML = `<i class="fas fa-location-arrow text-emerald-400 mr-1 animate-pulse"></i> ${userLocation.name}`;
+            } else {
+              locDisplay.innerHTML = "우리동네 주변";
+            }
+          } catch (err) {
+            console.warn("Geocoding failed, using coordinates fallback.", err);
+            locDisplay.innerHTML = "내 주변 핫플레이스";
+          }
+
+          try {
+            // Weather via Open-Meteo Free API
+            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`);
+            if (weatherRes.ok) {
+              const weatherData = await weatherRes.json();
+              const temp = Math.round(weatherData.current_weather.temperature);
+              const code = weatherData.current_weather.weathercode;
+              
+              // Map weather codes to friendly descriptive emojis
+              let desc = "맑음";
+              let emoji = "☀️";
+              
+              if (code === 0) { desc = "쾌청함"; emoji = "☀️"; }
+              else if (code >= 1 && code <= 3) { desc = "구름 조금"; emoji = "⛅"; }
+              else if (code >= 45 && code <= 48) { desc = "안개낌"; emoji = "🌫️"; }
+              else if (code >= 51 && code <= 67) { desc = "이슬비/비"; emoji = "🌧️"; }
+              else if (code >= 71 && code <= 77) { desc = "눈 내림"; emoji = "❄️"; }
+              else if (code >= 80 && code <= 82) { desc = "소나기"; emoji = "🌦️"; }
+              else if (code >= 95) { desc = "뇌우 소나기"; emoji = "⛈️"; }
+
+              weatherInfo.temp = temp;
+              weatherInfo.desc = desc;
+              weatherInfo.icon = emoji;
+
+              weatherDisplay.innerHTML = `<span class="text-emerald-400 mr-1">${emoji}</span> ${desc} (${temp}°C)`;
+            } else {
+              weatherDisplay.innerHTML = "미기재 ⛅";
+            }
+          } catch (err) {
+            console.warn("Weather API failed.", err);
+            weatherDisplay.innerHTML = "비밀의 맑음 ☀️";
+          }
+        },
+        (error) => {
+          // Failure or rejection of permission
+          console.warn("Location permission denied or unavailable.", error);
+          locDisplay.innerHTML = "위치 동조 보류 🗺️";
+          weatherDisplay.innerHTML = "날씨 정보 없음 ☁️";
+        },
+        { timeout: 10000 }
+      );
+    }
+
+    function selectCategory(category, buttonEl) {
+      selectedCategory = category;
+      
+      // Deactivate all previous category buttons
+      const buttons = document.querySelectorAll('.category-btn');
+      buttons.forEach(btn => {
+        btn.classList.remove('border-emerald-500', 'bg-emerald-950', 'text-emerald-400', 'active-cat');
+        btn.classList.add('border-emerald-800/80', 'bg-slate-900/80', 'text-slate-300');
+      });
+
+      // Activate clicked button
+      buttonEl.classList.remove('border-emerald-800/80', 'bg-slate-900/80', 'text-slate-300');
+      buttonEl.classList.add('border-emerald-500', 'bg-emerald-950', 'text-emerald-400', 'active-cat');
+    }
+
+    function goToStep(step) {
+      // Validate step limits
+      if (step < 1 || step > 3) return;
+      
+      currentStep = step;
+      
+      // Hide all pages
+      document.getElementById('step-1').classList.add('hidden');
+      document.getElementById('step-2').classList.add('hidden');
+      document.getElementById('step-3').classList.add('hidden');
+      
+      // Show targeted page
+      document.getElementById(`step-${step}`).classList.remove('hidden');
+    }
+
+    function goBack() {
+      if (currentStep > 1) {
+        goToStep(currentStep - 1);
+      }
+    }
+
+    function goToHome() {
+      goToStep(1);
+    }
+
+    function toggleMenu() {
+      const menu = document.getElementById('menu-modal');
+      menu.classList.toggle('hidden');
+    }
+
+    function startAnalysis() {
+      // Switch to Step 2 (Loading)
+      goToStep(2);
+      
+      // Reset analysis log display animation states
+      const l2 = document.getElementById('log-line-2');
+      const l3 = document.getElementById('log-line-3');
+      const l4 = document.getElementById('log-line-4');
+      
+      l2.classList.add('opacity-0');
+      l3.classList.add('opacity-0');
+      l4.classList.add('opacity-0');
+
+      // Cascade log reveal timelines
+      setTimeout(() => { l2.classList.remove('opacity-0'); }, 400);
+      setTimeout(() => { l3.classList.remove('opacity-0'); }, 900);
+      setTimeout(() => { l4.classList.remove('opacity-0'); }, 1500);
+
+      // Finish loading, compile and head to results page after 2.2 seconds
+      setTimeout(() => {
+        generateRecommendations();
+        goToStep(3);
+      }, 2200);
+    }
+
+    function regenerateRecommendations() {
+      // Trigger short scanning step again for excitement
+      startAnalysis();
+    }
+
+    function generateRecommendations() {
+      const resultListContainer = document.getElementById('recommendation-list');
+      resultListContainer.innerHTML = ''; // Clear prior entries
+
+      // Filter database by category choice
+      let filteredPool = FOOD_DATABASE;
+      if (selectedCategory !== 'all') {
+        filteredPool = FOOD_DATABASE.filter(item => item.category === selectedCategory);
+      }
+
+      // Shuffle using Math.random() for 100% random recommendation
+      const shuffled = [...filteredPool].sort(() => 0.5 - Math.random());
+      
+      // Select 2 to 3 items
+      const pickCount = Math.min(shuffled.length, Math.floor(Math.random() * 2) + 2); // Pick 2 or 3
+      const selectedItems = shuffled.slice(0, pickCount);
+
+      // Dynamically tweak result text header depending on current weather
+      const weatherTextEl = document.getElementById('result-summary-text');
+      const tempNumber = parseInt(weatherInfo.temp);
+      if (!isNaN(tempNumber)) {
+        if (tempNumber > 22) {
+          weatherTextEl.innerText = `🌡️ 현재 날씨가 후끈한 ${weatherInfo.temp}°C라, 유찾지피티가 시원하고 짜릿하게 힐링해주는 유행 먹거리를 추천할게요!`;
+        } else if (tempNumber < 12) {
+          weatherTextEl.innerText = `❄️ 선선한 바람이 부는 ${weatherInfo.temp}°C 날씨에 딱! 입안을 포근하고 달콤하게 만드는 핫템 리스트예요.`;
+        } else {
+          weatherTextEl.innerText = `☀️ 딱 기분 좋은 ${weatherInfo.temp}°C 날씨네요! 오늘 하루를 환상적으로 만들 2026 베스트 추천이에요.`;
+        }
+      } else {
+        weatherTextEl.innerText = `✨ 유찾지피티가 2026년에 최강으로 소문난 맛잘알 조합으로 구성한 먹거리입니다!`;
+      }
+
+      // Render the curated list with detailed stock indicators
+      selectedItems.forEach(item => {
+        // Prepare HTML badge elements depending on stock level status
+        let stockBadgeHtml = '';
+        if (item.stock === '안전') {
+          stockBadgeHtml = `
+            <span class="inline-flex items-center px-2 py-1 text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/40 card-square">
+              <span class="w-2 h-2 mr-1.5 bg-emerald-400 animate-pulse"></span>
+              재고 있음 (${item.stockCount}개)
+            </span>`;
+        } else if (item.stock === '임박') {
+          stockBadgeHtml = `
+            <span class="inline-flex items-center px-2 py-1 text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/40 card-square">
+              <span class="w-2 h-2 mr-1.5 bg-amber-400 animate-ping"></span>
+              품절 임박 (${item.stockCount}개)
+            </span>`;
+        } else {
+          stockBadgeHtml = `
+            <span class="inline-flex items-center px-2 py-1 text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30 card-square">
+              <span class="w-2 h-2 mr-1.5 bg-rose-500"></span>
+              일시 품절
+            </span>`;
+        }
+
+        // Direct shopping connection template (Using Naver Map search link template per instructions)
+        const mapSearchQuery = encodeURIComponent(item.name + " " + item.store);
+        const mapUrl = `https://map.naver.com/v5/search/${mapSearchQuery}`;
+
+        const cardHtml = `
+          <!-- Result Item Card -->
+          <div class="bg-slate-900 border-2 border-emerald-900 p-4 space-y-3 hover:border-emerald-500 transition duration-150 card-square">
+            <div class="flex justify-between items-start">
+              <div class="flex items-center space-x-2.5">
+                <span class="text-3xl">${item.emoji}</span>
+                <div>
+                  <h3 class="font-extrabold text-base text-white tracking-tight">${item.name}</h3>
+                  <p class="text-[10px] text-slate-400 mt-0.5"><i class="fas fa-store mr-1"></i> ${item.store}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stock status dashboard details -->
+            <div class="flex justify-between items-center bg-slate-950 px-2 py-1.5 text-xs card-square border border-emerald-950">
+              <div class="flex items-center space-x-1">
+                <span class="text-slate-500 font-bold text-[10px]">상태:</span>
+                ${stockBadgeHtml}
+              </div>
+              <div class="text-[10px] text-slate-400">
+                <i class="far fa-clock mr-1"></i> ${item.updateTime} 업데이트
+              </div>
+            </div>
+
+            <!-- ChatGPT friendly recommendation reason block -->
+            <div class="text-[11px] text-emerald-300 bg-emerald-950/40 p-2.5 border-l-2 border-emerald-500 font-medium leading-relaxed">
+              <i class="fas fa-comment-dots text-emerald-500 mr-1"></i> "${item.reason}"
+            </div>
+
+            <!-- Map Routing Navigation Button -->
+            <div class="pt-1">
+              <a href="${mapUrl}" target="_blank" rel="noopener noreferrer" class="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold py-2 px-3 text-xs flex justify-center items-center space-x-1.5 transition duration-150 btn-square transform hover:-translate-y-0.5">
+                <i class="fas fa-map-marked-alt text-slate-950"></i>
+                <span class="text-slate-950">네이버 지도로 즉시 위치 찾기</span>
+              </a>
+            </div>
+          </div>
+        `;
+        resultListContainer.innerHTML += cardHtml;
+      });
+    }
+  </script>
+</body>
+</html>

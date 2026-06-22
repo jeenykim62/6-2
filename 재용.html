@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영화보자~</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons for movie feels -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 폰트 설정 및 스크롤바 숨기기 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #121212;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* 슬레이트 애니메이션 */
+        @keyframes clack {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-25deg); }
+        }
+        .slate-top {
+            transform-origin: bottom left;
+            animation: clack 1s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 bg-zinc-950">
+
+    <!-- 스마트폰 디바이스 프레임 -->
+    <div class="relative w-full max-w-[390px] h-[844px] bg-black rounded-[48px] shadow-2xl border-[10px] border-zinc-800 overflow-hidden flex flex-col text-white">
+        
+        <!-- 스마트폰 상단 펀치홀 및 인디케이터 -->
+        <div class="absolute top-0 inset-x-0 h-8 bg-black z-50 flex justify-between items-center px-6">
+            <span class="text-xs font-semibold current-time-text">09:41</span>
+            <div class="w-28 h-4 bg-zinc-900 rounded-full mx-auto"></div>
+            <div class="flex items-center gap-1.5 text-xs">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-three-quarters"></i>
+            </div>
+        </div>
+
+        <!-- 메인 콘텐츠 영역 (스크롤 가능) -->
+        <div class="flex-1 overflow-y-auto no-scrollbar pt-8 pb-16 bg-zinc-950">
+            
+            <!-- 실시간 정보 바 -->
+            <div class="px-5 py-3 bg-zinc-900/60 border-b border-zinc-800 flex justify-between items-center text-xs">
+                <div class="flex items-center gap-1.5 text-zinc-400">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="current-date-text">2026.06.22</span>
+                </div>
+                <div class="flex items-center gap-2 text-zinc-300">
+                    <span id="weather-icon">🔍</span>
+                    <span id="weather-location" class="font-bold">위치 확인 중...</span>
+                    <span id="weather-temp" class="text-white"></span>
+                </div>
+            </div>
+
+            <!-- [1단계] 조건 입력 화면 (시작화면) -->
+            <div id="step-1" class="px-5 py-6 flex flex-col h-full justify-between">
+                <div>
+                    <!-- 타이틀 로고 -->
+                    <div class="text-center my-6">
+                        <div class="inline-block relative mb-3">
+                            <!-- 슬레이트 마크 🎬 -->
+                            <div class="text-6xl filter drop-shadow-[0_4px_6px_rgba(255,255,255,0.1)]">🎬</div>
+                        </div>
+                        <h1 class="text-3xl font-black tracking-wider text-white">영화보자~</h1>
+                        <p class="text-xs text-zinc-400 mt-1">오늘 너를 위한 가장 완벽한 한 편</p>
+                    </div>
+
+                    <!-- 장르 선택 섹션 -->
+                    <div class="mt-8">
+                        <label class="text-sm font-bold text-zinc-300 block mb-3">
+                            <i class="fas fa-film mr-1 text-white"></i> 지금 보고 싶은 장르는 무엇인가요?
+                        </label>
+                        <div class="grid grid-cols-2 gap-3" id="genre-container">
+                            <button onclick="selectGenre('action')" class="genre-btn py-4 px-3 rounded-2xl bg-zinc-900 border-2 border-zinc-800 hover:border-white transition-all flex flex-col items-center gap-2" data-genre="action">
+                                <span class="text-2xl">💥</span>
+                                <span class="text-sm font-bold">액션</span>
+                            </button>
+                            <button onclick="selectGenre('comedy')" class="genre-btn py-4 px-3 rounded-2xl bg-zinc-900 border-2 border-zinc-800 hover:border-white transition-all flex flex-col items-center gap-2" data-genre="comedy">
+                                <span class="text-2xl">😂</span>
+                                <span class="text-sm font-bold">코미디</span>
+                            </button>
+                            <button onclick="selectGenre('animation')" class="genre-btn py-4 px-3 rounded-2xl bg-zinc-900 border-2 border-zinc-800 hover:border-white transition-all flex flex-col items-center gap-2" data-genre="animation">
+                                <span class="text-2xl">🧸</span>
+                                <span class="text-sm font-bold">애니메이션</span>
+                            </button>
+                            <button onclick="selectGenre('sf')" class="genre-btn py-4 px-3 rounded-2xl bg-zinc-900 border-2 border-zinc-800 hover:border-white transition-all flex flex-col items-center gap-2" data-genre="sf">
+                                <span class="text-2xl">🚀</span>
+                                <span class="text-sm font-bold">SF / 판타지</span>
+                            </button>
+                            <!-- 새로 추가된 공포/스릴러 장르 버튼 -->
+                            <button onclick="selectGenre('horror')" class="genre-btn py-4 px-3 rounded-2xl bg-zinc-900 border-2 border-zinc-800 hover:border-white transition-all flex flex-col items-center gap-2 col-span-2" data-genre="horror">
+                                <span class="text-2xl">👻</span>
+                                <span class="text-sm font-bold">공포 / 스릴러</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 선택 안내문구 -->
+                    <div class="mt-6 p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800 text-center">
+                        <p class="text-xs text-zinc-400 leading-relaxed">
+                            💡 현위치 주변 영화관 정보와 추천 장르를 기반으로 가장 인기 있는 실시간 영화를 추천해 줄게요!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 추천 시작 버튼 -->
+                <div class="mt-10">
+                    <button id="start-btn" onclick="startCuration()" disabled class="w-full py-4 bg-zinc-100 hover:bg-white text-black font-black rounded-2xl shadow-lg transition-all transform active:scale-95 text-base flex justify-center items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <span>🎬 영화 매칭 시작하기</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- [2단계] 데이터 분석 로딩 화면 -->
+            <div id="step-2" class="hidden px-5 py-24 flex flex-col items-center justify-center h-full">
+                <!-- 움직이는 슬레이트 캐릭터 그래픽 -->
+                <div class="relative w-32 h-32 flex flex-col items-center justify-center">
+                    <!-- Clapperboard Custom Animation SVG -->
+                    <svg viewBox="0 0 100 100" class="w-24 h-24">
+                        <!-- Top Part (Slatetop) -->
+                        <g class="slate-top">
+                            <path d="M 10 25 L 90 15 L 90 28 L 10 38 Z" fill="white" />
+                            <path d="M 20 23.5 L 30 22 L 25 31 L 15 32.5 Z" fill="black" />
+                            <path d="M 40 20.5 L 50 19 L 45 28 L 35 29.5 Z" fill="black" />
+                            <path d="M 60 17.5 L 70 16 L 65 25 L 55 26.5 Z" fill="black" />
+                            <path d="M 80 14.5 L 90 13 L 85 22 L 75 23.5 Z" fill="black" />
+                        </g>
+                        <!-- Bottom Part -->
+                        <path d="M 10 38 L 90 28 L 90 75 L 10 85 Z" fill="white" />
+                        <rect x="20" y="45" width="60" height="25" rx="3" fill="black" transform="rotate(-7, 50, 50)" />
+                        <text x="50" y="62" fill="white" font-size="6" font-weight="bold" text-anchor="middle" transform="rotate(-7, 50, 50)">ANALYZING...</text>
+                    </svg>
+                </div>
+
+                <h3 class="text-xl font-bold mt-8 text-center text-white">취향에 꼭 맞는 영화 분석 중...</h3>
+                <p class="text-xs text-zinc-400 mt-2 text-center" id="loading-text">주변 영화관 데이터를 분석하는 중입니다...</p>
+
+                <!-- 분석 단계 인디케이터 -->
+                <div class="w-full bg-zinc-900 rounded-full h-1.5 mt-8 max-w-[200px] overflow-hidden">
+                    <div class="bg-white h-1.5 rounded-full transition-all duration-700 w-0" id="progress-bar"></div>
+                </div>
+            </div>
+
+            <!-- [3단계] 결과화면 -->
+            <div id="step-3" class="hidden px-5 py-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-black flex items-center gap-2">
+                        <span>🎬</span> 오늘의 상영작 추천!
+                    </h2>
+                    <span onclick="goToStep(1)" class="text-xs text-zinc-400 underline cursor-pointer hover:text-white">다시 고르기</span>
+                </div>
+
+                <!-- 매칭 기본 조건 태그 -->
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <span class="px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-full text-xs text-zinc-300" id="tag-selected-genre">장르</span>
+                    <span class="px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-full text-xs text-zinc-300" id="tag-selected-loc">내 주변 영화관</span>
+                </div>
+
+                <!-- 추천 영화 카드 목록 -->
+                <div id="movie-results-container" class="flex flex-col gap-4">
+                    <!-- 여기에 자바스크립트로 추천 카드 2~3개가 동적 렌더링 됩니다. -->
+                </div>
+
+                <!-- 주변 극장 찾기 퀵 링크 -->
+                <div class="mt-8 p-4 rounded-2xl bg-zinc-900 border border-zinc-800 text-center">
+                    <h4 class="text-sm font-bold text-white mb-1">📍 근처 영화관에서 바로 예매할까요?</h4>
+                    <p class="text-xs text-zinc-400 mb-3">가장 가까운 영화관의 상세 정보와 상영 시간표를 지도로 열어드릴게요.</p>
+                    <a id="near-theaters-link" href="https://map.naver.com/v5/search/주변 영화관" target="_blank" rel="noopener noreferrer" class="inline-block px-5 py-2.5 bg-white text-black font-extrabold text-xs rounded-xl hover:bg-zinc-200 transition-all">
+                        <i class="fas fa-map-marked-alt mr-1"></i> 네이버 지도로 극장 찾기
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 스마트폰 하단 네비게이션 바 -->
+        <div class="absolute bottom-0 inset-x-0 h-14 bg-black border-t border-zinc-900 flex justify-around items-center px-6 text-zinc-400 z-50">
+            <!-- ☰ 메뉴 버튼 -->
+            <button onclick="toggleMenu()" class="hover:text-white transition-colors flex flex-col items-center gap-0.5">
+                <span class="text-base">☰</span>
+                <span class="text-[9px]">메뉴</span>
+            </button>
+            <!-- ⌂ 홈 버튼 -->
+            <button onclick="goToStep(1)" class="text-white hover:text-zinc-200 transition-colors flex flex-col items-center gap-0.5">
+                <span class="text-base">⌂</span>
+                <span class="text-[9px]">홈</span>
+            </button>
+            <!-- ◁ 뒤로가기 버튼 -->
+            <button onclick="handleBack()" class="hover:text-white transition-colors flex flex-col items-center gap-0.5">
+                <span class="text-base">◁</span>
+                <span class="text-[9px]">이전</span>
+            </button>
+        </div>
+
+        <!-- 메뉴 사이드 바 / 모달 슬라이드 -->
+        <div id="side-menu" class="absolute inset-0 bg-black/90 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="text-lg font-black flex items-center gap-2">🎬 영화보자~ <span class="text-xs font-normal text-zinc-400">v1.2</span></h3>
+                    <button onclick="toggleMenu()" class="text-2xl hover:text-zinc-400">&times;</button>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <button onclick="showModal('🍿 마이 컬렉션', '내가 찜해두었거나 예매한 상영 영화 보관 기능이 조만간 찾아옵니다!', '🎟️'); toggleMenu();" class="w-full text-left p-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 transition-colors flex items-center justify-between">
+                        <span class="text-sm">🍿 마이 컬렉션</span>
+                        <i class="fas fa-chevron-right text-xs text-zinc-500"></i>
+                    </button>
+                    <button onclick="showModal('📍 영화관 추천 범위 설정', '사용자의 GPS 기준 반경 5km 안의 극장 데이터들과 안전하게 연결되도록 동기화했습니다!', '🗺️'); toggleMenu();" class="w-full text-left p-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 transition-colors flex items-center justify-between">
+                        <span class="text-sm">📍 영화관 추천 범위 설정</span>
+                        <i class="fas fa-chevron-right text-xs text-zinc-500"></i>
+                    </button>
+                    <button onclick="showModal('✨ 앱 개발자 소개', '영화보자~ 어플 제작자: 대한민국 코딩 천재 상상력 꿈나무 🎬', '✨'); toggleMenu();" class="w-full text-left p-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 transition-colors flex items-center justify-between">
+                        <span class="text-sm">✨ 앱 개발자 소개</span>
+                        <i class="fas fa-chevron-right text-xs text-zinc-500"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-4 bg-zinc-900/50 rounded-2xl text-center">
+                <p class="text-[11px] text-zinc-500">슬레이트 디자인의 시네마 영화 추천 파트너</p>
+                <p class="text-[10px] text-zinc-600 mt-1">Gems 멘토링 어플 프로젝트</p>
+            </div>
+        </div>
+
+        <!-- 커스텀 슬레이트 팝업 알림 모달 (alert() 완전 대체) -->
+        <div id="custom-modal" class="hidden absolute inset-0 bg-black/85 z-[100] flex items-center justify-center p-6">
+            <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-6 w-full text-center shadow-2xl">
+                <div class="text-4xl mb-3" id="modal-emoji">🍿</div>
+                <h4 class="text-base font-black text-white mb-2" id="modal-title">영화 알림</h4>
+                <p class="text-xs text-zinc-400 leading-relaxed mb-6" id="modal-desc">내용</p>
+                <button onclick="closeModal()" class="w-full py-3.5 bg-white text-black font-extrabold text-xs rounded-xl hover:bg-zinc-200 transition-all">확인</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 10개 이상의 넉넉한 조건별 영화 데이터 구성
+        const movieDatabase = {
+            action: [
+                { title: "어벤져스: 엔드게임", emoji: "🦸‍♂️", desc: "지구를 구하기 위해 영웅들이 뭉쳤다! 화끈하고 웅장한 액션의 끝판왕.", reason: "스트레스를 시원하게 날려버릴 화려한 영웅들의 최고조 액션을 선사합니다." },
+                { title: "범죄도시", emoji: "👊", desc: "나쁜 놈들을 주먹 하나로 싹 쓸어버리는 마형사의 통쾌하고 시원한 한판 승부!", reason: "답답하고 지루한 하루를 한방에 깨워줄 파워 가득한 시원함을 줍니다." },
+                { title: "탑건: 매버릭", emoji: "✈️", desc: "전투기에서 펼쳐지는 믿을 수 없는 리얼 고공 비행 스릴과 감동!", reason: "푸른 하늘을 가르며 가슴이 뻥 뚫리는 기분을 느끼고 싶을 때 가장 어울려요." },
+                { title: "존 윅", emoji: "🕶️", desc: "숨막힐 듯 완벽하게 짜인 무술 동작과 한 번 보기 시작하면 멈출 수 없는 액션!", reason: "눈이 쉴 틈 없이 돌아가는 최고의 비주얼 액션을 즐기고 싶은 분께 추천해요." },
+                { title: "부산행", emoji: "🧟", desc: "한국형 좀비 열풍의 시초! 열차 안에서 살아남기 위한 목숨을 건 숨 가쁜 질주.", reason: "한순간도 긴장을 풀 수 없는 팽팽하고 짜릿한 스릴을 전해줍니다." },
+                { title: "스파이더맨: 노 웨이 홈", emoji: "🕸️", desc: "모든 차원의 스파이더맨들이 한자리에 모여 최고의 거미 액션을 선보인다!", reason: "추억과 우정이 듬뿍 담긴 스릴 넘치면서도 뭉클한 액션 히어로물을 꿈꾼다면 딱입니다." },
+                { title: "미션 임파서블", emoji: "🏍️", desc: "실제 벼랑 끝에서 날아오르는 오토바이 액션과 톰 크루즈의 완벽한 스릴 연기.", reason: "매 순간 불가능한 미션을 돌파하는 자신감과 에너지를 수혈받고 싶을 때 추천해요." },
+                { title: "전우치", emoji: "🧹", desc: "부적을 날리며 장난을 치는 천방지축 한국형 현대 도사 전우치의 통쾌한 현대 무림 액션!", reason: "한국식 마술 액션과 유쾌하고 속도감 넘치는 전투가 신나게 만듭니다." },
+                { title: "베테랑", emoji: "🚓", desc: "죄짓고 살지 말자! 정의로운 형사의 거침없는 일격과 재벌 참교육 스토리.", reason: "정의감 가득한 한판 승부로 십년 묵은 체증이 내려가는 재미를 느낄 수 있어요." },
+                { title: "명량", emoji: "⚓", desc: "역사에 남을 거대한 바다 위 전투! 12척의 배로 330척을 무찌른 감동과 액션 스케일.", reason: "가장 뭉클하고 영웅적인 결단력을 품은 가슴 뜨거워지는 액션 대서사시입니다." }
+            ],
+            comedy: [
+                { title: "극한직업", emoji: "🍗", desc: "낮에는 치킨 장사, 밤에는 잠복근무! 쉴 새 없이 몰아치는 꿀잼 웃음 폭탄.", reason: "가장 배고픈 시간에 생각나는 겉바속촉 웃음을 가득 안겨드립니다!" },
+                { title: "엑시트", emoji: "🧗", desc: "따따따 따 따 따! 도심 가스 테러 속에서 생존하기 위한 웃기고 슬픈 옥상 클라이밍 탈출기.", reason: "웃음과 짜릿한 긴장감이 하나가 되어 시간 가는 줄 모르고 보게 됩니다." },
+                { title: "수상한 그녀", emoji: "👵", desc: "칠순 할매가 하루아침에 스무 살 꽃처녀로 변신하여 가수의 꿈을 찾아 떠난다!", reason: "온 가족이 배꼽 잡고 웃으면서도 마지막엔 감동의 눈물을 나게 합니다." },
+                { title: "육사오(6/45)", emoji: "🎟️", desc: "바람을 타고 군사분계선을 넘어간 1등 로또를 둘러싼 남북 군인들의 비밀 대작전!", reason: "상상을 초월하는 기막힌 설정과 환상의 티키타카가 폭소를 유발해요." },
+                { title: "7번방의 선물", emoji: "🎁", desc: "바보 아빠가 사랑하는 딸을 위해 교도소 7번방에 딸을 몰래 들여오는 기적 같은 소동!", reason: "눈물이 쏙 빠질 만큼 감동적이면서도 따뜻한 웃음을 선물하고 싶을 때 최고의 선택입니다." },
+                { title: "청년경찰", emoji: "👮", desc: "두 경찰대생이 우연히 본 납치 사건을 직접 해결하기 위해 뛰어드는 혈기왕성 코믹 콤비 액션!", reason: "친구와의 찐한 의리와 무대포 긍정 매력으로 가볍게 웃으며 감상하기 좋습니다." },
+                { title: "오케이 마담", emoji: "✈️", desc: "난생처음 해외여행 비행기 납치 사건에서 숨겨둔 꽈배기 달인의 내공을 뽐낸다!", reason: "온 가족이 유쾌하고 시원한 미소와 박수를 지으며 즐길 수 있는 코믹 맛집입니다." },
+                { title: "시동", emoji: "🍜", desc: "가출 청소년들이 단발머리 주방장 아저씨를 만나며 인생의 진짜 매운맛을 깨닫는 소동.", reason: "개성 톡톡 튀는 캐릭터들의 좌충우돌 에너지가 기분 전환에 특효약이에요." },
+                { title: "완벽한 타인", emoji: "📱", desc: "저녁 식사 동안 휴대폰으로 오는 모든 통화와 메시지를 강제로 공유하는 위험천만 게임!", reason: "현실적인 긴장과 상상 속 아슬아슬한 유머가 절묘하게 얽힌 똑똑한 웃음을 줍니다." },
+                { title: "라디오 스타", emoji: "📻", desc: "철없는 시골 DJ가 된 왕년의 인기 가수와 매니저가 그리는 소소하고 따스한 유머 이야기.", reason: "마음이 촉촉해지고 입가가 잔잔하게 밝아지는 온기를 느끼고 싶을 때 찰떡이에요." }
+            ],
+            animation: [
+                { title: "엘리멘탈", emoji: "🔥", desc: "불과 물의 환상적인 화학 반응! 서로 다른 존재들이 마음을 열어가는 마법 같은 감성 판타지.", reason: "우리 모두의 다름을 가치 있게 여기게 되는 아름다운 영상미와 울림이 있어요." },
+                { title: "인사이드 아웃 2", emoji: "🧠", desc: "내 머릿속 감정 컨트롤 본부에 새 감정 '불안'이 찾아오면서 겪는 사춘기 대소동!", reason: "나의 진짜 소중한 모든 감정들을 꼭 안아주는 따뜻한 위안을 느낄 수 있습니다." },
+                { title: "너의 이름은.", emoji: "☄️", desc: "꿈속에서 몸이 서로 바뀐 소년과 소녀가 겪는 시공간을 초월한 환상적인 로맨스.", reason: "감미로운 음악과 혜성이 쏟아지는 명품 하늘 일러스트가 감성을 자극합니다." },
+                { title: "토이 스토리 4", emoji: "🤠", desc: "주인이 바뀐 우디와 장난감 친구들의 인생 최대 자유를 향한 모험!", reason: "어릴 적 추억 속 장난감들과의 영원한 우정과 모험심을 되살려 줄 거예요." },
+                { title: "하울의 움직이는 성", emoji: "🏰", desc: "꽃미남 도사 마법사 하울과 저주에 걸려 할머니가 된 소피의 하늘 산책 이야기.", reason: "아름다운 왈츠 음악과 유럽 동화 속 세상으로 쏙 빠져들 것만 같아요." },
+                { title: "주토피아", emoji: "🐰", desc: "누구나 무엇이든 될 수 있어! 최초의 토끼 경찰관 주디와 능글맞은 여우 닉의 추리 모험.", reason: "귀여운 고양이와 함께 펼치는 심장 쫄깃한 소음 제한 서바이벌 스릴러입니다." },
+                { title: "겨울왕국 2", emoji: "❄️", desc: "엘사가 마법의 비밀을 풀기 위해 숨겨진 아렌델 북쪽 아토할란으로 떠나는 거대한 여정.", reason: "가창력 넘치는 OST와 하얀 겨울 눈꽃 마법이 눈과 귀를 사로잡아 기분을 좋게 해요." },
+                { title: "센과 치히로의 행방불명", emoji: "🐉", desc: "신들의 온천장에 떨어진 소녀가 부모님을 구하고 진짜 자신의 이름을 찾아가는 신비로운 모험.", reason: "상상력이 폭발하는 신비한 수수께끼 가득한 세상으로 여행하는 기분입니다." },
+                { title: "스파이더맨: 어크로스 더 유니버스", emoji: "🎨", desc: "화려한 웹 액션과 모든 차원의 예술이 뒤섞인 완벽한 비주얼 쇼크 애니메이션!", reason: "역대 어떤 만화영화보다도 힙하고 경이로운 시각적 짜릿함을 약속해요." },
+                { title: "스즈메의 문단속", emoji: "🚪", desc: "재앙을 부르는 문을 닫기 위해 전국 각지를 여행하는 스즈메와 의자가 된 청년의 가슴 벅찬 스토리.", reason: "문을 통과하며 힐링하는 아름다운 풍경과 역동적인 이야기 전개가 몰입감을 줍니다." }
+            ],
+            sf: [
+                { title: "인터스텔라", emoji: "🪐", desc: "인류를 구하기 위해 우주 너머 블랙홀과 웜홀 속으로 뛰어드는 눈물겨운 아버지의 사랑.", reason: "신비로운 우주 과학 지식과 가슴 미어지는 가족의 사랑을 완벽하게 담아냈습니다." },
+                { title: "아바타: 물의 길", emoji: "🌊", desc: "지상 낙원 판도라 행성 바닷속에서 펼쳐지는 믿을 수 없을 정도로 영롱하고 거대한 스케일.", reason: "마치 내가 정말 바다 깊은 곳을 유영하는 듯 압도적인 신세계 체험을 선사합니다." },
+                { title: "인셉션", emoji: "🌀", desc: "타인의 꿈에 들어가서 생각을 심고 도망쳐라! 팽이가 돌아가며 깨우는 설계된 꿈속 공간 설계자들.", reason: "두뇌가 짜릿해질 정도의 완벽한 반전과 천재적인 상상력에 감탄하게 될 거예요." },
+                { title: "해리 포터와 마법사의 돌", emoji: "⚡", desc: "마법학교 호그와트의 입학통지서가 찾아오면서 열리는 영원불멸의 전설의 마법 판타지!", reason: "지금 당장 빗자루를 타고 마법을 쓰고 싶은 꿈의 환상세계를 제대로 실현해 줍니다." },
+                { title: "반지의 제왕", emoji: "💍", desc: "절대 반지를 파괴하기 위해 화산 지대로 걷는 원정대의 기나긴 대장정과 엄청난 대전투 스케일.", reason: "모든 판타지의 아버지가 만든 기나긴 모험의 설렘과 우정을 느껴볼 수 있어요." },
+                { title: "마션", emoji: "🥔", desc: "화성에 홀로 고립된 우주 비행사가 천재적인 지식으로 감자를 키우며 끝내 생존해 내는 유쾌한 서바이벌.", reason: "포기하지 않는 긍정의 마인드와 과학 지식이 빛나는 뇌섹남의 진가를 볼 수 있습니다." },
+                { title: "그래비티", emoji: "👩‍🚀", desc: "우주 쓰레기 충돌 사고로 조용하고 적막한 고요한 우주 공간에 홀로 표류하게 된 우주 비행사.", reason: "엄청난 몰입감과 함께 산소 하나 숨 한 모금의 소중함을 깊이 느끼게 해 줍니다." },
+                { title: "어바웃 타임", emoji: "⏳", desc: "시간을 되돌릴 수 있는 특별한 초능력을 가졌다면? 일상 속에 숨은 영원히 아름다운 사랑 이야기.", reason: "지금 곁에 있는 하루하루가 얼마나 소중한 선물인지를 밝게 비춰줍니다." },
+                { title: "듄", emoji: "🏜️", desc: "사막으로 덮인 혹성 아라키스에서 진정한 후계자로 거듭나는 구원자의 일대기를 다룬 웅장한 영상 음악미.", reason: "신비롭고 이국적인 먼 미래 세계의 스펙터클함에 가슴이 거대하게 울려요." },
+                { title: "매트릭스", emoji: "🕶️", desc: "우리가 보고 느끼는 현실이 사실은 컴퓨터가 만든 가상 세계라면? 세기의 액션의 시초.", reason: "숨 막히게 멋진 슬로우 모션 액션과 철학적인 호기심을 동시에 파헤칩니다." }
+            ],
+            horror: [
+                { title: "파묘", emoji: "🪦", desc: "거액의 돈을 받고 묘를 이장한 풍수사와 장의사, 무당들에게 벌어지는 기이한 동양 오컬트 스릴러!", reason: "신비롭고 오싹하면서도 조상의 역사적 비밀이 얽혀 시간 가는 줄 모르고 보게 됩니다." },
+                { title: "콰이어트 플레이스", emoji: "🤫", desc: "소리를 내는 순간 괴생명체의 타깃이 된다! 오직 침묵으로만 살아남아야 하는 한 가족의 사투.", reason: "팝콘 먹는 소리조차 낼 수 없을 만큼 숨 막히고 쫄깃한 최고의 음향 스릴러입니다." },
+                { title: "컨저링", emoji: "🏚️", desc: "한적한 시골 농가로 이사 간 가족에게 벌어지는 미스터리 실화 기반의 정통 유령의 집 이야기.", reason: "잔인한 장면 없이 오직 탁월한 연출과 소름 끼치는 분위기만으로 극강의 긴장감을 줍니다." },
+                { title: "인시디우스", emoji: "🚪", desc: "잠에서 깨어나지 못하는 아들을 구하기 위해 어둠의 유령 차원으로 유체이탈을 시도하는 부모의 모험.", reason: "독창적인 유령 세계관과 기괴한 바이올린 사운드가 머리카락을 쭈뼛 서게 만듭니다." },
+                { title: "해피 데스데이", emoji: "🎂", desc: "자신의 생일날 가면을 쓴 괴한에게 죽음을 당한 뒤, 다시 그날 아침으로 깨어나는 유쾌한 시간 루프물!", reason: "너무 무섭지 않게 통쾌하고 위트 넘치는 전개가 섞여 있어 초보자도 쉽게 즐길 수 있어요." },
+                { title: "겟 아웃", emoji: "☕", desc: "백인 여자친구의 고향 집에 놀러 간 흑인 청년이 마주하게 되는 친절하지만 기이한 사람들의 실체.", reason: "숨겨진 복선들을 찾아내며 소름이 쫙 돋는 천재적인 미스터리 연출이 돋보입니다." },
+                { title: "서치", emoji: "💻", desc: "갑자기 연락이 끊긴 고등학생 딸을 찾기 위해 그녀의 SNS와 컴퓨터 구글 흔적을 역추적하는 아빠의 추리극.", reason: "오직 컴퓨터 화면과 캠 영상으로만 진행되는 혁신적인 구성이 눈을 떼지 못하게 해요." },
+                { title: "콰이어트 플레이스: 첫째 날", emoji: "🐱", desc: "소리가 가득한 대도시 뉴욕에 정체불명의 괴생명체들이 하늘에서 떨어지기 시작한 재앙의 첫날.", reason: "귀여운 고양이 프로도와 주인공의 조용하면서도 애틋한 우정과 심장 쫄깃한 탈출극입니다." },
+                { title: "군체", emoji: "🧟", desc: "치명적인 좀비 바이러스 대폭발! 자아를 완전히 잃고, 오직 하나의 거대한 생명체(군체)처럼 지능적으로 무리 지어 습격하는 좀비 떼들과의 처절한 사투.", reason: "끝없이 밀려오는 압도적인 스케일의 좀비 군체 비주얼과 한순간도 안심할 수 없는 최고의 아포칼립스 스릴을 느낄 수 있습니다." },
+                { title: "백룸 (The Backrooms)", emoji: "🟨", desc: "끝없이 뻗어 있는 노란색 방들과 형광등 소리만 가득한 기괴하고 몽환적인 가상 공간. 어둠 속에서 알 수 없는 존재가 나를 계속해서 추격해 온다!", reason: "인터넷 초인기 괴담인 백룸의 고독하고 오싹한 탐험 심리를 자극하며 압도적인 공포 몰입감을 줍니다." }
+            ]
+        };
+
+        // 전역 상태 변수
+        let currentStep = 1;
+        let selectedGenre = "";
+        let userLatitude = null;
+        let userLongitude = null;
+        let currentCity = "내 주변";
+
+        function showModal(title, desc, emoji = "🍿") {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-desc').innerText = desc;
+            document.getElementById('modal-emoji').innerText = emoji;
+            const modal = document.getElementById('custom-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('custom-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // 초기화
+        window.onload = function() {
+            initApp();
+        };
+
+        function initApp() {
+            updateTime();
+            setInterval(updateTime, 1000);
+            getLiveLocationAndWeather();
+        }
+
+        // 실시간 시간 업데이트
+        function updateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            const timeStr = `${hours}:${minutes}`;
+            const dateStr = `${year}.${month}.${date}`;
+            
+            document.querySelectorAll('.current-time-text').forEach(el => el.innerText = timeStr);
+            document.querySelectorAll('.current-date-text').forEach(el => el.innerText = dateStr);
+        }
+
+        // 1. 실시간 위치 & 날씨 데이터 연동 (비동기 처리)
+        async function getLiveLocationAndWeather() {
+            if (!navigator.geolocation) {
+                updateWeatherUI("위치 미지원", "❌", "");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                userLatitude = position.coords.latitude;
+                userLongitude = position.coords.longitude;
+                
+                try {
+                    // Open-Meteo API 날씨 호출
+                    const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${userLatitude}&longitude=${userLongitude}&current_weather=true`);
+                    const weatherData = await weatherRes.json();
+                    const temp = Math.round(weatherData.current_weather.temperature);
+                    const code = weatherData.current_weather.weathercode;
+                    const emoji = getWeatherEmoji(code);
+
+                    // 무료 주소 변환 API (Nominatim)를 사용해 구체적 위치(동/시 단위) 가져오기
+                    const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLatitude}&lon=${userLongitude}&zoom=10`);
+                    const geoData = await geoRes.json();
+                    
+                    const address = geoData.address;
+                    currentCity = address.city || address.town || address.borough || address.suburb || address.village || address.county || "내 주변";
+                    
+                    updateWeatherUI(currentCity, emoji, `${temp}°C`);
+                } catch (error) {
+                    console.error("날씨 정보 조회 실패:", error);
+                    updateWeatherUI("인터넷 에러", "⚠️", "");
+                }
+            }, (error) => {
+                console.warn("위치 정보 거부됨:", error);
+                updateWeatherUI("날씨 정보 없음", "❔", "");
+            });
+        }
+
+        // WMO 날씨 코드별 이모지 변환기
+        function getWeatherEmoji(code) {
+            if (code === 0) return "☀️"; // 맑음
+            if (code >= 1 && code <= 3) return "🌤️"; // 흐림 조금
+            if (code >= 45 && code <= 48) return "🌫️"; // 안개
+            if (code >= 51 && code <= 67) return "🌧️"; // 비
+            if (code >= 71 && code <= 77) return "❄️"; // 눈
+            if (code >= 80 && code <= 82) return "🌦️"; // 소나기
+            if (code >= 95 && code <= 99) return "⚡"; // 천둥번개
+            return "☁️"; // 흐림
+        }
+
+        function updateWeatherUI(city, emoji, temp) {
+            document.getElementById('weather-location').innerText = city;
+            document.getElementById('weather-icon').innerText = emoji;
+            document.getElementById('weather-temp').innerText = temp;
+        }
+
+        // 장르 선택 로직
+        function selectGenre(genre) {
+            selectedGenre = genre;
+            
+            // 모든 장르 버튼 스타일 리셋
+            document.querySelectorAll('.genre-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-black', 'border-white');
+                btn.classList.add('bg-zinc-900', 'text-white', 'border-zinc-800');
+            });
+
+            // 선택된 버튼 활성화
+            const activeBtn = document.querySelector(`[data-genre="${genre}"]`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-zinc-900', 'text-white', 'border-zinc-800');
+                activeBtn.classList.add('bg-white', 'text-black', 'border-white');
+            }
+
+            // 영화 매칭 버튼 활성화
+            document.getElementById('start-btn').disabled = false;
+        }
+
+        // 화면 이동 로직 (1, 2, 3단계 제어)
+        function goToStep(step) {
+            currentStep = step;
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-2').classList.add('hidden');
+            document.getElementById('step-3').classList.add('hidden');
+
+            document.getElementById(`step-${step}`).classList.remove('hidden');
+
+            // 홈으로 올 시 리셋
+            if (step === 1) {
+                selectedGenre = "";
+                document.querySelectorAll('.genre-btn').forEach(btn => {
+                    btn.classList.remove('bg-white', 'text-black', 'border-white');
+                    btn.classList.add('bg-zinc-900', 'text-white', 'border-zinc-800');
+                });
+                document.getElementById('start-btn').disabled = true;
+            }
+        }
+
+        // 뒤로가기 제어
+        function handleBack() {
+            if (document.getElementById('side-menu').classList.contains('translate-x-0')) {
+                toggleMenu();
+                return;
+            }
+            if (currentStep > 1) {
+                goToStep(currentStep - 1);
+            } else {
+                showModal("안내", "홈 화면입니다! 장르를 선택해 보세요 🎬", "🏠");
+            }
+        }
+
+        // 메뉴 토글 제어
+        function toggleMenu() {
+            const sideMenu = document.getElementById('side-menu');
+            if (sideMenu.classList.contains('translate-x-full')) {
+                sideMenu.classList.remove('translate-x-full');
+                sideMenu.classList.add('translate-x-0');
+            } else {
+                sideMenu.classList.remove('translate-x-0');
+                sideMenu.classList.add('translate-x-full');
+            }
+        }
+
+        // [2단계] 로딩 분석 시뮬레이션
+        function startCuration() {
+            goToStep(2);
+            
+            const loadingPhrases = [
+                "내 주변 영화관 스케줄을 스캔하는 중...",
+                "오늘의 날씨와 시네마 감도를 매칭하는 중...",
+                "영화 정보 매칭 데이터를 조립하는 중...",
+                "현재 가장 핫한 상영작 추천이 끝났습니다!"
+            ];
+
+            let progress = 0;
+            const progressBar = document.getElementById('progress-bar');
+            const loadingText = document.getElementById('loading-text');
+
+            // 프로그레스 바 충전 시뮬레이션
+            const interval = setInterval(() => {
+                progress += 25;
+                progressBar.style.width = `${progress}%`;
+                
+                const phraseIdx = Math.min(Math.floor(progress / 25), loadingPhrases.length - 1);
+                loadingText.innerText = loadingPhrases[phraseIdx];
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        renderRecommendations();
+                        goToStep(3);
+                    }, 500);
+                }
+            }, 600);
+        }
+
+        // [3단계] 2~3개 랜덤 영화 추천 생성기 (Math.random 사용)
+        function renderRecommendations() {
+            const genreNameMap = {
+                action: "💥 화끈한 액션",
+                comedy: "😂 유쾌한 코미디",
+                animation: "🧸 힐링 애니메이션",
+                sf: "🚀 신비로운 SF/판타지",
+                horror: "👻 소름 돋는 공포/스릴러"
+            };
+
+            // 선택 장르 태그 세팅
+            document.getElementById('tag-selected-genre').innerText = `장르: ${genreNameMap[selectedGenre]}`;
+            document.getElementById('tag-selected-loc').innerText = `📍 ${currentCity} 상영중`;
+
+            // 해당 장르 영화 목록 가져오기
+            const allMovies = movieDatabase[selectedGenre];
+            
+            // 중복 없이 2개 혹은 3개 랜덤 추출 (여기선 완벽한 큐레이션을 위해 무작위 3개 설정)
+            const shuffled = [...allMovies].sort(() => 0.5 - Math.random());
+            const selectedMovies = shuffled.slice(0, 3); // 3개 추출
+
+            const container = document.getElementById('movie-results-container');
+            container.innerHTML = ""; // 기존 내용 비우기
+
+            selectedMovies.forEach(movie => {
+                // 네이버 지도 연동 링크 생성
+                const searchKeyword = encodeURIComponent(`${currentCity} ${movie.title} 상영시간표`);
+                const naverMapUrl = `https://map.naver.com/v5/search/${searchKeyword}`;
+
+                // 현재 상영 시간표 가상 매칭으로 리얼 극장감 충족
+                const timeOptions = ["11:15", "13:40", "16:20", "18:50", "21:30"];
+                const shuffledTimes = [...timeOptions].sort(() => 0.5 - Math.random()).slice(0, 2).sort();
+
+                const cardHtml = `
+                    <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-3xl hover:border-zinc-500 transition-all">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl">${movie.emoji}</span>
+                                <div>
+                                    <h4 class="text-lg font-black text-white">${movie.title}</h4>
+                                    <!-- 현재 방영/상영 중 배지 탑재 -->
+                                    <div class="flex items-center gap-1.5 mt-1">
+                                        <span class="inline-block px-1.5 py-0.5 bg-red-600 text-white font-extrabold text-[9px] rounded-md tracking-wider animate-pulse">ON AIR</span>
+                                        <p class="text-[10px] text-zinc-400">현재 극장 상영 중</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] bg-zinc-800 px-2.5 py-1 rounded-full text-zinc-300 font-bold">인기순위 TOP</span>
+                        </div>
+                        <p class="text-xs text-zinc-300 mt-4 leading-relaxed">${movie.desc}</p>
+                        
+                        <!-- 실시간 상영 정보 스케줄표 구현 -->
+                        <div class="mt-4 py-2.5 px-3 bg-zinc-950 rounded-xl border border-zinc-800 flex justify-between items-center text-xs">
+                            <span class="text-zinc-500 font-bold"><i class="far fa-clock mr-1"></i>오늘 극장 시간</span>
+                            <div class="flex gap-2">
+                                <span class="px-2 py-0.5 bg-zinc-900 border border-zinc-800 rounded font-black text-white text-[11px]">${shuffledTimes[0]}</span>
+                                <span class="px-2 py-0.5 bg-zinc-900 border border-zinc-800 rounded font-black text-white text-[11px]">${shuffledTimes[1]}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 p-3 rounded-xl bg-black/60 border border-zinc-800/80">
+                            <p class="text-xs text-zinc-400">
+                                <span class="font-bold text-white text-[11px] block mb-1">💡 추천하는 이유:</span>
+                                ${movie.reason}
+                            </p>
+                        </div>
+                        
+                        <div class="mt-4 flex gap-2">
+                            <!-- 네이버 지도 바로 열기 연동 버튼 -->
+                            <a href="${naverMapUrl}" target="_blank" rel="noopener noreferrer" class="flex-1 py-3 bg-white hover:bg-zinc-200 text-black font-extrabold text-xs rounded-xl text-center block transition-all">
+                                <i class="fas fa-map-marker-alt mr-1"></i> 주변 영화관 시간표
+                            </a>
+                            <a href="https://map.naver.com/v5/search/${encodeURIComponent(movie.title)}" target="_blank" rel="noopener noreferrer" class="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-extrabold text-xs rounded-xl text-center block transition-all">
+                                <i class="fas fa-info-circle"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHtml;
+            });
+
+            // 하단 통합 링크 업데이트
+            const generalSearch = encodeURIComponent(`${currentCity} 영화관`);
+            document.getElementById('near-theaters-link').href = `https://map.naver.com/v5/search/${generalSearch}`;
+        }
+    </script>
+</body>
+</html>

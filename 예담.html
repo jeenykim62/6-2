@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Tracker - 전세계 폐가 탐험</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons for clean look -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #0c0c0e;
+            color: #e2e8f0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .spooky-title {
+            font-family: 'Creepster', cursive;
+        }
+        /* Custom scrollbar for eerie look */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #09090b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ef4444;
+            border-radius: 3px;
+        }
+        /* Pulsing red shadow */
+        .glow-red {
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+        }
+        .glow-red-strong {
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.55);
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-0 sm:p-4 bg-zinc-950">
+
+    <!-- Mobile Device Frame Container -->
+    <div class="relative w-full max-w-md h-[100vh] sm:h-[850px] bg-zinc-900 border-x border-zinc-800 sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col glow-red">
+        
+        <!-- Status Bar Simulator -->
+        <div class="bg-black text-zinc-500 text-xs px-6 py-2 flex justify-between items-center border-b border-zinc-900 select-none">
+            <span id="current-time">10:07 AM</span>
+            <div class="flex items-center space-x-2">
+                <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+                <i data-lucide="battery" class="w-4 h-4"></i>
+                <span class="text-[10px] font-bold text-red-500">GHOST-NET</span>
+            </div>
+        </div>
+
+        <!-- App Header (Matching User's Drawing) -->
+        <div class="bg-zinc-950 border-b border-red-950 px-4 py-3 flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-black text-red-600 tracking-wider flex items-center gap-2">
+                    <i data-lucide="skull" class="w-5 h-5 text-red-500 animate-pulse"></i>
+                    <span class="spooky-title text-2xl tracking-widest">GHOST TRACKER</span>
+                </h1>
+                <span class="text-[10px] bg-red-950/80 border border-red-800 text-red-400 px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold animate-pulse">Live Radar</span>
+            </div>
+
+            <!-- Tab Buttons: 설정 | 대한민국 | 검색 | 전세계 -->
+            <div class="grid grid-cols-4 gap-1 bg-zinc-900 p-1 rounded-lg border border-zinc-800 text-xs font-bold">
+                <button onclick="openSettings()" class="py-2 text-zinc-400 hover:text-red-500 transition-all flex flex-col items-center gap-1">
+                    <i data-lucide="settings" class="w-4 h-4"></i>
+                    <span>설정</span>
+                </button>
+                <button id="tab-korea" onclick="switchRegion('korea')" class="py-2 text-white bg-red-950/60 border border-red-800 rounded-md transition-all flex flex-col items-center gap-1">
+                    <i data-lucide="map" class="w-4 h-4 text-red-500"></i>
+                    <span>대한민국</span>
+                </button>
+                <button onclick="toggleSearch()" class="py-2 text-zinc-400 hover:text-red-500 transition-all flex flex-col items-center gap-1">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                    <span>검색</span>
+                </button>
+                <button id="tab-global" onclick="switchRegion('global')" class="py-2 text-zinc-400 hover:text-red-500 transition-all flex flex-col items-center gap-1">
+                    <i data-lucide="globe" class="w-4 h-4"></i>
+                    <span>전세계</span>
+                </button>
+            </div>
+
+            <!-- Expandable Search Bar -->
+            <div id="search-bar-container" class="hidden transition-all duration-300">
+                <div class="relative">
+                    <input type="text" id="search-input" onkeyup="filterPlaces()" placeholder="폐가 이름이나 지역을 입력하세요..." class="w-full bg-zinc-900 border border-zinc-800 text-zinc-300 text-sm rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                    <i data-lucide="search" class="absolute left-3.5 top-3 w-4 h-4 text-zinc-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Body: Place Cards List -->
+        <div id="places-list" class="flex-1 overflow-y-auto p-4 space-y-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900 via-zinc-950 to-black">
+            <!-- Dynamic items will be injected here -->
+        </div>
+
+        <!-- Navigation Bar Simulator (Matching User's Drawing) -->
+        <div class="bg-black py-4 border-t border-zinc-900 flex justify-around items-center text-zinc-600 select-none">
+            <button class="hover:text-red-500 transition" onclick="resetApp()"><i data-lucide="menu" class="w-5 h-5"></i></button>
+            <button class="hover:text-red-500 transition" onclick="showIntroModal()"><i data-lucide="square" class="w-4 h-4"></i></button>
+            <button class="hover:text-red-500 transition" onclick="goBack()"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+        </div>
+
+        <!-- SETTINGS MODAL -->
+        <div id="settings-modal" class="hidden absolute inset-0 bg-black/90 backdrop-blur-sm flex flex-col justify-between p-6 z-50">
+            <div>
+                <div class="flex justify-between items-center mb-8 border-b border-zinc-800 pb-4">
+                    <h2 class="text-xl font-bold text-red-500 flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-5 h-5"></i>
+                        폐가 탐험 설정
+                    </h2>
+                    <button onclick="closeSettings()" class="text-zinc-400 hover:text-white">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- GPS Toggle -->
+                    <div class="flex items-center justify-between bg-zinc-900/60 p-4 rounded-xl border border-zinc-800">
+                        <div>
+                            <h3 class="font-bold text-zinc-200">내 실시간 위치 연동</h3>
+                            <p class="text-xs text-zinc-500">주변의 가장 가까운 폐가 거리를 계산합니다.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="gps-toggle" checked onchange="toggleGPS()" class="sr-only peer">
+                            <div class="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:width-5 after:transition-all peer-checked:bg-red-600"></div>
+                        </label>
+                    </div>
+
+                    <!-- Ambient Sound Toggle -->
+                    <div class="flex items-center justify-between bg-zinc-900/60 p-4 rounded-xl border border-zinc-800">
+                        <div>
+                            <h3 class="font-bold text-zinc-200">음산한 배경음 활성화</h3>
+                            <p class="text-xs text-zinc-500">바람소리와 괴기한 울림을 켭니다.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="sound-toggle" onchange="toggleAudio()" class="sr-only peer">
+                            <div class="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:width-5 after:transition-all peer-checked:bg-red-600"></div>
+                        </label>
+                    </div>
+
+                    <!-- Simulated Location Indicator -->
+                    <div class="bg-red-950/30 border border-red-900/50 p-4 rounded-xl text-center">
+                        <p class="text-xs text-red-400 flex items-center justify-center gap-1">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5 animate-bounce"></i>
+                            현재 설정된 기준지: 경기 남양주시
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="closeSettings()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl transition duration-150 shadow-lg glow-red-strong">
+                탐험 모드로 돌아가기
+            </button>
+        </div>
+
+        <!-- WELCOME INTRO MODAL -->
+        <div id="intro-modal" class="absolute inset-0 bg-black/95 flex flex-col justify-center items-center p-8 z-50 text-center">
+            <div class="w-20 h-20 bg-red-900/30 border-2 border-red-500 rounded-full flex justify-center items-center mb-6 glow-red-strong">
+                <i data-lucide="skull" class="w-10 h-10 text-red-500 animate-pulse"></i>
+            </div>
+            <h1 class="spooky-title text-4xl text-red-600 tracking-widest font-black mb-2">GHOST TRACKER</h1>
+            <p class="text-zinc-400 text-sm mb-6 leading-relaxed">
+                당신이 있는 위치 주변의 미스터리한 폐가들을 검색하고 탐험 경로를 제공합니다. 안전에 각별히 유의하십시오.
+            </p>
+            <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl text-xs text-left mb-8 text-zinc-500 max-w-xs space-y-2">
+                <p class="text-red-500 font-bold">⚠️ 경고 및 주의사항</p>
+                <p>• 무단 침입은 법적 처벌을 받을 수 있습니다.</p>
+                <p>• 안전 장비(랜턴, 보호구)를 무조건 소지하십시오.</p>
+                <p>• 가급적 밤 시간대에는 위험하오니 낮에 관찰하십시오.</p>
+            </div>
+            <button onclick="dismissIntro()" class="w-full max-w-xs bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl transition shadow-lg glow-red-strong">
+                탐험 스캔 시작
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATASET DEFINITION (Matching User's Sketches!) ---
+        const placesData = {
+            korea: [
+                {
+                    id: "kr-school",
+                    title: "〇〇 고등학교 (폐교)",
+                    desc: "1994년 원인 불명의 화재 이후 방치된 시계탑 학교입니다. 자정에 멈춰선 시계탑 바늘이 가끔씩 혼자서 움직인다는 소문이 퍼지며 전설적인 흉가가 되었습니다.",
+                    location: "강원도 원주시 소초면 인근",
+                    mapQuery: "원주 폐교",
+                    distance: "4.2km",
+                    coords: { lat: 37.342, lng: 127.920 },
+                    svg: `<svg viewBox="0 0 100 100" class="w-full h-full text-zinc-400" fill="none" stroke="currentColor" stroke-width="2">
+                        <!-- Dark school outline -->
+                        <path d="M10 90 L10 40 L30 40 L30 10 L50 10 L50 40 L90 40 L90 90 Z" fill="#18181b" stroke="#3f3f46"/>
+                        <!-- Clock tower detail -->
+                        <circle cx="40" cy="25" r="8" fill="#09090b" stroke="#ef4444"/>
+                        <line x1="40" y1="25" x2="40" y2="20" stroke="#ef4444" stroke-width="1.5"/>
+                        <line x1="40" y1="25" x2="44" y2="25" stroke="#ef4444" stroke-width="1.5"/>
+                        <!-- Windows -->
+                        <rect x="15" y="48" width="8" height="10" stroke="#3f3f46"/>
+                        <rect x="25" y="48" width="8" height="10" stroke="#3f3f46"/>
+                        <rect x="55" y="48" width="8" height="10" stroke="#3f3f46"/>
+                        <rect x="65" y="48" width="8" height="10" stroke="#3f3f46"/>
+                        <rect x="15" y="65" width="8" height="10" stroke="#3f3f46"/>
+                        <rect x="25" y="65" width="8" height="10" stroke="#3f3f46"/>
+                        <rect x="55" y="65" width="8" height="10" stroke="#3f3f46"/>
+                        <rect x="65" y="65" width="8" height="10" stroke="#3f3f46"/>
+                        <!-- Ground -->
+                        <line x1="5" y1="90" x2="95" y2="90" stroke="#ef4444"/>
+                    </svg>`
+                },
+                {
+                    id: "kr-doll",
+                    title: "△△ 인형 마을",
+                    desc: "산자락 끝에 위치한 정체불명의 가옥들로, 마당과 나무 곳곳에 기괴하게 일그러진 인형들이 주렁주렁 매달려 있습니다. 기분 탓인지 인형들의 눈동자가 시선을 따라 움직인다고 합니다.",
+                    location: "충청북도 제천시 산간지대",
+                    mapQuery: "제천 인형마을",
+                    distance: "12.8km",
+                    coords: { lat: 37.132, lng: 128.210 },
+                    svg: `<svg viewBox="0 0 100 100" class="w-full h-full text-zinc-400" fill="none" stroke="currentColor" stroke-width="2">
+                        <!-- Background string -->
+                        <line x1="10" y1="20" x2="90" y2="20" stroke="#ef4444" stroke-dasharray="2 2"/>
+                        <!-- Hanging dolls (sketch matching) -->
+                        <!-- Doll 1 -->
+                        <circle cx="25" cy="35" r="6" fill="#18181b" stroke="#71717a"/>
+                        <path d="M25 41 L25 55 M18 48 L32 48 M21 65 L25 55 L29 65" stroke="#71717a"/>
+                        <!-- Doll 2 (Spooky/Upside down or weird) -->
+                        <circle cx="50" cy="35" r="6" fill="#18181b" stroke="#991b1b"/>
+                        <path d="M50 41 L50 55 M42 45 L58 45 M45 65 L50 55 L55 65" stroke="#991b1b"/>
+                        <!-- Doll 3 -->
+                        <circle cx="75" cy="35" r="6" fill="#18181b" stroke="#71717a"/>
+                        <path d="M75 41 L75 55 M68 48 L82 48 M71 65 L75 55 L79 65" stroke="#71717a"/>
+                        <!-- Signpost (입장금지) -->
+                        <rect x="35" y="75" width="30" height="12" fill="#111827" stroke="#dc2626"/>
+                        <line x1="50" y1="87" x2="50" y2="95" stroke="#ef4444"/>
+                        <text x="50" y="83" font-size="6" fill="#ef4444" font-weight="bold" text-anchor="middle">입장금지</text>
+                    </svg>`
+                },
+                {
+                    id: "kr-apartment",
+                    title: "☐☐ 아파트 (유령 단지)",
+                    desc: "재개발 구역으로 묶인 뒤 오랫동안 철거가 중단된 낡고 거대한 아파트 단지입니다. 불이 모두 꺼진 밤, 아무도 살지 않는 최상층 베란다에서 가끔씩 붉은 빛이 일렁이는 미스터리가 존재합니다.",
+                    location: "경기도 포천시 외곽지대",
+                    mapQuery: "포천 버려진 아파트",
+                    distance: "8.1km",
+                    coords: { lat: 37.894, lng: 127.200 },
+                    svg: `<svg viewBox="0 0 100 100" class="w-full h-full text-zinc-400" fill="none" stroke="currentColor" stroke-width="2">
+                        <!-- High rise structure -->
+                        <rect x="25" y="10" width="50" height="80" fill="#18181b" stroke="#3f3f46"/>
+                        <!-- Decaying lines -->
+                        <path d="M25 15 L75 15 M25 30 L75 30 M25 45 L75 45 M25 60 L75 60 M25 75 L75 75" stroke="#27272a"/>
+                        <!-- Broken window boxes -->
+                        <rect x="33" y="18" width="10" height="8" stroke="#3f3f46" fill="#09090b"/>
+                        <rect x="57" y="18" width="10" height="8" stroke="#dc2626" fill="#450a0a"/> <!-- glowing window -->
+                        <rect x="33" y="35" width="10" height="8" stroke="#3f3f46" fill="#09090b"/>
+                        <rect x="57" y="35" width="10" height="8" stroke="#3f3f46" fill="#09090b"/>
+                        <rect x="33" y="50" width="10" height="8" stroke="#3f3f46" fill="#09090b"/>
+                        <rect x="57" y="50" width="10" height="8" stroke="#3f3f46" fill="#09090b"/>
+                        <rect x="33" y="68" width="10" height="8" stroke="#3f3f46" fill="#09090b"/>
+                        <rect x="57" y="68" width="10" height="8" stroke="#3f3f46" fill="#09090b"/>
+                    </svg>`
+                },
+                {
+                    id: "kr-forest",
+                    title: "☆☆ 숲 (망령의 숲)",
+                    desc: "나침반이 먹통이 되고 내비게이션 경로조차 꼬여버리는 지독한 안개 지대의 인공 침엽수림입니다. 숲속을 걷다 보면 사방에서 기괴한 속삭임이 사그락거리며 귓가에 맴돕니다.",
+                    location: "제주도 제주시 한라산 산록",
+                    mapQuery: "제주도 버려진 숲",
+                    distance: "21.5km",
+                    coords: { lat: 33.361, lng: 126.529 },
+                    svg: `<svg viewBox="0 0 100 100" class="w-full h-full text-zinc-400" fill="none" stroke="currentColor" stroke-width="2">
+                        <!-- Spooky ground curve -->
+                        <path d="M10 85 Q50 75 90 85" stroke="#ef4444" fill="#09090b"/>
+                        <!-- Trees (Dead, branchy - matches user's sketch) -->
+                        <path d="M25 80 L25 40 M25 60 L15 50 M25 50 L35 40 M25 70 L30 65" stroke="#71717a"/>
+                        <path d="M50 77 L50 30 M50 55 L40 45 M50 45 L60 35 M50 65 L43 58 M50 40 L45 35" stroke="#3f3f46"/>
+                        <path d="M75 80 L75 38 M75 58 L65 48 M75 48 L85 38 M75 68 L80 63" stroke="#71717a"/>
+                        <!-- Spooky red glowing dots in forest -->
+                        <circle cx="43" cy="50" r="1.5" fill="#ef4444"/>
+                        <circle cx="48" cy="50" r="1.5" fill="#ef4444"/>
+                        <circle cx="18" cy="45" r="1.2" fill="#ef4444"/>
+                        <circle cx="21" cy="45" r="1.2" fill="#ef4444"/>
+                    </svg>`
+                },
+                {
+                    id: "kr-house",
+                    title: "♡♡ 폐가 (산장 저택)",
+                    desc: "과거 산사태로 가문 전체가 비극을 맞이했던 깊은 계곡 속의 단독 한옥/양옥 폐가입니다. 지붕이 비스듬하게 무너져 내린 뒤, 정체 모를 붉은 꽃더미들이 폐가를 휘감아 자라났습니다.",
+                    location: "경기도 가평군 설악면",
+                    mapQuery: "가평 산장 폐가",
+                    distance: "6.7km",
+                    coords: { lat: 37.683, lng: 127.490 },
+                    svg: `<svg viewBox="0 0 100 100" class="w-full h-full text-zinc-400" fill="none" stroke="currentColor" stroke-width="2">
+                        <!-- Tilted slanted roof (Spooky house) -->
+                        <path d="M10 50 L50 20 L90 60" stroke="#ef4444" stroke-width="3" fill="none"/>
+                        <!-- House body -->
+                        <path d="M20 52 L20 85 L80 85 L80 61" stroke="#3f3f46" fill="#18181b"/>
+                        <!-- Cracked Door -->
+                        <rect x="45" y="60" width="15" height="25" stroke="#3f3f46" fill="#09090b"/>
+                        <line x1="48" y1="60" x2="45" y2="85" stroke="#ef4444" stroke-width="1.5"/> <!-- half open / broken door -->
+                        <!-- Cobwebs -->
+                        <path d="M15 15 L30 15 M15 15 L15 30 M15 15 L25 25" stroke="#27272a" stroke-width="1"/>
+                    </svg>`
+                }
+            ],
+            global: [
+                {
+                    id: "glob-island",
+                    title: "인형의 섬 (Isla de las Muñecas)",
+                    desc: "멕시코 소치밀코 운하에 존재하는 세계에서 가장 소름끼치는 명소입니다. 수천 개의 썩고 부패한 인형들이 사방의 나무에 목이 매달린 채 걸려 있어 무시무시한 장관을 연출합니다.",
+                    location: "멕시코 멕시코시티 소치밀코 운하",
+                    mapQuery: "Isla de las Munecas Mexico",
+                    distance: "12,415km",
+                    svg: `<svg viewBox="0 0 100 100" class="w-full h-full text-zinc-400" fill="none" stroke="currentColor" stroke-width="2">
+                        <!-- Spooky global doll skull symbol -->
+                        <circle cx="50" cy="40" r="18" fill="#18181b" stroke="#ef4444" stroke-width="3"/>
+                        <circle cx="43" cy="35" r="4" fill="#000" stroke="#ef4444"/>
+                        <circle cx="57" cy="35" r="4" fill="#000" stroke="#ef4444"/>
+                        <path d="M42 50 Q50 60 58 50" stroke="#ef4444" stroke-width="2"/>
+                        <!-- Hang line -->
+                        <line x1="50" y1="5" x2="50" y2="22" stroke="#dc2626" stroke-width="2"/>
+                        <!-- Signpost -->
+                        <rect x="25" y="72" width="50" height="15" fill="#111827" stroke="#71717a"/>
+                        <text x="50" y="82" font-size="7" fill="#dc2626" font-weight="bold" text-anchor="middle">ISLA DE MUÑECAS</text>
+                    </svg>`
+                },
+                {
+                    id: "glob-forest",
+                    title: "아오키가하라 (Aokigahara Forest)",
+                    desc: "후지산 산기슭에 펼쳐진 원시림으로, 깊이 들어갈수록 무성한 이끼와 뒤엉킨 나무뿌리 때문에 소리가 완전히 차단되는 기묘하고 숨 막히는 정적을 가진 유명 침엽수림입니다.",
+                    location: "일본 야마나시현 후지산 북서부",
+                    mapQuery: "Aokigahara Forest Japan",
+                    distance: "1,142km",
+                    svg: `<svg viewBox="0 0 100 100" class="w-full h-full text-zinc-400" fill="none" stroke="currentColor" stroke-width="2">
+                        <!-- Twisted creepy forest -->
+                        <path d="M10 90 Q30 70 50 90 T90 90" stroke="#ef4444" fill="#18181b"/>
+                        <path d="M30 85 L15 35 M20 60 L5 55 M15 50 L35 45" stroke="#71717a" stroke-width="2.5"/>
+                        <path d="M70 85 L85 30 M78 55 L95 50 M82 45 L65 40" stroke="#3f3f46" stroke-width="2.5"/>
+                        <path d="M50 85 L50 20 M50 55 L35 50 M50 45 L65 35" stroke="#dc2626" stroke-width="2"/>
+                    </svg>`
+                }
+            ]
+        };
+
+        let currentRegion = 'korea';
+        let searchQuery = '';
+        let simulatedGPS = true;
+        
+        // --- Web Audio API for Atmospheric Sound FX ---
+        let audioCtx = null;
+        let windNode = null;
+        let heartbeatNode = null;
+
+        window.onload = function () {
+            // Apply icons
+            lucide.createIcons();
+            // Start clock
+            updateTime();
+            setInterval(updateTime, 1000);
+            // Render Initial List
+            renderPlaces();
+        }
+
+        function updateTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // conversion 0 to 12
+            document.getElementById('current-time').innerText = `${hours}:${minutes} ${ampm}`;
+        }
+
+        // Render List based on current configuration
+        function renderPlaces() {
+            const container = document.getElementById('places-list');
+            container.innerHTML = '';
+            
+            const currentList = placesData[currentRegion];
+            const filtered = currentList.filter(place => {
+                return place.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                       place.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                       place.location.toLowerCase().includes(searchQuery.toLowerCase());
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20 text-center">
+                        <i data-lucide="ghost" class="w-12 h-12 text-zinc-700 animate-bounce mb-3"></i>
+                        <p class="text-zinc-500 font-bold">감지된 이상 영기 신호가 없습니다.</p>
+                        <p class="text-xs text-zinc-600 mt-1">다른 검색어를 입력하시거나 탭을 변경해보세요.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            filtered.forEach(place => {
+                const card = document.createElement('div');
+                card.className = "bg-zinc-900/80 border border-zinc-800 rounded-2xl overflow-hidden hover:border-red-800 transition duration-300 flex flex-col md:flex-row shadow-lg hover:shadow-red-950/20";
+                
+                // Content section + Right Side Sketch Panel (responsive)
+                card.innerHTML = `
+                    <div class="flex flex-1 p-4 gap-4">
+                        <!-- Left Side: Place Text Info -->
+                        <div class="flex-1 flex flex-col justify-between space-y-2">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-block w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+                                    <h3 class="font-bold text-lg text-white leading-tight">${place.title}</h3>
+                                </div>
+                                <p class="text-xs text-zinc-500 mt-0.5 flex items-center gap-1">
+                                    <i data-lucide="map-pin" class="w-3 h-3 text-red-500"></i>
+                                    위치: ${place.location}
+                                </p>
+                                <p class="text-xs text-zinc-400 leading-relaxed mt-2 border-l-2 border-zinc-800 pl-2">
+                                    특징: ${place.desc}
+                                </p>
+                            </div>
+                            
+                            <!-- Location Signal -->
+                            <div class="flex items-center justify-between pt-2 border-t border-zinc-800/50">
+                                <div class="text-[11px] text-zinc-500 flex items-center gap-1.5">
+                                    <i data-lucide="navigation" class="w-3.5 h-3.5 text-zinc-400"></i>
+                                    <span>${simulatedGPS ? `내 근처 신호 강도: <span class="text-red-500 font-bold">${place.distance}</span>` : 'GPS 탐색 중단됨'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Side: Graphic Sketch Window (as pictured in user's drawing) -->
+                        <div class="w-24 h-24 sm:w-28 sm:h-28 bg-black/50 border border-zinc-800 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center p-2 relative group-hover:border-red-900 transition">
+                            ${place.svg}
+                            <div class="absolute inset-0 bg-red-500/5 mix-blend-color-dodge pointer-events-none"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Row: RED NAVIGATION BUTTON -->
+                    <div class="bg-zinc-950/50 px-4 py-3 border-t border-zinc-800/30 flex justify-end">
+                        <button onclick="openNaverMap('${place.mapQuery}')" class="w-full sm:w-auto bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-xs py-2 px-4 rounded-lg flex items-center justify-center gap-1.5 transition-all glow-red">
+                            <i data-lucide="navigation-2" class="w-3.5 h-3.5 fill-current"></i>
+                            네이버 지도로 장소 확인
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            lucide.createIcons();
+        }
+
+        // Toggle search bar
+        function toggleSearch() {
+            const sc = document.getElementById('search-bar-container');
+            sc.classList.toggle('hidden');
+            if (!sc.classList.contains('hidden')) {
+                document.getElementById('search-input').focus();
+            }
+        }
+
+        function filterPlaces() {
+            searchQuery = document.getElementById('search-input').value;
+            renderPlaces();
+        }
+
+        // Tab Switching Logic: Korea / World
+        function switchRegion(region) {
+            currentRegion = region;
+            
+            // Highlight current button
+            const tabKorea = document.getElementById('tab-korea');
+            const tabGlobal = document.getElementById('tab-global');
+
+            if (region === 'korea') {
+                tabKorea.className = "py-2 text-white bg-red-950/60 border border-red-800 rounded-md transition-all flex flex-col items-center gap-1";
+                tabGlobal.className = "py-2 text-zinc-400 hover:text-red-500 transition-all flex flex-col items-center gap-1";
+            } else {
+                tabGlobal.className = "py-2 text-white bg-red-950/60 border border-red-800 rounded-md transition-all flex flex-col items-center gap-1";
+                tabKorea.className = "py-2 text-zinc-400 hover:text-red-500 transition-all flex flex-col items-center gap-1";
+            }
+
+            renderPlaces();
+        }
+
+        // Settings Modal controls
+        function openSettings() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        function toggleGPS() {
+            simulatedGPS = document.getElementById('gps-toggle').checked;
+            renderPlaces();
+        }
+
+        // Open Naver Map via Query
+        function openNaverMap(query) {
+            const url = `https://map.naver.com/v5/search/${encodeURIComponent(query)}`;
+            window.open(url, '_blank');
+        }
+
+        // Navigation bottom simulation triggers
+        function resetApp() {
+            document.getElementById('intro-modal').classList.remove('hidden');
+        }
+
+        function showIntroModal() {
+            document.getElementById('intro-modal').classList.remove('hidden');
+        }
+
+        function dismissIntro() {
+            document.getElementById('intro-modal').classList.add('hidden');
+            // Lazy-init spooky audio on interaction
+            if (document.getElementById('sound-toggle').checked) {
+                initSpookyAudio();
+            }
+        }
+
+        function goBack() {
+            // Simply switch back to Korea home region
+            switchRegion('korea');
+            document.getElementById('search-input').value = '';
+            searchQuery = '';
+            document.getElementById('search-bar-container').classList.add('hidden');
+            renderPlaces();
+        }
+
+        // --- SPOOKY AUDIO WEB AUDIO API ENGINE ---
+        function toggleAudio() {
+            const isChecked = document.getElementById('sound-toggle').checked;
+            if (isChecked) {
+                initSpookyAudio();
+            } else {
+                stopSpookyAudio();
+            }
+        }
+
+        function initSpookyAudio() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                // 1. Create a creepy low wind drone
+                if (!windNode) {
+                    const osc = audioCtx.createOscillator();
+                    const filter = audioCtx.createBiquadFilter();
+                    const gain = audioCtx.createGain();
+
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(55, audioCtx.currentTime); // Low A
+
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(120, audioCtx.currentTime);
+                    filter.Q.setValueAtTime(10, audioCtx.currentTime);
+
+                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+
+                    // Add slight LFO modulation to simulate gusts of eerie wind
+                    const lfo = audioCtx.createOscillator();
+                    const lfoGain = audioCtx.createGain();
+                    lfo.frequency.setValueAtTime(0.2, audioCtx.currentTime); // slow wave
+                    lfoGain.gain.setValueAtTime(40, audioCtx.currentTime);
+
+                    lfo.connect(lfoGain);
+                    lfoGain.connect(filter.frequency);
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start();
+                    lfo.start();
+                    windNode = { osc, lfo, gain };
+                }
+
+                // 2. Create a simulated pulsing slow heartbeat
+                if (!heartbeatNode) {
+                    const heartTimer = setInterval(() => {
+                        playHeartbeat();
+                    }, 1200);
+                    heartbeatNode = { timer: heartTimer };
+                }
+
+            } catch (e) {
+                console.warn("Audio Context error: ", e);
+            }
+        }
+
+        function playHeartbeat() {
+            if (!audioCtx || audioCtx.state === 'suspended') return;
+            
+            // First thud
+            triggerThud(100);
+            // Second thud quickly after
+            setTimeout(() => {
+                triggerThud(90);
+            }, 250);
+        }
+
+        function triggerThud(freq) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            
+            gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+
+        function stopSpookyAudio() {
+            if (windNode) {
+                try {
+                    windNode.osc.stop();
+                    windNode.lfo.stop();
+                } catch(e) {}
+                windNode = null;
+            }
+            if (heartbeatNode) {
+                clearInterval(heartbeatNode.timer);
+                heartbeatNode = null;
+            }
+        }
+    </script>
+</body>
+</html>
