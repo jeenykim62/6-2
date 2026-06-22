@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>에이시스템 - A-SYSTEM</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts (Noto Sans KR) -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #f0f4f8;
+    }
+    :root {
+      --primary-gradient: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      --accent-color: #3b82f6;
+    }
+    .custom-gradient-bg {
+      background: var(--primary-gradient);
+    }
+    /* 스마트폰 스크롤바 숨기기 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* 날씨별 동적 애니메이션 배경 스타일 */
+    .bg-sunny {
+      background: linear-gradient(180deg, #7ecaf6 0%, #ffdf79 100%);
+    }
+    .bg-cloudy {
+      background: linear-gradient(180deg, #a1c4fd 0%, #c2e9fb 100%);
+    }
+    .bg-raining {
+      background: linear-gradient(180deg, #616c7d 0%, #9cb2c0 100%);
+    }
+    .bg-snowing {
+      background: linear-gradient(180deg, #cbd5e1 0%, #e2e8f0 100%);
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex items-center justify-center p-2 sm:p-6 overflow-hidden">
+
+  <!-- 스마트폰 디바이스 프레임 -->
+  <div class="relative w-[375px] h-[740px] rounded-[48px] bg-slate-900 border-[10px] border-slate-800 shadow-2xl flex flex-col overflow-hidden text-slate-800">
+    
+    <!-- 최상단 스피커 및 카메라 아일랜드 -->
+    <div class="absolute top-2 left-1/2 transform -translate-x-1/2 w-32 h-4 bg-slate-800 rounded-full z-50 flex items-center justify-center">
+      <div class="w-12 h-1 bg-slate-700 rounded-full mr-2"></div>
+      <div class="w-2.5 h-2.5 bg-slate-900 rounded-full"></div>
+    </div>
+
+    <!-- 스마트폰 상단 상태바 (Mock) -->
+    <div class="h-8 bg-black/10 flex justify-between items-center px-6 text-[11px] font-semibold text-slate-700 z-40">
+      <span id="statusBarTime">09:00</span>
+      <div class="flex items-center space-x-1.5">
+        <i data-lucide="signal" class="w-3 h-3"></i>
+        <i data-lucide="wifi" class="w-3 h-3"></i>
+        <i data-lucide="battery" class="w-4.5 h-3"></i>
+      </div>
+    </div>
+
+    <!-- 앱 메인 컨텐츠 영역 (내부 화면 전환) -->
+    <div id="screenContainer" class="flex-1 overflow-y-auto no-scrollbar relative flex flex-col bg-sunny transition-all duration-1000">
+      
+      <!-- ==================== 0단계: 온보딩 화면 (이름, 사는 지역 입력) ==================== -->
+      <div id="stepOnboarding" class="absolute inset-0 flex flex-col justify-between p-6 z-30 bg-gradient-to-br from-blue-50 via-sky-100 to-indigo-100">
+        <div class="flex-1 flex flex-col justify-center items-center text-center space-y-6">
+          <!-- 태극 그라데이션 부드러운 A 로고 -->
+          <div class="w-28 h-28 drop-shadow-lg animate-bounce">
+            <svg viewBox="0 0 100 100" class="w-full h-full">
+              <defs>
+                <linearGradient id="taegeukGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#CD2E3A" /> <!-- 태극 빨강 -->
+                  <stop offset="50%" stop-color="#ef4444" />
+                  <stop offset="100%" stop-color="#0047A0" /> <!-- 태극 파랑 -->
+                </linearGradient>
+              </defs>
+              <!-- 둥근 형태의 세련된 A 모양 로고 -->
+              <path d="M50,15 C28,15 15,45 15,75 C15,85 28,85 35,80 C40,75 42,60 50,60 C58,60 60,75 65,80 C72,85 85,85 85,75 C85,45 72,15 50,15 Z" fill="url(#taegeukGrad)" />
+              <path d="M50,30 L45,45 L55,45 Z" fill="#ffffff" opacity="0.3"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-3xl font-black tracking-tight text-slate-900">에이시스템</h1>
+            <p class="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wider">A-SYSTEM TOTAL TRAFFIC DECK</p>
+          </div>
+          <p class="text-sm font-medium text-slate-600 px-4">
+            안녕! 에이시스템에 온 걸 환영해 😊<br>너에게 딱 맞춘 지도를 준비하기 위해 두 가지만 입력해줄래?
+          </p>
+
+          <!-- 입력 폼 -->
+          <div class="w-full space-y-3 px-2">
+            <div>
+              <label class="block text-left text-xs font-bold text-slate-500 mb-1 ml-1">내 이름 또는 닉네임</label>
+              <input type="text" id="userNameInput" value="멋쟁이길잡이" placeholder="예) 멋쟁이길잡이" class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white shadow-sm text-sm">
+            </div>
+            <div>
+              <label class="block text-left text-xs font-bold text-slate-500 mb-1 ml-1">내가 살고 있는 곳 (~~리, ~~로)</label>
+              <input type="text" id="userRegionInput" value="덕소주공2단지" placeholder="예) 백현로, 가산리" class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white shadow-sm text-sm">
+            </div>
+          </div>
+        </div>
+
+        <button onclick="submitOnboarding()" class="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition shadow-lg flex items-center justify-center space-x-2">
+          <span>에이시스템 시작하기</span>
+          <i data-lucide="arrow-right" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+
+      <!-- ==================== 1단계: 메인화면 (목적지 검색 및 설정) ==================== -->
+      <div id="stepMain" class="hidden flex-1 flex-col justify-between p-5 relative z-20">
+        <!-- 상단 유저 헤더 정보 -->
+        <div class="flex items-center justify-between bg-white/70 backdrop-blur-md p-3.5 rounded-3xl shadow-sm border border-white/40">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 to-indigo-600 p-[2px] flex items-center justify-center shadow-md">
+              <div class="w-full h-full bg-white rounded-[14px] flex items-center justify-center text-xs font-black text-rose-500">A</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500 font-medium">환영해요!</div>
+              <div class="text-sm font-extrabold text-slate-800"><span id="userNameDisp">길잡이</span>님 📍</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div id="geoRegionDisp" class="text-xs font-bold text-slate-700">위치 검색 중...</div>
+            <div id="geoWeatherDisp" class="text-[10px] text-slate-500 flex items-center justify-end space-x-0.5">
+              <span id="weatherEmoji">🕒</span>
+              <span id="tempDisp">--°C</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 실시간 위젯 슬라이드 (시간, 위치, 사고상황 한눈에) -->
+        <div class="grid grid-cols-2 gap-3.5 my-4">
+          <div class="bg-white/80 backdrop-blur-md p-3 rounded-2xl shadow-sm border border-white/50 flex flex-col justify-between">
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] text-slate-500 font-bold">현재 날짜 & 시간</span>
+              <i data-lucide="clock" class="w-4 h-4 text-slate-400"></i>
+            </div>
+            <div class="mt-2">
+              <div id="todayDateDisp" class="text-xs text-slate-600 font-medium">--월 --일 (화)</div>
+              <div id="todayTimeDisp" class="text-lg font-black text-slate-800">00:00:00</div>
+            </div>
+          </div>
+
+          <div class="bg-white/80 backdrop-blur-md p-3 rounded-2xl shadow-sm border border-white/50 flex flex-col justify-between">
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] text-slate-500 font-bold">인근 실시간 사건</span>
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500 animate-pulse"></i>
+            </div>
+            <div class="mt-2" onclick="showAccidentDetails()">
+              <div class="text-xs text-slate-600 font-medium text-ellipsis overflow-hidden whitespace-nowrap">덕소 삼거리 주변</div>
+              <div class="text-[10px] font-bold text-rose-500 flex items-center space-x-1">
+                <span>● 교차로 진입 정체 서행</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 목적지 입력 메인 보드 -->
+        <div class="bg-white/90 backdrop-blur-lg p-5 rounded-[32px] shadow-lg border border-white/60 space-y-4 flex-1 flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="text-center">
+              <h2 class="text-lg font-extrabold text-slate-800">에이시스템 최적 경로 탐색</h2>
+              <p class="text-[11px] text-slate-400 font-medium">실시간 도로 상황과 CCTV, 날씨를 모두 분석합니다</p>
+            </div>
+
+            <!-- 목적지 입력란 -->
+            <div class="relative mt-2">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i data-lucide="map-pin" class="h-5 w-5 text-rose-500"></i>
+              </div>
+              <input type="text" id="destinationInput" value="덕소역" placeholder="어디로 떠나시겠어요?" class="block w-full pl-10 pr-3 py-3.5 border-2 border-slate-100 rounded-2xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-400 focus:outline-none text-sm font-bold placeholder-slate-400 transition">
+            </div>
+
+            <!-- 유저 맞춤 버튼 색깔 커스터마이저 -->
+            <div class="pt-2">
+              <label class="block text-[11px] font-bold text-slate-400 mb-2">🎨 나만의 버튼 테마 색상 선택</label>
+              <div class="flex items-center space-x-3">
+                <button onclick="setTheme('#3b82f6', 'linear-gradient(135deg, #3b82f6, #1d4ed8)')" class="w-6 h-6 rounded-full bg-blue-500 ring-2 ring-offset-2 ring-blue-500"></button>
+                <button onclick="setTheme('#10b981', 'linear-gradient(135deg, #10b981, #047857)')" class="w-6 h-6 rounded-full bg-emerald-500 ring-2 ring-offset-2 ring-transparent hover:ring-emerald-500"></button>
+                <button onclick="setTheme('#a855f7', 'linear-gradient(135deg, #a855f7, #6b21a8)')" class="w-6 h-6 rounded-full bg-purple-500 ring-2 ring-offset-2 ring-transparent hover:ring-purple-500"></button>
+                <button onclick="setTheme('#f43f5e', 'linear-gradient(135deg, #f43f5e, #be123c)')" class="w-6 h-6 rounded-full bg-rose-500 ring-2 ring-offset-2 ring-transparent hover:ring-rose-500"></button>
+                <!-- 직접 컬러피커 변경 -->
+                <div class="relative w-7 h-7 rounded-full border border-slate-300 overflow-hidden shadow-sm flex items-center justify-center bg-white cursor-pointer">
+                  <input type="color" id="customColorPicker" oninput="applyCustomColor(this.value)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                  <i data-lucide="plus" class="w-3.5 h-3.5 text-slate-400"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 탐색 버튼 -->
+          <button onclick="startAnalysis()" id="btnAction" class="w-full py-4 rounded-2xl text-white font-bold custom-gradient-bg shadow-md hover:brightness-110 active:scale-98 transition flex items-center justify-center space-x-2">
+            <i data-lucide="navigation" class="w-5 h-5 fill-current"></i>
+            <span>최적 경로 분석하기</span>
+          </button>
+        </div>
+
+        <!-- 퀵 메뉴 및 부가기능 바로가기 -->
+        <div class="grid grid-cols-4 gap-2 mt-4">
+          <button onclick="viewRealisticCctvModal()" class="bg-white/60 hover:bg-white/90 p-2.5 rounded-xl flex flex-col items-center space-y-1 transition text-slate-700 ring-2 ring-indigo-400 animate-pulse">
+            <i data-lucide="video" class="w-4 h-4 text-blue-600"></i>
+            <span class="text-[9px] font-bold">CCTV 보기</span>
+          </button>
+          <button onclick="openMockModal('taxi')" class="bg-white/60 hover:bg-white/90 p-2.5 rounded-xl flex flex-col items-center space-y-1 transition text-slate-700">
+            <i data-lucide="car" class="w-4 h-4 text-amber-500"></i>
+            <span class="text-[9px] font-bold">택시예약</span>
+          </button>
+          <button onclick="openMockModal('accident')" class="bg-white/60 hover:bg-white/90 p-2.5 rounded-xl flex flex-col items-center space-y-1 transition text-slate-700">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-rose-500"></i>
+            <span class="text-[9px] font-bold">사고알림</span>
+          </button>
+          <button onclick="openMockModal('setting')" class="bg-white/60 hover:bg-white/90 p-2.5 rounded-xl flex flex-col items-center space-y-1 transition text-slate-700">
+            <i data-lucide="sliders" class="w-4 h-4 text-slate-600"></i>
+            <span class="text-[9px] font-bold">설정</span>
+          </button>
+        </div>
+      </div>
+
+
+      <!-- ==================== 2단계: 분석화면 (빅데이터 로딩) ==================== -->
+      <div id="stepAnalysis" class="hidden flex-1 flex-col justify-between p-6 bg-slate-950 text-white relative z-20">
+        <div class="flex-1 flex flex-col justify-center items-center text-center space-y-6">
+          
+          <!-- 화려한 원형 인디케이터 기계판 -->
+          <div class="relative w-44 h-44 flex items-center justify-center">
+            <div class="absolute inset-0 border-4 border-dashed border-indigo-500/30 rounded-full animate-spin"></div>
+            <div class="absolute inset-2 border-4 border-solid border-rose-500/40 rounded-full animate-[spin_3s_linear_infinite] reverse"></div>
+            <div class="absolute inset-6 border border-slate-700 rounded-full flex flex-col items-center justify-center">
+              <span class="text-3xl font-black text-rose-400" id="analysisPercent">0%</span>
+              <span class="text-[8px] text-slate-500 font-semibold tracking-wider">A-DECK PROCESSING</span>
+            </div>
+            
+            <!-- 위성 및 레이더 스윕 효과 -->
+            <div class="absolute top-0 left-1/2 w-2 h-2 bg-indigo-400 rounded-full shadow-[0_0_10px_#818cf8] animate-ping"></div>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-lg font-black text-slate-100">에이시스템 가동 중</h3>
+            <!-- 순차적으로 변경될 분석 코멘트 -->
+            <p id="analysisLog" class="text-xs text-rose-400 font-bold animate-pulse">실시간 수집 위치 날씨 데이터 융합 중...</p>
+          </div>
+
+          <!-- 실시간 체크 분석 로그 -->
+          <div class="w-full bg-slate-900/80 rounded-2xl p-4 text-left font-mono text-[10px] text-slate-400 space-y-1.5 border border-slate-800">
+            <div class="flex items-center space-x-2">
+              <span class="text-emerald-400">✔</span> <span>내 위치 파악 완료: <span id="logRegion">덕소주공2단지</span></span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="text-emerald-400">✔</span> <span>실시간 기온 상태: <span id="logWeather">맑음 / 23°C</span></span>
+            </div>
+            <div class="flex items-center space-x-2" id="logAccidentCheck">
+              <span class="text-emerald-400">✔</span> <span>사고 DB 연동: 삼거리 인근 정체 감지</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="text-yellow-400">⟳</span> <span id="logStatusText" class="text-yellow-400 animate-pulse">최적 추천 수단 생성 알고리즘 가동 중</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center text-[10px] text-slate-600">
+          A-SYSTEM DEEP Curation Engine v1.2
+        </div>
+      </div>
+
+
+      <!-- ==================== 3단계: 결과화면 (개인화 큐레이션 추천 결과) ==================== -->
+      <div id="stepResult" class="hidden flex-1 flex-col justify-between p-4 relative z-20 overflow-y-auto no-scrollbar">
+        
+        <!-- 네비게이션 헤더 -->
+        <div class="flex items-center justify-between bg-white/80 p-3 rounded-2xl shadow-sm border border-slate-100">
+          <button onclick="changeScreen('stepMain')" class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200">
+            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+          </button>
+          <div class="text-center">
+            <span class="text-[9px] font-bold text-slate-400 uppercase">최적 이동 경로 추천</span>
+            <h4 class="text-xs font-black text-slate-800 text-ellipsis overflow-hidden whitespace-nowrap max-w-[180px]">
+              목적지: <span class="text-rose-500" id="resultDestination">서울역</span>
+            </h4>
+          </div>
+          <button onclick="changeScreen('stepMain')" class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- 실시간 경로 현황 요약판 (가장 가까운 CCTV 실제 연동 카드) -->
+        <div class="bg-slate-900 text-white rounded-3xl p-4 my-3 space-y-3 shadow-md" id="resultCctvCard">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <span class="text-[10px] text-slate-400 font-bold">인근 실제 도로 실시간 CCTV</span>
+            <span class="px-1.5 py-0.5 bg-rose-600 text-[8px] rounded font-bold uppercase animate-pulse">REAL LIVE</span>
+          </div>
+          <div class="flex items-center space-x-3 cursor-pointer hover:bg-slate-800/50 p-1.5 rounded-xl transition" onclick="viewRealisticCctvModal()">
+            <div class="w-16 h-12 bg-slate-950 rounded-lg relative overflow-hidden flex items-center justify-center flex-shrink-0 border border-slate-700">
+              <i data-lucide="video" class="w-5 h-5 text-slate-400 animate-pulse"></i>
+              <div class="absolute top-1 left-1 w-1.5 h-1.5 bg-red-600 rounded-full animate-ping"></div>
+            </div>
+            <div class="text-xs flex-1">
+              <div class="font-bold text-slate-200 text-ellipsis overflow-hidden whitespace-nowrap max-w-[160px]" id="cctvLocDisp">덕소 삼거리 주변 CCTV</div>
+              <div class="text-[10px] text-blue-400 font-bold mt-0.5 flex items-center space-x-1">
+                <span>실제 지도 CCTV 카메라 뷰어 열기 ▶</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 큐레이션 추천 결과 풀 (2~3개 카드 무작위 표시) -->
+        <div class="space-y-3 flex-1 overflow-y-auto no-scrollbar" id="recommendationsList">
+          <!-- JS로 카드가 랜덤 주입됩니다 -->
+        </div>
+
+        <!-- 하단 네이버 지도 연동 액션바 -->
+        <div class="mt-3" id="naverMapLinkContainer">
+          <!-- <a> 태그를 동적 주입 -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 스마트폰 하단 범용 네비게이션 바 -->
+    <div class="h-14 bg-slate-900 border-t border-slate-800 flex justify-around items-center px-6 text-slate-400 z-50">
+      <button onclick="openMenuSidebar()" class="flex flex-col items-center justify-center focus:text-white transition">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+        <span class="text-[9px] mt-1">메뉴</span>
+      </button>
+      <button onclick="goToHome()" class="flex flex-col items-center justify-center focus:text-white transition">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[9px] mt-1">홈</span>
+      </button>
+      <button onclick="goBack()" class="flex flex-col items-center justify-center focus:text-white transition">
+        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+        <span class="text-[9px] mt-1">뒤로가기</span>
+      </button>
+    </div>
+
+    <!-- ==================== 사이드바 메뉴 (모달 오버레이) ==================== -->
+    <div id="sidebarMenu" class="absolute inset-0 bg-black/60 z-50 hidden transition-opacity duration-300">
+      <div class="absolute top-0 left-0 w-64 h-full bg-white shadow-2xl flex flex-col justify-between p-5 transform -translate-x-full transition-transform duration-300" id="sidebarContent">
+        <div class="space-y-6">
+          <div class="flex items-center justify-between border-b pb-4">
+            <div class="flex items-center space-x-2">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-rose-500 to-indigo-600 flex items-center justify-center text-xs font-black text-white">A</div>
+              <span class="font-extrabold text-sm">에이시스템 메뉴</span>
+            </div>
+            <button onclick="closeMenuSidebar()" class="p-1 rounded-full hover:bg-slate-100">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <div class="space-y-1">
+            <button onclick="viewRealisticCctvModal()" class="w-full flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-slate-50 text-left text-sm font-semibold text-slate-700">
+              <i data-lucide="video" class="w-4 h-4 text-blue-600"></i>
+              <span>가장 가까운 실제 CCTV 보기</span>
+            </button>
+            <button onclick="openMockModal('taxi')" class="w-full flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-slate-50 text-left text-sm font-semibold text-slate-700">
+              <i data-lucide="car" class="w-4 h-4 text-slate-400"></i>
+              <span>에이 프리미엄 택시 예약</span>
+            </button>
+            <button onclick="openMockModal('accident')" class="w-full flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-slate-50 text-left text-sm font-semibold text-slate-700">
+              <i data-lucide="shield-alert" class="w-4 h-4 text-slate-400"></i>
+              <span>긴급 인근 사고 통계</span>
+            </button>
+            <button onclick="resetUserInfo()" class="w-full flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-slate-50 text-left text-sm font-semibold text-slate-700">
+              <i data-lucide="user-cog" class="w-4 h-4 text-slate-400"></i>
+              <span>이름 및 사는곳 변경하기</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="text-center text-[11px] text-slate-400 border-t pt-4">
+          에이시스템 통합 매니저 v1.2
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 범용 알림/모달 팝업 오버레이 (alert 방지용) ==================== -->
+    <div id="generalModal" class="absolute inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl p-5 shadow-2xl max-w-[300px] w-full text-center space-y-4 animate-scaleUp">
+        <div class="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mx-auto text-indigo-600" id="modalIconContainer">
+          <i data-lucide="info" class="w-6 h-6"></i>
+        </div>
+        <div class="space-y-1">
+          <h5 class="font-extrabold text-slate-800" id="modalTitle">알림</h5>
+          <p class="text-xs text-slate-500 leading-relaxed" id="modalMessage">여기에 알림 메시지가 표시됩니다.</p>
+        </div>
+        <button onclick="closeGeneralModal()" class="w-full py-3 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition">
+          확인했습니다
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== ★ 사진 100% 퀄리티 재현: 국토교통부 CCTV 실제 라이브 모달 ★ ==================== -->
+    <div id="realisticCctvModal" class="absolute inset-0 bg-black/95 z-50 hidden flex flex-col justify-between p-4 text-slate-200">
+      
+      <!-- 헤더 바 (사진 속 디자인 100% 동기화) -->
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mt-4">
+        <div class="flex flex-col text-left">
+          <span class="text-[10px] text-slate-500 font-bold tracking-wider" id="cctvAgencyText">국토교통부 CCTV 통합망</span>
+          <h5 class="font-black text-sm text-white tracking-tight" id="cctvModalTitleText">서울양양고속도로 | 덕소삼패영업소</h5>
+        </div>
+        <button onclick="closeRealisticCctvModal()" class="w-8 h-8 bg-slate-800 hover:bg-slate-700 rounded-full flex items-center justify-center text-white transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- 메인 CCTV 비디오 프레임 (진짜 HTML 비디오 스트리밍 적용) -->
+      <div class="relative w-full aspect-[4/3] bg-black rounded-xl overflow-hidden border border-slate-800 shadow-inner flex flex-col justify-center items-center">
+        <!-- 캔버스를 걷어내고 100% 실제 도로 주행 비디오 배치 -->
+        <video id="realisticCctvVideo" class="w-full h-full object-cover" autoplay loop muted playsinline>
+          <source id="cctvVideoSource" src="https://assets.mixkit.co/videos/preview/mixkit-highway-traffic-in-the-city-42211-large.mp4" type="video/mp4">
+          CCTV 스트리밍 비디오를 지원하지 않는 브라우저입니다.
+        </video>
+        
+        <!-- 빨갛게 깜빡이는 • LIVE 엠블럼 -->
+        <div class="absolute top-3 left-3 px-2.5 py-0.5 bg-red-600 text-white text-[10px] font-black rounded flex items-center space-x-1 shadow-md z-10 animate-[pulse_1.5s_infinite]">
+          <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
+          <span>LIVE</span>
+        </div>
+
+        <!-- 좌측 상단 카메라 부서명 정보 -->
+        <div class="absolute top-3 right-3 text-[10px] font-mono bg-black/55 text-slate-300 px-2 py-0.5 rounded" id="cctvTopRightInfo">
+          춘천지사
+        </div>
+
+        <!-- 하단 진출 / 진입 좌우 화살표 (텍스트 오버레이) -->
+        <div class="absolute bottom-10 left-3 text-[10px] font-black bg-black/55 text-white px-2 py-0.5 rounded flex items-center space-x-1" id="cctvLeftIndicator">
+          <span>⬇</span> <span>진출</span>
+        </div>
+        <div class="absolute bottom-10 right-3 text-[10px] font-black bg-black/55 text-white px-2 py-0.5 rounded flex items-center space-x-1" id="cctvRightIndicator">
+          <span>진입</span> <span>⬆</span>
+        </div>
+
+        <!-- 하단 센터 소통 구간 세부 자막 정보 및 타임스탬프 결합 -->
+        <div class="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex flex-col items-center bg-black/85 text-slate-200 px-3 py-1.5 rounded-xl border border-slate-700 whitespace-nowrap shadow-md text-center max-w-[90%]">
+          <div class="text-[9px] sm:text-[10px] font-black" id="cctvBottomCenterLabel">서울양양선 덕소삼패영업소 3.9</div>
+          <div class="text-[8px] font-mono text-emerald-400 mt-0.5" id="cctvLiveTimestamp">2026-06-22 10:00:00</div>
+        </div>
+      </div>
+
+      <!-- 하단 정보 및 카메라 조절 컨트롤러 패널 (사진 그대로 구현) -->
+      <div class="space-y-4 pb-4">
+        <div class="flex items-center justify-between">
+          <!-- 왼쪽 국토교통부 안내글 -->
+          <div class="text-[10px] text-slate-400 leading-normal text-left">
+            <span class="font-bold text-slate-300">국토교통부 제공</span><br>
+            실제 상황과 30초~1분 정도 차이가 날 수 있습니다.
+          </div>
+          
+          <!-- 오른쪽 화살표 이전/다음 채널 가속기 (실물 화살표 박스 재현) -->
+          <div class="flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700">
+            <button onclick="cycleCctvChannel(-1)" class="w-10 py-2 hover:bg-slate-700 active:scale-95 text-white font-bold border-r border-slate-700 rounded-l flex items-center justify-center transition">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+            <button onclick="cycleCctvChannel(1)" class="w-10 py-2 hover:bg-slate-700 active:scale-95 text-white font-bold rounded-r flex items-center justify-center transition">
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 실제 지도로 넘어가서 실제 정부 CCTV 비디오 아이콘을 즉시 터치할 수 있는 링커 -->
+        <button onclick="launchRealNaverMapCctv()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-xs font-black shadow-lg hover:brightness-110 active:scale-98 transition flex items-center justify-center space-x-2">
+          <i data-lucide="map" class="w-4 h-4"></i>
+          <span>실제 네이버 지도로 직접 마커 터치하기</span>
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // 전역 상태 변수들
+    let userName = "멋쟁이길잡이";
+    let userRegion = "덕소주공2단지";
+    let curLatitude = null;
+    let curLongitude = null;
+    let currentThemeColor = '#3b82f6';
+    let currentScreenStack = ['stepOnboarding'];
+
+    // 실제 CCTV 모달 변수
+    let currentCctvChannel = 0; // 0: 덕소삼패, 1: 덕소역, 2: 주공2단지
+
+    // 실제 3대 멀티 채널 CCTV 데이터셋 (실제 촬영된 리얼 교통 비디오 리소스 할당)
+    const cctvChannels = [
+      {
+        title: "서울양양고속도로 | 덕소삼패영업소",
+        agency: "국토교통부 CCTV 통합망",
+        topRight: "춘천지사",
+        bottomCenter: "서울양양선 덕소삼패영업소 3.9",
+        leftText: "진출",
+        rightText: "진입",
+        videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-highway-traffic-in-the-city-42211-large.mp4", // 실제 밤 고속도로 주행 리얼비디오
+        query: "덕소삼패영업소 CCTV"
+      },
+      {
+        title: "경춘로 | 덕소역 삼거리",
+        agency: "경기교통정보 관제센터",
+        topRight: "남양주시청",
+        bottomCenter: "경춘로 덕소삼거리 교차로 1.2",
+        leftText: "도심",
+        rightText: "외곽",
+        videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-traffic-in-a-city-street-42171-large.mp4", // 실제 도심 사거리 및 횡단보도 리얼비디오
+        query: "덕소역 CCTV"
+      },
+      {
+        title: "덕소로 | 덕소주공2단지 정문",
+        agency: "남양주 안전재난센터",
+        topRight: "와부읍사무소",
+        bottomCenter: "덕소로 주공2단지 정문 진입로",
+        leftText: "상가",
+        rightText: "단지내",
+        videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-cars-on-a-road-in-a-residential-area-41712-large.mp4", // 일반 교외 2차선 도로 차량 주행 리얼비디오
+        query: "덕소주공2단지 CCTV"
+      }
+    ];
+
+    // 10가지 이상의 실시간 교통 큐레이션 추천 데이터 풀
+    const baseRecommendationPool = [
+      {
+        id: "taxi_premium",
+        title: "🚕 에이 프리미엄 택시",
+        speedFactor: 0.22,
+        minTime: 2,
+        badge: "스피드 추천",
+        desc: "정체 구간을 영리하게 우회하여 최단 거리로 빠르게 수송합니다. 예약 배차 시스템 가동!",
+        actionText: "지금 택시 호출하기 (예약)"
+      },
+      {
+        id: "taxi_eco",
+        title: "🌱 친환경 전기택시",
+        speedFactor: 0.25,
+        minTime: 3,
+        badge: "그린 추천",
+        desc: "이동 속도는 물론, 조용하고 안락한 친환경 하이브리드 세단으로 환경을 보호하며 이동합니다.",
+        actionText: "친환경 택시 매칭"
+      },
+      {
+        id: "bus_express",
+        title: "🚌 광역 급행 버스",
+        speedFactor: 0.35,
+        minTime: 4,
+        badge: "가성비 추천",
+        desc: "도로 정체에 크게 영향받지 않고 정류장 위주로 빠르게 도달하는 효율적인 버스편입니다.",
+        actionText: "버스 노선도 보기"
+      },
+      {
+        id: "bus_eco",
+        title: "🔋 친환경 마을버스",
+        speedFactor: 0.45,
+        minTime: 5,
+        badge: "인근 순환",
+        desc: "골목골목 정류장을 거쳐 목적지 앞까지 연결하는 친근한 버스 노선입니다.",
+        actionText: "노선 실시간 위치 확인"
+      },
+      {
+        id: "subway_fast",
+        title: "🚇 에이 지하철 급행선",
+        speedFactor: 0.28,
+        minTime: 3,
+        badge: "정시성 최고",
+        desc: "도로의 어떤 교통정체나 돌발 사고 영향도 받지 않는 100% 정시 도착 보장 철도 노선입니다.",
+        actionText: "지하철 혼잡도 분석"
+      },
+      {
+        id: "subway_normal",
+        title: "🚇 도시 철도 일반선",
+        speedFactor: 0.32,
+        minTime: 4,
+        badge: "기본 철도망",
+        desc: "환승 없이 가장 쾌적하게 목적지 정거장 대합실까지 정시 연결되는 일반 전철편입니다.",
+        actionText: "지하역 내부 CCTV 확인"
+      },
+      {
+        id: "carpool",
+        title: "👥 에이 이웃 카풀 크루",
+        speedFactor: 0.23,
+        minTime: 3,
+        badge: "나눔 카풀",
+        desc: "나와 같은 행선지로 가는 친절한 크루와 합승하여 소통 정체를 함께 지혜롭게 풀어갑니다.",
+        actionText: "카풀 차주 프로필 매칭"
+      },
+      {
+        id: "bike_share",
+        title: "🚲 에이 스마트 공유자전거",
+        speedFactor: 0.35,
+        minTime: 4,
+        badge: "맑음 건강 추천",
+        desc: "자전거 전용 순환 도로를 이용하여 매연 걱정 없이 화창한 경치를 느끼며 신속하게 도달합니다.",
+        actionText: "가까운 자전거 거치대 지도"
+      },
+      {
+        id: "kickboard",
+        title: "🛴 공유 초고속 킥보드",
+        speedFactor: 0.30,
+        minTime: 3,
+        badge: "근거리 강추",
+        desc: "차량 및 보행자 정체를 유유히 뚫고 이면도로로 신속히 주파합니다. 헬멧을 꼭 착용해주세요!",
+        actionText: "가장 가까운 기기 대여"
+      },
+      {
+        id: "walk_health",
+        title: "🏃 다이어트 칼로리 도보",
+        speedFactor: 1.0,
+        minTime: 5,
+        badge: "건강 튼튼",
+        desc: "보행로 전용 쾌적한 안전 보도를 탐색하여 걸어갑니다. 유해 업소가 없는 쾌적한 안심길입니다.",
+        actionText: "보행자 전용 길 찾기"
+      }
+    ];
+
+    // 초기 실행
+    window.onload = function() {
+      lucide.createIcons();
+      updateClock();
+      setInterval(updateClock, 1000);
+      tryToGetLocation();
+    }
+
+    // 시간 및 타임스탬프 갱신 함수
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('statusBarTime').innerText = `${hours}:${minutes}`;
+
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const date = String(now.getDate()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      
+      const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+      const day = dayNames[now.getDay()];
+
+      document.getElementById('todayDateDisp').innerText = `${year}년 ${month}월 ${date}일 (${day})`;
+      document.getElementById('todayTimeDisp').innerText = `${hours}:${minutes}:${seconds}`;
+
+      // 실제 CCTV 모달 속의 리얼 시간 타임스탬프 동적 갱신
+      const cctvStamp = document.getElementById('cctvLiveTimestamp');
+      if (cctvStamp) {
+        cctvStamp.innerText = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+      }
+    }
+
+    // 지오로케이션으로 날씨 및 실제 위치 연동 시도
+    function tryToGetLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async function(position) {
+            curLatitude = position.coords.latitude;
+            curLongitude = position.coords.longitude;
+            
+            // 1. 역지오코딩 API로 대략적인 지역명 구하기
+            try {
+              const resGeo = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${curLatitude}&lon=${curLongitude}`);
+              const geoData = await resGeo.json();
+              const town = geoData.address.suburb || geoData.address.neighbourhood || geoData.address.village || geoData.address.borough || "우리동네";
+              document.getElementById('geoRegionDisp').innerText = `📍 ${town}`;
+              document.getElementById('logRegion').innerText = `${town}`;
+            } catch(e) {
+              document.getElementById('geoRegionDisp').innerText = `📍 GPS 위치 확인`;
+              document.getElementById('logRegion').innerText = `실시간 좌표 확인`;
+            }
+
+            // 2. Open-Meteo API로 날씨 정보 연동
+            try {
+              const resWeather = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${curLatitude}&longitude=${curLongitude}&current_weather=true`);
+              const weatherData = await resWeather.json();
+              const temp = Math.round(weatherData.current_weather.temperature);
+              const wCode = weatherData.current_weather.weathercode;
+              
+              let weatherStatus = "맑음";
+              let emoji = "☀️";
+              let bgClass = "bg-sunny";
+
+              if (wCode >= 1 && wCode <= 3) {
+                weatherStatus = "흐림";
+                emoji = "☁️";
+                bgClass = "bg-cloudy";
+              } else if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(wCode)) {
+                weatherStatus = "비";
+                emoji = "☔";
+                bgClass = "bg-raining";
+              } else if ([71, 73, 75, 77, 85, 86].includes(wCode)) {
+                weatherStatus = "눈";
+                emoji = "❄️";
+                bgClass = "bg-snowing";
+              }
+
+              applyWeatherTheme(bgClass, emoji, temp, weatherStatus);
+
+            } catch(e) {
+              applyFallbackWeather();
+            }
+          },
+          function(error) {
+            applyNoWeatherState();
+          }
+        );
+      } else {
+        applyNoWeatherState();
+      }
+    }
+
+    // 날씨 정보 테마 적용
+    function applyWeatherTheme(bgClass, emoji, temp, status) {
+      const container = document.getElementById('screenContainer');
+      container.className = `flex-1 overflow-y-auto no-scrollbar relative flex flex-col ${bgClass} transition-all duration-1000`;
+      
+      document.getElementById('weatherEmoji').innerText = emoji;
+      document.getElementById('tempDisp').innerText = `${temp}°C`;
+      document.getElementById('geoWeatherDisp').title = status;
+      
+      document.getElementById('logWeather').innerText = `${status} / ${temp}°C`;
+    }
+
+    function applyFallbackWeather() {
+      applyWeatherTheme("bg-sunny", "☀️", 22, "맑음");
+    }
+
+    function applyNoWeatherState() {
+      document.getElementById('geoRegionDisp').innerText = "📍 위치 탐색 거부됨";
+      document.getElementById('weatherEmoji').innerText = "❔";
+      document.getElementById('tempDisp').innerText = "날씨 정보 없음";
+      document.getElementById('logWeather').innerText = "날씨 연동 안됨";
+      
+      const container = document.getElementById('screenContainer');
+      container.className = `flex-1 overflow-y-auto no-scrollbar relative flex flex-col bg-cloudy transition-all duration-1000`;
+    }
+
+    // 0단계: 이름 및 주소 입력 후 메인 진입
+    function submitOnboarding() {
+      const nameInput = document.getElementById('userNameInput').value.trim();
+      const regionInput = document.getElementById('userRegionInput').value.trim();
+
+      if (!nameInput) {
+        showGeneralModal("이름을 입력해주세요!", "에이시스템이 너를 다정하게 불러주기 위해서 꼭 필요해 🐾", "user");
+        return;
+      }
+      if (!regionInput) {
+        showGeneralModal("사는 곳을 입력해주세요!", "자세한 주소 대신 '~로' 나 '~동' 까지만 적어줘도 길 찾기가 훨씬 쉬워져요!", "map-pin");
+        return;
+      }
+
+      userName = nameInput;
+      userRegion = regionInput;
+
+      document.getElementById('userNameDisp').innerText = userName;
+      document.getElementById('logRegion').innerText = `${userRegion} (입력 기반)`;
+      if (document.getElementById('geoRegionDisp').innerText.includes("검색 중")) {
+        document.getElementById('geoRegionDisp').innerText = `📍 ${userRegion}`;
+      }
+
+      document.getElementById('cctvLocDisp').innerText = `${userRegion} 부근 실시간 실제 CCTV`;
+
+      changeScreen('stepMain');
+    }
+
+    // 테마 설정 (색깔 및 그라데이션)
+    function setTheme(hex, gradient) {
+      currentThemeColor = hex;
+      document.documentElement.style.setProperty('--accent-color', hex);
+      document.documentElement.style.setProperty('--primary-gradient', gradient);
+      
+      const buttons = document.querySelectorAll('#stepMain button[onclick^="setTheme"]');
+      buttons.forEach(btn => {
+        if (btn.classList.contains(`bg-[${hex}]`) || btn.style.backgroundColor === hex || btn.getAttribute('onclick').includes(hex)) {
+          btn.classList.add('ring-indigo-600');
+          btn.classList.remove('ring-transparent');
+        } else {
+          btn.classList.remove('ring-indigo-600');
+          btn.classList.add('ring-transparent');
+        }
+      });
+    }
+
+    // 직접 컬러 피커 조절
+    function applyCustomColor(val) {
+      setTheme(val, `linear-gradient(135deg, ${val}, #1e293b)`);
+    }
+
+    // 화면 이동 함수
+    function changeScreen(screenId) {
+      const screens = ['stepOnboarding', 'stepMain', 'stepAnalysis', 'stepResult'];
+      screens.forEach(s => {
+        document.getElementById(s).classList.add('hidden');
+      });
+      document.getElementById(screenId).classList.remove('hidden');
+
+      if (currentScreenStack[currentScreenStack.length - 1] !== screenId) {
+        currentScreenStack.push(screenId);
+      }
+    }
+
+    // 하단 뒤로가기 버튼
+    function goBack() {
+      if (currentScreenStack.length > 1) {
+        currentScreenStack.pop();
+        const prevScreen = currentScreenStack[currentScreenStack.length - 1];
+        
+        const screens = ['stepOnboarding', 'stepMain', 'stepAnalysis', 'stepResult'];
+        screens.forEach(s => {
+          document.getElementById(s).classList.add('hidden');
+        });
+        document.getElementById(prevScreen).classList.remove('hidden');
+      } else {
+        showGeneralModal("첫 화면입니다", "현재 앱의 온보딩/시작 상태입니다.", "info");
+      }
+    }
+
+    // 하단 홈 버튼
+    function goToHome() {
+      if (userName === "길잡이") {
+        changeScreen('stepOnboarding');
+      } else {
+        changeScreen('stepMain');
+      }
+    }
+
+    // 분석 가동 애니메이션
+    function startAnalysis() {
+      const dest = document.getElementById('destinationInput').value.trim();
+      if (!dest) {
+        showGeneralModal("목적지가 비어있어요!", "가고 싶은 환상의 장소나 주소를 자유롭게 적어주세요. 🏰🎡", "navigation");
+        return;
+      }
+
+      document.getElementById('resultDestination').innerText = dest;
+      document.getElementById('cctvLocDisp').innerText = `${dest} 부근 주요 교차로 CCTV`;
+      
+      changeScreen('stepAnalysis');
+
+      let percent = 0;
+      const logStatus = document.getElementById('logStatusText');
+      const analysisPercent = document.getElementById('analysisPercent');
+      const analysisLog = document.getElementById('analysisLog');
+
+      const logs = [
+        "지리 통계 및 위성 CCTV 확보 중...",
+        "최적의 지름길 및 우회 노선 알고리즘 대입 중...",
+        "비성년자 위해 요소 실시간 자동 차단 필터 가동 중...",
+        "에이 맞춤형 큐레이션 결과 최종 정렬 완료!"
+      ];
+
+      const interval = setInterval(() => {
+        percent += 20;
+        analysisPercent.innerText = `${percent}%`;
+
+        if (percent === 40) {
+          analysisLog.innerText = logs[0];
+          logStatus.innerText = "CCTV 인공지능 분석 가동...";
+        } else if (percent === 60) {
+          analysisLog.innerText = logs[1];
+          logStatus.innerText = "교통 체증 및 사고 수집 인덱싱...";
+        } else if (percent === 80) {
+          analysisLog.innerText = logs[2];
+          logStatus.innerText = "안심 이동 가이드라인 매칭...";
+        } else if (percent >= 100) {
+          clearInterval(interval);
+          analysisLog.innerText = logs[3];
+          logStatus.innerText = "분석 성공! 보고서 전송합니다.";
+          
+          setTimeout(() => {
+            generateCurationResults(userRegion, dest);
+            changeScreen('stepResult');
+          }, 600);
+        }
+      }, 350);
+    }
+
+    // 현실적인 도보 기준 분 계산기 (덕소역-주공2단지아파트 1.2km 기준 도보 약 15~18분)
+    function estimateBaseWalkMinutes(start, end) {
+      const s = start.toLowerCase();
+      const e = end.toLowerCase();
+      
+      if ((s.includes("주공") || s.includes("2단지")) && e.includes("덕소역")) {
+        return 17;
+      }
+      if (e.includes("주공") && s.includes("덕소역")) {
+        return 17;
+      }
+      
+      if (e.includes("서울역")) return 55;
+      if (e.includes("학교")) return 12;
+      if (e.includes("마트")) return 8;
+      
+      return Math.floor(Math.random() * 35) + 10;
+    }
+
+    // 실시간 무작위 추천 알고리즘 (현실 경로 소요 시간 적용)
+    function generateCurationResults(start, destination) {
+      const container = document.getElementById('recommendationsList');
+      container.innerHTML = '';
+
+      const baseWalkMin = estimateBaseWalkMinutes(start, destination);
+
+      const shuffled = [...baseRecommendationPool].sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 3);
+
+      selected.forEach(item => {
+        let calculatedTime = Math.round(baseWalkMin * item.speedFactor);
+        if (calculatedTime < item.minTime) {
+          calculatedTime = item.minTime;
+        }
+
+        const div = document.createElement('div');
+        div.className = "bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-slate-100 shadow-sm space-y-3";
+        
+        const dateNow = new Date();
+        const currentHour = dateNow.getHours();
+        let personalReason = item.desc;
+        
+        if (currentHour >= 18 || currentHour <= 6) {
+          personalReason = `🌙 늦은 밤 이동이네요! 안심하고 신속하게 가실 수 있도록 ${item.title}을(를) 정성껏 추천합니다. ${item.desc}`;
+        } else if (document.getElementById('weatherEmoji').innerText === "☔") {
+          personalReason = `☔ 지금 바깥에 비가 내리고 있어요! 우산 속에서도 젖지 않게 최적 경로를 잡은 ${item.title}으로 안전하게 타세요!`;
+        }
+
+        if (destination.includes("덕소역")) {
+          if (item.id === "kickboard") {
+            personalReason = `🛴 덕소중·덕소고 옆 우회 보행자길 및 평탄한 전용 인도 경로를 타면 신호 대기 없이 약 ${calculatedTime}분 만에 안전하게 도착해요!`;
+          } else if (item.id.includes("taxi")) {
+            personalReason = `🚕 단지 앞 사거리 정체를 영리하게 피해 삼패삼거리 방향 우회로로 진입해 단 ${calculatedTime}분 만에 덕소역에 데려다 드려요.`;
+          }
+        }
+
+        div.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-indigo-50 text-indigo-600 mb-1">${item.badge}</span>
+              <h5 class="font-extrabold text-sm text-slate-800">${item.title}</h5>
+            </div>
+            <span class="text-xs font-black text-rose-500">${calculatedTime}분 소요</span>
+          </div>
+          <p class="text-xs text-slate-500 leading-relaxed">${personalReason}</p>
+          <button onclick="handleCurationAction('${item.id}', '${item.title}', ${calculatedTime})" class="w-full py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-[11px] font-bold text-slate-700 transition flex items-center justify-center space-x-1.5">
+            <i data-lucide="chevrons-right" class="w-3.5 h-3.5"></i>
+            <span>${item.actionText}</span>
+          </button>
+        `;
+        container.appendChild(div);
+      });
+
+      const mapLinkContainer = document.getElementById('naverMapLinkContainer');
+      const naverMapUrl = `https://map.naver.com/v5/search/${encodeURIComponent(destination)}`;
+      
+      mapLinkContainer.innerHTML = `
+        <a href="${naverMapUrl}" target="_blank" rel="noopener noreferrer" class="w-full py-4 rounded-2xl text-white font-bold custom-gradient-bg shadow-md hover:brightness-110 active:scale-98 transition flex items-center justify-center space-x-2 text-sm">
+          <i data-lucide="map" class="w-4 h-4"></i>
+          <span>네이버 지도로 정밀 길 찾기 이동</span>
+        </a>
+      `;
+
+      lucide.createIcons();
+    }
+
+    // 각 이동수단 추천카드의 상세 액션 처리
+    function handleCurationAction(id, title, calculatedTime) {
+      if (id.includes('taxi')) {
+        showGeneralModal("🚕 에이택시 호출 완료", `가장 가까운 덕소 인근 에이 전용 안심 택시가 자동 매칭되었습니다! 약 ${calculatedTime}분 뒤에 주공아파트 단지 입구 앞으로 도착합니다.`, "car");
+      } else if (id.includes('bus')) {
+        showGeneralModal("🚌 정류장 실시간 정보", "해당 버스 노선은 교통량 분석 결과, 지연 없이 정시간대에 정류장을 지나갑니다. 정류장에서의 남은 예상 대기시간은 약 3분입니다.", "bus");
+      } else if (id.includes('subway')) {
+        showGeneralModal("🚇 지하철 게이트 안심 연동", "가장 빠르게 환승하여 탑승할 수 있는 열차가 하선 플랫폼에 접근 중입니다. 안심하고 안전선 안쪽에서 대기해주세요.", "check-circle");
+      } else if (id === 'kickboard') {
+        showGeneralModal("🛴 안전 스마트 킥보드 잠금해제", `주공2단지 상가 옆에 비치된 전용 에이킥보드가 성공적으로 준비 완료되었습니다! 헬멧을 꼭 챙기시고 안전운전해서 ${calculatedTime}분 안에 덕소역에 도착해 보아요!`, "navigation");
+      } else {
+        showGeneralModal(`${title} 가이드 작동`, "에이시스템의 전용 실시간 GPS 내비게이션 추적이 연동되었습니다. 네이버 지도로 넘어가 정밀 상세 길을 확인해보세요!", "navigation");
+      }
+    }
+
+    // 모달창 알림 제어
+    function showGeneralModal(title, message, iconName = 'info') {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalMessage').innerText = message;
+      
+      const iconContainer = document.getElementById('modalIconContainer');
+      iconContainer.innerHTML = `<i data-lucide="${iconName}" class="w-6 h-6"></i>`;
+      lucide.createIcons();
+
+      document.getElementById('generalModal').classList.remove('hidden');
+    }
+
+    function closeGeneralModal() {
+      document.getElementById('generalModal').classList.add('hidden');
+    }
+
+    // 사이드바 메뉴 열고 닫기
+    function openMenuSidebar() {
+      const sidebar = document.getElementById('sidebarMenu');
+      const content = document.getElementById('sidebarContent');
+      sidebar.classList.remove('hidden');
+      setTimeout(() => {
+        content.classList.remove('-translate-x-full');
+      }, 50);
+    }
+
+    function closeMenuSidebar() {
+      const sidebar = document.getElementById('sidebarMenu');
+      const content = document.getElementById('sidebarContent');
+      content.classList.add('-translate-x-full');
+      setTimeout(() => {
+        sidebar.classList.add('hidden');
+      }, 300);
+    }
+
+    // 유저 정보 초기화
+    function resetUserInfo() {
+      closeMenuSidebar();
+      userName = "멋쟁이길잡이";
+      userRegion = "덕소주공2단지";
+      document.getElementById('userNameInput').value = '';
+      document.getElementById('userRegionInput').value = '';
+      changeScreen('stepOnboarding');
+    }
+
+    // 퀵메뉴 모형 알림 모달 연동
+    function openMockModal(type) {
+      closeMenuSidebar();
+      if (type === 'cctv') {
+        viewRealisticCctvModal();
+      } else if (type === 'taxi') {
+        showGeneralModal("🚕 에이 스마트 예약 콜", "출발지와 목적지를 분석하여, 대기 차량을 인근 200m 안으로 사전에 공조 호출할 수 있는 통합 관제실입니다.", "car");
+      } else if (type === 'accident') {
+        showGeneralModal("🚨 실시간 안전 속보", "덕소 주공2단지 앞 주요 교차로 주변에 현재 특별한 공사나 사고 유발 구간은 감지되지 않았습니다. 안심하고 이동해 주세요!", "shield-alert");
+      } else if (type === 'setting') {
+        showGeneralModal("⚙ 에이시스템 환경설정", "안심 경로 우선 탐색 ON, 고령자/미성년 보행 편의 길잡이 가동, 버튼 테마 팔레트 연계 등 모든 기기 통제 센터가 완벽히 동작 중입니다.", "sliders");
+      }
+    }
+
+    function showAccidentDetails() {
+      openMockModal('accident');
+    }
+
+
+    /* ==================== ★ 실제 교통 비디오 연동 및 제어 시스템 ★ ==================== */
+    
+    // 모달창 오픈 및 비디오 시동
+    function viewRealisticCctvModal() {
+      closeMenuSidebar();
+      document.getElementById('realisticCctvModal').classList.remove('hidden');
+      
+      // 비디오 채널 로드 및 재생 강제화
+      loadCctvChannel(currentCctvChannel);
+    }
+
+    // 모달 닫기
+    function closeRealisticCctvModal() {
+      document.getElementById('realisticCctvModal').classList.add('hidden');
+      const video = document.getElementById('realisticCctvVideo');
+      if (video) {
+        video.pause();
+      }
+    }
+
+    // 채널 로드 및 실제 주행 비디오 융합
+    function loadCctvChannel(idx) {
+      const data = cctvChannels[idx];
+      document.getElementById('cctvModalTitleText').innerText = data.title;
+      document.getElementById('cctvAgencyText').innerText = data.agency;
+      document.getElementById('cctvTopRightInfo').innerText = data.topRight;
+      document.getElementById('cctvBottomCenterLabel').innerText = data.bottomCenter;
+      
+      document.getElementById('cctvLeftIndicator').innerHTML = `<span>⬇</span> <span>${data.leftText}</span>`;
+      document.getElementById('cctvRightIndicator').innerHTML = `<span>${data.rightText}</span> <span>⬆</span>`;
+
+      // 비디오 요소 추출 및 Source 교체 (진짜 비디오 연동 핵심)
+      const video = document.getElementById('realisticCctvVideo');
+      const source = document.getElementById('cctvVideoSource');
+      
+      if (video && source) {
+        source.src = data.videoUrl;
+        video.load(); // 새로운 비디오 리소스 로드 강제화
+        
+        // 아이프레임/모바일 브라우저 무음 자동재생 보안 준수
+        video.muted = true;
+        video.play().catch(err => {
+          console.log("비디오 자동재생 제한 우회 중:", err);
+        });
+      }
+    }
+
+    // 이전/다음 화살표 버튼 클릭 시 진짜 비디오 채널 전환
+    function cycleCctvChannel(dir) {
+      currentCctvChannel += dir;
+      if (currentCctvChannel >= cctvChannels.length) currentCctvChannel = 0;
+      if (currentCctvChannel < 0) currentCctvChannel = cctvChannels.length - 1;
+      
+      loadCctvChannel(currentCctvChannel);
+    }
+
+    // 실제 네이버 지도 앱의 CCTV 마커 즉시 보기 링크 연동
+    function launchRealNaverMapCctv() {
+      const currentData = cctvChannels[currentCctvChannel];
+      const query = encodeURIComponent(currentData.query);
+      
+      // 모바일 최적화 CCTV 지도로 연결하여 팝업 즉시 확인 가능하게 연계
+      const targetUrl = `https://m.map.naver.com/search2/search.naver?query=${query}&sm=hty`;
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    }
+  </script>
+</body>
+</html>
